@@ -1,0 +1,14 @@
+flowchart LR
+    A[Клиент: Swagger, curl, CLI] --> B[FastAPI POST /ingest]
+    B --> C[Реестр сценариев]
+    C --> D[Prompt builder]
+    D --> E[AITUNNEL LLM: json_object, temp 0.2]
+    E --> F[JSON parse]
+    F --> G[Pydantic validation]
+    G --> H[QC и эскалация]
+    H --> I[(SQLite: processing_log)]
+    H --> J[(SQLite: business_results)]
+    I --> K[Ответ: status, result, meta]
+    J --> K
+    K --> L[GET /results, /audit, /stats]
+    J --> M[CSV / JSONL export]
