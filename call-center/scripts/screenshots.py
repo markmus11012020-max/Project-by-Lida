@@ -101,6 +101,32 @@ def main() -> int:
                 clip={"x": 0, "y": 0, "width": 1440, "height": 900},
             )
 
+            # Wide-screen checks: 1920 and 2560, above the fold.
+            for width, height, filename in (
+                (1920, 1080, "landing_1920.png"),
+                (2560, 1440, "landing_2560.png"),
+            ):
+                wide = browser.new_page(
+                    viewport={"width": width, "height": height},
+                    device_scale_factor=1,
+                )
+                wide.goto(f"{BASE_URL}/", wait_until="networkidle")
+                wide.wait_for_timeout(500)
+                wide.screenshot(path=str(SCREENSHOTS / filename))
+                wide.close()
+
+            mobile = browser.new_page(
+                viewport={"width": 390, "height": 844},
+                device_scale_factor=1,
+            )
+            mobile.goto(f"{BASE_URL}/", wait_until="networkidle")
+            mobile.wait_for_timeout(500)
+            mobile.screenshot(
+                path=str(SCREENSHOTS / "landing_mobile.png"),
+                full_page=True,
+            )
+            mobile.close()
+
             browser.close()
         print(f"Готово: {SCREENSHOTS}")
         return 0

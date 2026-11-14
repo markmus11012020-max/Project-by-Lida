@@ -9,7 +9,7 @@ CallPilot расшифровывает звонки, собирает карто
 ## Что внутри демо
 
 - 6 синтетических звонков: доставка, возврат, техническая ошибка, жалоба, смена адреса, плохая связь.
-- Синтетическое аудио двумя голосами (AITUNNEL TTS).
+- Синтетическое аудио двумя нативными русскими голосами (edge-tts).
 - Транскрипт с таймкодами.
 - Карточка звонка: интент, резюме, решение, следующий шаг, поля CRM.
 - QA-чек-лист из 10 критериев с цитатами и severity.
@@ -23,6 +23,9 @@ CallPilot расшифровывает звонки, собирает карто
 | Экран | Файл |
 |---|---|
 | Landing | `screenshots/landing.png` |
+| Landing, 1920 | `screenshots/landing_1920.png` |
+| Landing, 2560 | `screenshots/landing_2560.png` |
+| Landing, мобильный | `screenshots/landing_mobile.png` |
 | Dashboard | `screenshots/dashboard.png` |
 | Карточка звонка | `screenshots/call_detail.png` |
 | QA-аналитика | `screenshots/qa.png` |
@@ -154,9 +157,9 @@ call-center/
 .venv\Scripts\python.exe call-center\scripts\record_demo.py
 ```
 
-`seed_demo.py` и `build_demo_audio.py` тратят деньги на AITUNNEL. Скриншоты и сам интерфейс работают на кэше.
+`seed_demo.py` тратит деньги на AITUNNEL. `build_demo_audio.py` использует бесплатный edge-tts с нативными русскими голосами. Скриншоты и сам интерфейс работают на кэше.
 
-`record_demo.py` записывает демо-видео на 2 минуты: Playwright проходит по интерфейсу, AITUNNEL TTS озвучивает сценарий, ffmpeg собирает MP4. Результат: `demo/callpilot-demo.mp4`. Видео не коммитится, генерируется локально.
+`record_demo.py` записывает демо-видео на 2 минуты: Playwright проходит по интерфейсу, edge-tts озвучивает сценарий нативным русским голосом, ffmpeg собирает MP4. Результат: `demo/callpilot-demo.mp4`. Видео не коммитится, генерируется локально.
 
 ## Деплой
 

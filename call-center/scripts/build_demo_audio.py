@@ -1,7 +1,4 @@
-"""Generate synthetic demo call audio.
-
-Primary TTS: AITUNNEL gpt-4o-mini-tts (onyx for operator, nova for client).
-Fallback: edge-tts Russian voices.
+"""Generate synthetic demo call audio with native Russian edge-tts voices.
 
 Run from the project root:
     .venv\\Scripts\\python.exe call-center\\scripts\\build_demo_audio.py
@@ -17,20 +14,15 @@ import asyncio
 import json
 import subprocess
 import sys
-from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
 import edge_tts
 import imageio_ffmpeg
 from mutagen.mp3 import MP3
-from openai import OpenAI
 
 ROOT = Path(__file__).resolve().parent.parent
-PROJECT_ROOT = ROOT.parent
 sys.path.insert(0, str(ROOT))
-sys.path.insert(0, str(PROJECT_ROOT))
 
-from app.config import get_settings  # noqa: E402
 from demo_data import DEMO_CALLS  # noqa: E402
 
 CACHE_DIR = ROOT / ".cache" / "tts"
@@ -38,16 +30,13 @@ AUDIO_DIR = ROOT / "static" / "audio"
 DATA_DIR = ROOT / "data"
 PAUSE_MS = 350
 
-AITUNNEL_VOICES = {
-    "Оператор": "onyx",
-    "Клиент": "nova",
-}
-AITUNNEL_INSTRUCTIONS = {
-    "Оператор": "Спокойный, доброжелательный голос оператора колл-центра.",
-    "Клиент": "Естественная разговорная речь клиента колл-центра.",
-}
-EDGE_VOICES = {
+# Native Russian voices only. No English-accented fallbacks.
+VOICES = {
     "Оператор": "ru-RU-DmitryNeural",
+    "Клиент": "ru-RU-SvetlanaNeural",
+}
+FALLBACK_VOICES = {
+    "Оператор": "ru-RU-SvetlanaNeural",
     "Клиент": "ru-RU-SvetlanaNeural",
 }
 
@@ -56,6 +45,47 @@ def _configure_stdout() -> None:
     for stream in (sys.stdout, sys.stderr):
         if hasattr(stream, "reconfigure"):
             stream.reconfigure(encoding="utf-8")
+
+
+async def _synthesize(
+    text: str,
+    speaker: str,
+    target: Path,
+    semaphore: asyncio.Semaphore,
+) -> str:
+    if target.exists() and target.stat().st_size > 1000:
+        return "cached"
+
+    async with semaphore:
+        last_error: Exception | None = None
+        voice = VOICES[speaker]
+        for attempt in range(1, 6):
+            try:
+                communicate = edge_tts.Communicate(text, voice)
+                await communicate.save(str(target))
+                if target.exists() and target.stat().st_size > 1000:
+                    return voice
+            except Exception as exc:
+                last_error = exc
+                await asyncio.sleep(1.2 * attempt)
+
+        # Fallback: still native Russian, slightly lower/slower operator voice.
+        fallback = FALLBACK_VOICES[speaker]
+        rate = "-6%" if speaker == "Оператор" else "+2%"
+        pitch = "-18Hz" if speaker == "Оператор" else "+2Hz"
+        for attempt in range(1, 4):
+            try:
+                communicate = edge_tts.Communicate(
+                    text, fallback, rate=rate, pitch=pitch
+                )
+                await communicate.save(str(target))
+                if target.exists() and target.stat().st_size > 1000:
+                    return fallback
+            except Exception as exc:
+                last_error = exc
+                await asyncio.sleep(1.2 * attempt)
+
+    raise RuntimeError(f"TTS failed for {target.name}: {last_error}")
 
 
 def _duration_ms(path: Path) -> int:
@@ -136,59 +166,10 @@ def _concat(ffmpeg: str, files: list[Path], target: Path) -> None:
         )
 
 
-def _synthesize_aitunnel(
-    client: OpenAI,
-    text: str,
-    speaker: str,
-    target: Path,
-) -> None:
-    if target.exists() and target.stat().st_size > 1000:
-        return
-    response = client.audio.speech.create(
-        model="gpt-4o-mini-tts",
-        voice=AITUNNEL_VOICES[speaker],
-        input=text,
-        instructions=AITUNNEL_INSTRUCTIONS[speaker],
-        response_format="mp3",
-    )
-    target.write_bytes(response.content)
-
-
-def _synthesize_edge(text: str, speaker: str, target: Path) -> None:
-    if target.exists() and target.stat().st_size > 1000:
-        return
-    asyncio.run(
-        edge_tts.Communicate(text, EDGE_VOICES[speaker]).save(str(target))
-    )
-
-
-def _synthesize(
-    client: OpenAI,
-    text: str,
-    speaker: str,
-    target: Path,
-) -> tuple[str, str]:
-    try:
-        _synthesize_aitunnel(client, text, speaker, target)
-        return target.name, "aitunnel"
-    except Exception as exc:
-        print(f"  AITUNNEL TTS failed for {target.name}: {exc}")
-        _synthesize_edge(text, speaker, target)
-        return target.name, "edge"
-
-
-def main() -> int:
+async def main() -> int:
     _configure_stdout()
     for directory in (CACHE_DIR, AUDIO_DIR, DATA_DIR):
         directory.mkdir(parents=True, exist_ok=True)
-
-    settings = get_settings()
-    if not settings.llm_configured:
-        print("AITUNNEL_API_KEY не настроен, будет использован edge-tts.")
-    client = OpenAI(
-        api_key=settings.aitunnel_api_key,
-        base_url=settings.aitunnel_base_url,
-    )
 
     ffmpeg = imageio_ffmpeg.get_ffmpeg_exe()
     silence = CACHE_DIR / "silence_350.mp3"
@@ -205,18 +186,17 @@ def main() -> int:
                 )
             )
 
-    print(f"Генерирую {len(jobs)} реплик...")
-    engines: dict[str, int] = {"aitunnel": 0, "edge": 0}
-    with ThreadPoolExecutor(max_workers=3) as executor:
-        futures = [
-            executor.submit(_synthesize, client, text, speaker, target)
-            for text, speaker, target in jobs
-        ]
-        for index, future in enumerate(as_completed(futures), start=1):
-            name, engine = future.result()
-            engines[engine] = engines.get(engine, 0) + 1
-            print(f"  [{index:02d}/{len(jobs)}] {name} ({engine})")
-    print(f"Готово: {engines}")
+    print(f"Генерирую {len(jobs)} реплик русскими голосами edge-tts...")
+    semaphore = asyncio.Semaphore(2)
+    tasks = [
+        _synthesize(text, speaker, target, semaphore)
+        for text, speaker, target in jobs
+    ]
+    results = await asyncio.gather(*tasks)
+    for index, (voice, (text, speaker, target)) in enumerate(
+        zip(results, jobs), start=1
+    ):
+        print(f"  [{index:02d}/{len(jobs)}] {target.name} ({voice})")
 
     manifest: dict[str, dict] = {}
     for call in DEMO_CALLS:
@@ -260,4 +240,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(asyncio.run(main()))

@@ -14,25 +14,18 @@ The demo database is reset after recording.
 from __future__ import annotations
 
 import asyncio
-import json
 import subprocess
 import sys
 import time
 from pathlib import Path
-from typing import Callable
 
 import edge_tts
 import httpx
 import imageio_ffmpeg
 from mutagen.mp3 import MP3
-from openai import OpenAI
 from playwright.sync_api import sync_playwright
 
 CALL_CENTER_DIR = Path(__file__).resolve().parent.parent
-PROJECT_ROOT = CALL_CENTER_DIR.parent
-sys.path.insert(0, str(PROJECT_ROOT))
-
-from app.config import get_settings  # noqa: E402
 
 DEMO_DIR = CALL_CENTER_DIR / "demo"
 RAW_DIR = DEMO_DIR / "raw"
@@ -48,29 +41,25 @@ def _configure_stdout() -> None:
             stream.reconfigure(encoding="utf-8")
 
 
-def _tts(
-    client: OpenAI | None,
-    text: str,
-    target: Path,
-) -> None:
+def _tts(text: str, target: Path) -> None:
     if target.exists() and target.stat().st_size > 1000:
         return
-    if client is not None:
+    last_error: Exception | None = None
+    for attempt in range(1, 4):
         try:
-            response = client.audio.speech.create(
-                model="gpt-4o-mini-tts",
-                voice="nova",
-                input=text,
-                instructions="Спокойный, уверенный голос презентатора продукта.",
-                response_format="mp3",
+            asyncio.run(
+                edge_tts.Communicate(
+                    text,
+                    "ru-RU-SvetlanaNeural",
+                    rate="-2%",
+                ).save(str(target))
             )
-            target.write_bytes(response.content)
-            return
+            if target.exists() and target.stat().st_size > 1000:
+                return
         except Exception as exc:
-            print(f"  AITUNNEL TTS failed: {exc}")
-    asyncio.run(
-        edge_tts.Communicate(text, "ru-RU-SvetlanaNeural").save(str(target))
-    )
+            last_error = exc
+            time.sleep(1.5 * attempt)
+    raise RuntimeError(f"Native Russian TTS failed: {last_error}")
 
 
 def _duration_ms(path: Path) -> int:
@@ -146,16 +135,6 @@ def main() -> int:
     _configure_stdout()
     for directory in (DEMO_DIR, RAW_DIR, TTS_DIR):
         directory.mkdir(parents=True, exist_ok=True)
-
-    settings = get_settings()
-    client = (
-        OpenAI(
-            api_key=settings.aitunnel_api_key,
-            base_url=settings.aitunnel_base_url,
-        )
-        if settings.llm_configured
-        else None
-    )
 
     scenes: list[dict] = [
         {
@@ -257,7 +236,7 @@ def main() -> int:
     voice_files: list[Path] = []
     for scene in scenes:
         target = TTS_DIR / f"scene_{scene['id']}.mp3"
-        _tts(client, scene["text"], target)
+        _tts(scene["text"], target)
         scene["duration_ms"] = _duration_ms(target)
         voice_files.append(target)
         print(f"  scene {scene['id']}: {scene['duration_ms'] / 1000:.1f} c")
