@@ -7,7 +7,8 @@ Output:
     call-center/demo/callpilot-demo.mp4
 
 The script starts the app, records a browser walkthrough with Playwright,
-generates scene narration with AITUNNEL TTS, and combines both with ffmpeg.
+generates scene narration with native Russian edge-tts (with intonation pauses
+at punctuation), and combines both with ffmpeg.
 The demo database is reset after recording.
 """
 
@@ -34,6 +35,18 @@ FINAL_VIDEO = DEMO_DIR / "callpilot-demo.mp4"
 BASE_URL = "http://127.0.0.1:8020"
 PAUSE_MS = 450
 
+# Natural Russian intonation pauses at punctuation boundaries.
+PAUSE_BY_MARK = {
+    ".": 360,
+    "!": 420,
+    "?": 420,
+    "…": 500,
+    ";": 280,
+    ":": 280,
+    ",": 140,
+    "dash": 220,
+}
+
 
 def _configure_stdout() -> None:
     for stream in (sys.stdout, sys.stderr):
@@ -41,25 +54,151 @@ def _configure_stdout() -> None:
             stream.reconfigure(encoding="utf-8")
 
 
-def _tts(text: str, target: Path) -> None:
+def _split_for_tts(text: str) -> list[tuple[str, int]]:
+    """Split narration into clauses, keeping punctuation and pause length.
+
+    This makes Russian intonation explicit: comma, dash, colon and sentence
+    endings get their own short pauses instead of relying on the TTS defaults.
+    """
+
+    chunks: list[tuple[str, int]] = []
+    buffer: list[str] = []
+    index = 0
+    length = len(text)
+
+    while index < length:
+        char = text[index]
+
+        # A spaced dash is a separate intonation pause.
+        if (
+            char in "—–"
+            and index > 0
+            and text[index - 1].isspace()
+            and index + 1 < length
+            and text[index + 1].isspace()
+        ):
+            chunk = "".join(buffer).strip()
+            if chunk:
+                chunks.append((chunk, PAUSE_BY_MARK["dash"]))
+            buffer = []
+            index += 1
+            while index < length and text[index].isspace():
+                index += 1
+            continue
+
+        buffer.append(char)
+        if char in ".!?…;:,":
+            cursor = index + 1
+            while cursor < length and text[cursor] in "»”’\"')]":
+                buffer.append(text[cursor])
+                cursor += 1
+            if cursor >= length or text[cursor].isspace():
+                chunk = "".join(buffer).strip()
+                if chunk:
+                    chunks.append((chunk, PAUSE_BY_MARK.get(char, 0)))
+                buffer = []
+                index = cursor
+                while index < length and text[index].isspace():
+                    index += 1
+                continue
+        index += 1
+
+    tail = "".join(buffer).strip()
+    if tail:
+        chunks.append((tail, 0))
+    return chunks
+
+
+def _make_silence(ffmpeg: str, target: Path, duration_ms: int) -> None:
     if target.exists() and target.stat().st_size > 1000:
         return
-    last_error: Exception | None = None
-    for attempt in range(1, 4):
-        try:
-            asyncio.run(
-                edge_tts.Communicate(
+    subprocess.run(
+        [
+            ffmpeg,
+            "-y",
+            "-f",
+            "lavfi",
+            "-i",
+            "anullsrc=r=24000:cl=mono",
+            "-t",
+            f"{duration_ms / 1000:.3f}",
+            "-c:a",
+            "libmp3lame",
+            "-b:a",
+            "48k",
+            str(target),
+        ],
+        check=True,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
+
+
+async def _synthesize_chunk(
+    text: str,
+    target: Path,
+    semaphore: asyncio.Semaphore,
+) -> None:
+    if target.exists() and target.stat().st_size > 1000:
+        return
+    async with semaphore:
+        last_error: Exception | None = None
+        for attempt in range(1, 4):
+            try:
+                await edge_tts.Communicate(
                     text,
                     "ru-RU-SvetlanaNeural",
                     rate="-2%",
                 ).save(str(target))
-            )
-            if target.exists() and target.stat().st_size > 1000:
-                return
-        except Exception as exc:
-            last_error = exc
-            time.sleep(1.5 * attempt)
-    raise RuntimeError(f"Native Russian TTS failed: {last_error}")
+                if target.exists() and target.stat().st_size > 1000:
+                    return
+            except Exception as exc:
+                last_error = exc
+                await asyncio.sleep(1.5 * attempt)
+        raise RuntimeError(f"Native Russian TTS failed for {target.name}: {last_error}")
+
+
+async def _build_scene_audio(
+    ffmpeg: str,
+    text: str,
+    target: Path,
+) -> None:
+    if target.exists() and target.stat().st_size > 1000:
+        return
+    chunks = _split_for_tts(text)
+    if not chunks:
+        raise RuntimeError("Empty TTS text")
+
+    semaphore = asyncio.Semaphore(3)
+    part_dir = TTS_DIR / "parts" / target.stem
+    part_dir.mkdir(parents=True, exist_ok=True)
+
+    async def synth(index: int, chunk: str) -> Path:
+        part = part_dir / f"{index:02d}.mp3"
+        await _synthesize_chunk(chunk, part, semaphore)
+        return part
+
+    parts = await asyncio.gather(
+        *[
+            synth(index, chunk)
+            for index, (chunk, _pause) in enumerate(chunks, start=1)
+        ]
+    )
+
+    files: list[Path] = []
+    for index, ((_chunk, pause_ms), part) in enumerate(zip(chunks, parts)):
+        files.append(part)
+        if index < len(chunks) - 1 and pause_ms > 0:
+            silence = TTS_DIR / f"silence_{pause_ms}.mp3"
+            _make_silence(ffmpeg, silence, pause_ms)
+            files.append(silence)
+
+    _concat_audio(ffmpeg, files, target)
+    total_pause = sum(pause for _chunk, pause in chunks[:-1])
+    print(
+        f"    {target.name}: {len(chunks)} фраз, "
+        f"паузы {total_pause} мс"
+    )
 
 
 def _duration_ms(path: Path) -> int:
@@ -78,7 +217,7 @@ def _wait_for_server(timeout: int = 60) -> bool:
 
 
 def _concat_audio(ffmpeg: str, files: list[Path], target: Path) -> None:
-    list_file = TTS_DIR / "voiceover_concat.txt"
+    list_file = TTS_DIR / f"{target.stem}_concat.txt"
     lines = [
         f"file '{file.resolve().as_posix()}'" for file in files
     ]
@@ -232,38 +371,21 @@ def main() -> int:
         },
     ]
 
-    print("Генерирую озвучку...")
+    ffmpeg = imageio_ffmpeg.get_ffmpeg_exe()
+
+    print("Генерирую озвучку с паузами на знаках препинания...")
     voice_files: list[Path] = []
     for scene in scenes:
         target = TTS_DIR / f"scene_{scene['id']}.mp3"
-        _tts(scene["text"], target)
+        asyncio.run(
+            _build_scene_audio(ffmpeg, scene["text"], target)
+        )
         scene["duration_ms"] = _duration_ms(target)
         voice_files.append(target)
         print(f"  scene {scene['id']}: {scene['duration_ms'] / 1000:.1f} c")
 
-    ffmpeg = imageio_ffmpeg.get_ffmpeg_exe()
     silence = TTS_DIR / "silence_450.mp3"
-    if not silence.exists():
-        subprocess.run(
-            [
-                ffmpeg,
-                "-y",
-                "-f",
-                "lavfi",
-                "-i",
-                "anullsrc=r=24000:cl=mono",
-                "-t",
-                "0.45",
-                "-c:a",
-                "libmp3lame",
-                "-b:a",
-                "48k",
-                str(silence),
-            ],
-            check=True,
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-        )
+    _make_silence(ffmpeg, silence, 450)
     concat_files: list[Path] = []
     for index, file in enumerate(voice_files):
         concat_files.append(file)
