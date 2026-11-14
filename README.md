@@ -264,6 +264,7 @@ docs/reference/Тех Задание_Шаблон .txt — исходный ша
 start.bat — быстрый запуск на Windows.
 scripts/stop_server.ps1 — остановка старого uvicorn перед запуском.
 call-center/README.md — приложение CallPilot для колл-центров.
+call-center/DESIGN_SYSTEM.md — дизайн-система и настройки CallPilot.
 call-center/OFFER.md — адресное коммерческое предложение.
 call-center/OUTREACH.md — шаблоны точечной рассылки.
 call-center/screenshots/ — скриншоты CallPilot.
