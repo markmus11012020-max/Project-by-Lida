@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Оффер CallPilot — пилот для колл-центра</title>
+  <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body class="marketing-body offer-body">
+<header class="marketing-nav offer-nav">
+  <a class="brand brand-dark" href="/">
+    <img src="/static/logo.svg" alt="CallPilot" width="42" height="42">
+    <span>CallPilot</span>
+  </a>
+  <div class="marketing-actions">
+    <a class="btn btn-ghost" href="/dashboard">Открыть демо</a>
+    <button class="btn btn-primary" type="button" onclick="window.print()">Скачать PDF</button>
+  </div>
+</header>
+
+<main class="offer-page">
+  <section class="offer-hero">
+    <div class="eyebrow">Коммерческое предложение</div>
+    <h1>100% контроль качества звонков за 2 недели</h1>
+    <p class="hero-lead">CallPilot расшифровывает все звонки, собирает карточку в CRM и проверяет качество по вашему чек-листу. Менеджер смотрит только нарушения и спорные случаи.</p>
+    <div class="offer-meta">
+      <span>Пилот: 100–300 звонков</span>
+      <span>Срок: 2 недели</span>
+      <span>Без замены операторов</span>
+    </div>
+  </section>
+
+  <section class="offer-grid">
+    <article class="offer-card">
+      <div class="eyebrow">Проблема</div>
+      <h2>Где колл-центр теряет деньги</h2>
+      <ul class="check-list">
+        <li>QA слушает 2–5% звонков, остальное — слепая зона.</li>
+        <li>Оператор тратит 2–5 минут после звонка на CRM и резюме.</li>
+        <li>Жалобы и нарушения всплывают постфактум.</li>
+        <li>Нет единой картины: какие темы, ошибки и пробелы в обучении.</li>
+      </ul>
+    </article>
+    <article class="offer-card offer-card-accent">
+      <div class="eyebrow">Решение</div>
+      <h2>AI-контролёр и постобработка</h2>
+      <ul class="check-list">
+        <li>Расшифровка 100% звонков.</li>
+        <li>Карточка, резюме и следующий шаг — автоматически.</li>
+        <li>QA-чек-лист с цитатами и таймкодами.</li>
+        <li>В ручную проверку — только исключения.</li>
+        <li>Аудит: что нашла модель и что подтвердил человек.</li>
+      </ul>
+    </article>
+  </section>
+
+  <section class="offer-section">
+    <div class="section-head">
+      <div class="eyebrow">Что входит в пилот</div>
+      <h2>От записи до цифр</h2>
+    </div>
+    <div class="offer-steps">
+      <div><span>01</span><strong>Аудит</strong><p>Смотрим текущий QA, скрипты и метрики.</p></div>
+      <div><span>02</span><strong>Настройка</strong><p>Собираем чек-лист и схему карточки под ваш процесс.</p></div>
+      <div><span>03</span><strong>Прогон</strong><p>Обрабатываем 100–300 звонков и сверяем с ручной проверкой.</p></div>
+      <div><span>04</span><strong>Отчёт</strong><p>Показываем покрытие QA, auto-pass, нарушения, правки и экономику.</p></div>
+    </div>
+  </section>
+
+  <section class="offer-section">
+    <div class="section-head">
+      <div class="eyebrow">Метрики пилота</div>
+      <h2>Что вы увидите через 2 недели</h2>
+    </div>
+    <div class="offer-metrics">
+      <div><strong>100%</strong><span>звонков проверено</span></div>
+      <div><strong>−40%</strong><span>цель по времени постобработки</span></div>
+      <div><strong>только исключения</strong><span>уходят менеджеру</span></div>
+      <div><strong>{{ metrics.cost_per_call_rub }} ₽</strong><span>LLM-разбор в демо</span></div>
+    </div>
+  </section>
+
+  <section class="offer-section offer-economics">
+    <div>
+      <div class="eyebrow">Экономика</div>
+      <h2>Считаем на ваших звонках</h2>
+      <p class="muted">В демо — 6 синтетических звонков. В пилоте считаем на ваших записях: время оператора, стоимость разбора, доля auto-pass и ручных проверок, найденные нарушения.</p>
+    </div>
+    <div class="offer-price">
+      <span class="muted small">Пилот 100–300 звонков</span>
+      <strong>Стоимость по запросу</strong>
+      <span class="muted small">Фиксированная цена за этап, без скрытых платежей</span>
+    </div>
+  </section>
+
+  <section class="offer-cta">
+    <div>
+      <div class="eyebrow">Следующий шаг</div>
+      <h2>Покажем демо на ваших примерах</h2>
+      <p>Пришлите 5–10 обезличенных звонков или просто опишите процесс. Покажем, как CallPilot встроится в ваш QA и CRM.</p>
+    </div>
+    <div class="offer-contact">
+      <a class="btn btn-primary btn-large" href="mailto:hello@callpilot.demo">Обсудить пилот</a>
+      <a class="btn btn-ghost btn-large" href="/dashboard">Открыть демо</a>
+      <span class="muted small">hello@callpilot.demo · заменить на ваш контакт</span>
+    </div>
+  </section>
+</main>
+
+<footer class="marketing-footer">
+  <div class="brand brand-dark">
+    <img src="/static/logo.svg" alt="CallPilot" width="36" height="36">
+    <span>CallPilot</span>
+  </div>
+  <p>Демо на синтетических данных. Пилот — на ваших обезличенных звонках.</p>
+</footer>
+</body>
+</html>

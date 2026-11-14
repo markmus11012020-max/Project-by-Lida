@@ -12,6 +12,7 @@ class ScenarioKey(str, Enum):
     SUPPORT = "support"
     SALES = "sales"
     DOCUMENTS = "documents"
+    CALL_QA = "call_qa"
 
 
 class ProcessStatus(str, Enum):
@@ -55,6 +56,77 @@ class DocumentCategory(str, Enum):
     BRIEF = "brief"
     CONTRACT = "contract"
     OTHER = "other"
+
+
+class CallType(str, Enum):
+    INBOUND = "inbound"
+    OUTBOUND = "outbound"
+
+
+class CallIntent(str, Enum):
+    ORDER_STATUS = "order_status"
+    DELIVERY = "delivery"
+    REFUND = "refund"
+    BILLING = "billing"
+    TECHNICAL = "technical"
+    COMPLAINT = "complaint"
+    CONSULTATION = "consultation"
+    OTHER = "other"
+
+
+class CallSentiment(str, Enum):
+    POSITIVE = "positive"
+    NEUTRAL = "neutral"
+    NEGATIVE = "negative"
+
+
+class QAFindingStatus(str, Enum):
+    PASS = "pass"
+    FAIL = "fail"
+    NA = "na"
+
+
+class QASeverity(str, Enum):
+    LOW = "low"
+    MEDIUM = "medium"
+    HIGH = "high"
+    CRITICAL = "critical"
+
+
+class AutoQAStatus(str, Enum):
+    AUTO_PASS = "auto_pass"
+    MANUAL_REVIEW = "manual_review"
+
+
+class QAFinding(BaseModel):
+    model_config = ConfigDict(
+        extra="ignore",
+        str_strip_whitespace=True,
+        use_enum_values=True,
+    )
+
+    criterion_id: str = Field(min_length=1, max_length=80)
+    criterion: str = Field(min_length=1, max_length=200)
+    status: QAFindingStatus
+    severity: QASeverity = QASeverity.LOW
+    evidence: str | None = None
+    segment_id: str | None = None
+    comment: str | None = None
+
+    @field_validator("status", "severity", mode="before")
+    @classmethod
+    def normalize_enum(cls, value: Any) -> Any:
+        if isinstance(value, str):
+            return value.strip().lower()
+        return value
+
+    @field_validator("evidence", "comment", mode="before")
+    @classmethod
+    def clean_text(cls, value: Any) -> str | None:
+        if value is None:
+            return None
+        text = str(value).strip()
+        return text or None
 
 
 class ProcessRequest(BaseModel):
@@ -150,6 +222,23 @@ class DocumentResult(CommonResult):
     @field_validator("category", mode="before")
     @classmethod
     def normalize_category(cls, value: Any) -> Any:
+        if isinstance(value, str):
+            return value.strip().lower()
+        return value
+
+
+class CallResult(CommonResult):
+    call_type: CallType = CallType.INBOUND
+    intent: CallIntent
+    resolution: str | None = None
+    sentiment: CallSentiment = CallSentiment.NEUTRAL
+    qa_score: int = Field(default=0, ge=0, le=100)
+    qa_findings: list[QAFinding] = Field(default_factory=list)
+    auto_qa_status: AutoQAStatus = AutoQAStatus.MANUAL_REVIEW
+
+    @field_validator("call_type", "intent", "sentiment", "auto_qa_status", mode="before")
+    @classmethod
+    def normalize_enum(cls, value: Any) -> Any:
         if isinstance(value, str):
             return value.strip().lower()
         return value

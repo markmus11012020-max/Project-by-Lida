@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from app.scenarios.base import ScenarioConfig
+from app.scenarios.call_qa import SCENARIO as CALL_QA
 from app.scenarios.documents import SCENARIO as DOCUMENTS
 from app.scenarios.sales import SCENARIO as SALES
 from app.scenarios.support import SCENARIO as SUPPORT
@@ -12,6 +13,7 @@ SCENARIOS: dict[ScenarioKey, ScenarioConfig] = {
     ScenarioKey.SUPPORT: SUPPORT,
     ScenarioKey.SALES: SALES,
     ScenarioKey.DOCUMENTS: DOCUMENTS,
+    ScenarioKey.CALL_QA: CALL_QA,
 }
 
 

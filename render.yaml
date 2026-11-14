@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: callpilot
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: starter
+    envVars:
+      - key: AITUNNEL_API_KEY
+        sync: false
+      - key: AITUNNEL_BASE_URL
+        value: https://api.aitunnel.ru/v1/
+      - key: AITUNNEL_MODEL
+        value: deepseek/deepseek-v4.1-flash-1017
+      - key: CALLPILOT_DB_PATH
+        value: /app/call-center/data/call_center.db
+    disk:
+      name: callpilot-data
+      mountPath: /app/call-center/data
+      sizeGB: 1

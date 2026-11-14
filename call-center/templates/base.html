@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}CallPilot{% endblock %}</title>
+  <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body class="{% block body_class %}app-body{% endblock %}">
+<div class="app-shell">
+  <aside class="sidebar">
+    <a class="brand" href="/">
+      <img src="/static/logo.svg" alt="CallPilot" width="42" height="42">
+      <span>CallPilot</span>
+    </a>
+    <div class="demo-chip"><span class="dot dot-amber"></span> Демо-режим</div>
+    <nav class="nav">
+      <a class="nav-item {% if request.url.path == '/dashboard' %}active{% endif %}" href="/dashboard?role={{ role|default('manager') }}">
+        <span class="nav-icon">▦</span> Обзор
+      </a>
+      <a class="nav-item {% if request.url.path == '/qa' %}active{% endif %}" href="/qa">
+        <span class="nav-icon">◈</span> QA-аналитика
+      </a>
+      <a class="nav-item {% if request.url.path == '/offer' %}active{% endif %}" href="/offer">
+        <span class="nav-icon">▤</span> Оффер
+      </a>
+      <a class="nav-item" href="/">
+        <span class="nav-icon">↗</span> Лендинг
+      </a>
+    </nav>
+    <div class="sidebar-bottom">
+      <div class="model-status">
+        <span class="dot {% if llm_configured %}dot-green{% else %}dot-red{% endif %}"></span>
+        <div>
+          <div class="model-label">LLM</div>
+          <div class="model-name">{{ model_name }}</div>
+        </div>
+      </div>
+      <div class="sidebar-note">Синтетические звонки.<br>Без реальных персональных данных.</div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <header class="topbar">
+      <div class="topbar-title">
+        <div class="eyebrow">{% block eyebrow %}CallPilot{% endblock %}</div>
+        <h1>{% block page_title %}Обзор{% endblock %}</h1>
+        <p class="subtitle">{% block page_subtitle %}{% endblock %}</p>
+      </div>
+      <div class="topbar-actions">
+        <div class="role-switch" aria-label="Роль">
+          <a class="role {% if role|default('manager') == 'operator' %}active{% endif %}" href="{{ request.url.path }}?role=operator">Оператор</a>
+          <a class="role {% if role|default('manager') == 'manager' %}active{% endif %}" href="{{ request.url.path }}?role=manager">Менеджер</a>
+        </div>
+        {% block topbar_actions %}{% endblock %}
+      </div>
+    </header>
+
+    {% block content %}{% endblock %}
+
+    <footer class="app-footer">
+      CallPilot · демо для колл-центров · данные синтетические
+    </footer>
+  </main>
+</div>
+
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+<script src="/static/app.js"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

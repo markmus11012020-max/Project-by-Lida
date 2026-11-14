@@ -1,0 +1,381 @@
+{% extends "base.html" %}
+{% block title %}{{ call.title }} · CallPilot{% endblock %}
+{% block eyebrow %}Карточка звонка{% endblock %}
+{% block page_title %}{{ call.title }}{% endblock %}
+{% block page_subtitle %}{{ call.id }} · клиент: {{ call.client }} · оператор: {{ call.operator }}{% endblock %}
+
+{% macro read_field(label, value) -%}
+<div class="field">
+  <div class="field-label">{{ label }}</div>
+  <div class="read-value">{{ value if value not in (none, '') else '—' }}</div>
+</div>
+{%- endmacro %}
+
+{% block topbar_actions %}
+<a class="btn btn-ghost" href="/dashboard?role={{ role }}">← К обзору</a>
+{% if call.result and not read_only %}
+<form method="post" action="/calls/{{ call.id }}/process" class="inline-form">
+  <button class="btn btn-ghost" type="submit" title="Запустить модель заново">↻ Пересчитать</button>
+</form>
+{% endif %}
+{% if rejected %}
+<form method="post" action="/calls/{{ call.id }}/process" class="inline-form">
+  <button class="btn btn-primary" type="submit">↻ Обработать заново</button>
+</form>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+{% if request.query_params.get('confirmed') %}
+<div class="alert alert-green">Карточка подтверждена. Финальная версия зафиксирована в аудите и отправлена в CRM (демо).</div>
+{% endif %}
+{% if request.query_params.get('rejected') %}
+<div class="alert alert-amber">Звонок отклонён и возвращён в ручную обработку.</div>
+{% endif %}
+{% if request.query_params.get('processed') %}
+<div class="alert alert-blue">Звонок обработан моделью. Проверьте карточку и QA-чек-лист.</div>
+{% endif %}
+
+{% set result = call.result or {} %}
+{% set meta = call.meta or {} %}
+{% set findings = result.get('qa_findings', []) %}
+{% set display = call|display_status %}
+
+<div class="call-layout">
+  <div class="call-column">
+    <section class="panel audio-panel">
+      <div class="panel-head compact">
+        <div>
+          <h2>Аудио звонка</h2>
+          <p class="muted small">Синтетическое демо-аудио. Нажмите на реплику или нарушение, чтобы перемотать.</p>
+        </div>
+        <span class="badge badge-gray">{{ call.duration_ms|duration }}</span>
+      </div>
+      {% if call.audio_url %}
+      <audio id="call-audio" src="{{ call.audio_url }}" preload="metadata"></audio>
+      <div class="audio-player">
+        <button id="audio-toggle" class="audio-toggle" type="button" aria-label="Прослушать">▶</button>
+        <div class="audio-track">
+          <input id="audio-progress" type="range" min="0" max="100" value="0" step="0.1" aria-label="Позиция аудио">
+          <div class="audio-meta">
+            <span id="audio-time">0:00 / 0:00</span>
+            <span class="muted small">Демо-аудио · CallPilot</span>
+          </div>
+        </div>
+      </div>
+      {% else %}
+      <div class="empty-inline">Аудио для этого звонка не сгенерировано.</div>
+      {% endif %}
+    </section>
+
+    <section class="panel transcript-panel">
+      <div class="panel-head compact">
+        <div>
+          <h2>Транскрипт</h2>
+          <p class="muted small">Реплики синхронизированы с аудио. Цитаты модели подсвечены в чек-листе.</p>
+        </div>
+      </div>
+      <div class="transcript">
+        {% for segment in call.segments %}
+        <div class="segment {% if segment.speaker == 'Оператор' %}segment-operator{% else %}segment-client{% endif %}"
+             data-segment="{{ segment.id }}"
+             data-start="{{ segment.start_ms }}"
+             data-end="{{ segment.end_ms }}">
+          <div class="segment-head">
+            <span class="speaker">{{ segment.speaker }}</span>
+            <span class="segment-time">{{ segment.start_ms|duration }}</span>
+          </div>
+          <p>{{ segment.text }}</p>
+        </div>
+        {% endfor %}
+      </div>
+    </section>
+  </div>
+
+  <div class="call-column">
+    {% if not call.result %}
+    <section class="panel empty-card">
+      <div class="empty-icon">✦</div>
+      <h2>Звонок ещё не обработан</h2>
+      <p class="muted">Запустите модель, чтобы получить карточку, QA-чек-лист и решение о маршрутизации.</p>
+      <form method="post" action="/calls/{{ call.id }}/process">
+        <button class="btn btn-primary" type="submit">Обработать звонок</button>
+      </form>
+      {% if meta.get('error') %}
+      <div class="alert alert-red">{{ meta.get('error') }}</div>
+      {% endif %}
+    </section>
+    {% else %}
+    <section class="panel card-panel">
+      <div class="card-head">
+        <div>
+          <div class="eyebrow">Карточка звонка</div>
+          <h2>{{ result.get('summary') or 'Без резюме' }}</h2>
+        </div>
+        <div class="card-head-right">
+          <span class="{{ display|badge }}">{{ display|label(status_labels) }}</span>
+          {% set score = result.get('qa_score') %}
+          <div class="score-circle {% if score >= 85 %}score-circle-green{% elif score >= 60 %}score-circle-amber{% else %}score-circle-red{% endif %}">
+            <span>{{ score if score is not none else '—' }}</span>
+            <small>QA</small>
+          </div>
+        </div>
+      </div>
+
+      {% if meta.get('error') %}
+      <div class="alert alert-red">{{ meta.get('error') }}</div>
+      {% endif %}
+
+      <div class="tag-row">
+        <span class="tag">{{ result.get('intent')|label(intent_labels) }}</span>
+        <span class="tag tag-soft">{{ result.get('sentiment')|label(sentiment_labels) }}</span>
+        <span class="tag tag-soft">confidence: {{ result.get('confidence') or '—' }}</span>
+        {% if result.get('escalate') %}<span class="badge badge-red">эскалация</span>{% endif %}
+      </div>
+
+      {% if read_only %}
+      <div class="read-grid">
+        {{ read_field('Интент', result.get('intent')|label(intent_labels)) }}
+        {{ read_field('Приоритет', result.get('priority')|label({'low':'Низкий','medium':'Средний','high':'Высокий'})) }}
+        {{ read_field('Клиент', result.get('fields', {}).get('client_name')) }}
+        {{ read_field('Телефон', result.get('fields', {}).get('phone')) }}
+        {{ read_field('Заказ', result.get('fields', {}).get('order_id')) }}
+        {{ read_field('Сумма', result.get('fields', {}).get('amount')) }}
+        {{ read_field('Товар', result.get('fields', {}).get('product')) }}
+        {{ read_field('Адрес', result.get('fields', {}).get('address')) }}
+      </div>
+      <div class="read-block">
+        <div class="field-label">Резюме</div>
+        <p class="read-text">{{ result.get('summary') or '—' }}</p>
+        <div class="field-label">Решение</div>
+        <p class="read-text">{{ result.get('resolution') or '—' }}</p>
+        <div class="field-label">Следующий шаг</div>
+        <p class="read-text">{{ result.get('next_action') or '—' }}</p>
+      </div>
+      {% else %}
+      <div class="form-grid">
+        <label class="field">
+          <span class="field-label">Интент</span>
+          <select data-path="intent">
+            {% for key, label in intent_labels.items() %}
+            <option value="{{ key }}" {% if result.get('intent') == key %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label class="field">
+          <span class="field-label">Приоритет</span>
+          <select data-path="priority">
+            <option value="low" {% if result.get('priority') == 'low' %}selected{% endif %}>Низкий</option>
+            <option value="medium" {% if result.get('priority') == 'medium' %}selected{% endif %}>Средний</option>
+            <option value="high" {% if result.get('priority') == 'high' %}selected{% endif %}>Высокий</option>
+          </select>
+        </label>
+        <label class="field">
+          <span class="field-label">Клиент</span>
+          <input data-path="fields.client_name" value="{{ result.get('fields', {}).get('client_name') or '' }}">
+        </label>
+        <label class="field">
+          <span class="field-label">Телефон</span>
+          <input data-path="fields.phone" value="{{ result.get('fields', {}).get('phone') or '' }}">
+        </label>
+        <label class="field">
+          <span class="field-label">Заказ</span>
+          <input data-path="fields.order_id" value="{{ result.get('fields', {}).get('order_id') or '' }}">
+        </label>
+        <label class="field">
+          <span class="field-label">Сумма</span>
+          <input data-path="fields.amount" value="{{ result.get('fields', {}).get('amount') or '' }}">
+        </label>
+        <label class="field">
+          <span class="field-label">Товар</span>
+          <input data-path="fields.product" value="{{ result.get('fields', {}).get('product') or '' }}">
+        </label>
+        <label class="field">
+          <span class="field-label">Адрес</span>
+          <input data-path="fields.address" value="{{ result.get('fields', {}).get('address') or '' }}">
+        </label>
+      </div>
+      <label class="field">
+        <span class="field-label">Резюме</span>
+        <textarea data-path="summary" rows="3">{{ result.get('summary') or '' }}</textarea>
+      </label>
+      <label class="field">
+        <span class="field-label">Решение</span>
+        <textarea data-path="resolution" rows="2">{{ result.get('resolution') or '' }}</textarea>
+      </label>
+      <label class="field">
+        <span class="field-label">Следующий шаг</span>
+        <textarea data-path="next_action" rows="2">{{ result.get('next_action') or '' }}</textarea>
+      </label>
+      {% endif %}
+    </section>
+
+    <section class="panel qa-panel">
+      <div class="panel-head compact">
+        <div>
+          <h2>QA-чек-лист</h2>
+          <p class="muted small">Модель проверяет все 10 критериев. Менеджер может подтвердить или отменить нарушение.</p>
+        </div>
+        <span class="badge badge-gray">{{ findings|length }} критериев</span>
+      </div>
+
+      {% if findings %}
+      <div class="qa-list">
+        {% for finding in findings %}
+        {% set crit = qa_criteria|selectattr('id','equalto',finding.criterion_id)|first %}
+        <div class="qa-row" data-finding-index="{{ loop.index0 }}">
+          <div class="qa-main">
+            <div class="qa-title">
+              <strong>{{ finding.criterion or finding.criterion_id }}</strong>
+              <span class="{{ finding.severity|badge }}">{{ finding.severity|label(severity_labels) }}</span>
+            </div>
+            {% if crit %}<p class="muted small">{{ crit.description }}</p>{% endif %}
+            <div class="qa-evidence">
+              {% if finding.evidence %}
+              <button type="button" class="quote-link" data-seek="{{ finding.segment_id or '' }}">
+                ▶ «{{ finding.evidence }}»
+              </button>
+              {% else %}
+              <span class="muted small">Нет цитаты</span>
+              {% endif %}
+            </div>
+          </div>
+          <div class="qa-side">
+            {% if read_only %}
+            <span class="{{ finding.status|badge }}">{{ finding.status|label(finding_labels) }}</span>
+            {% if finding.comment %}<p class="muted small">{{ finding.comment }}</p>{% endif %}
+            {% else %}
+            <label class="qa-field">
+              <span class="field-label">Статус</span>
+              <select data-finding-field="status">
+                <option value="pass" {% if finding.status == 'pass' %}selected{% endif %}>Выполнено</option>
+                <option value="fail" {% if finding.status == 'fail' %}selected{% endif %}>Нарушение</option>
+                <option value="na" {% if finding.status == 'na' %}selected{% endif %}>Не применимо</option>
+              </select>
+            </label>
+            <label class="qa-field">
+              <span class="field-label">Комментарий</span>
+              <input data-finding-field="comment" value="{{ finding.comment or '' }}" placeholder="Почему изменили?">
+            </label>
+            {% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="alert alert-amber">Модель не вернула чек-лист. Проверьте звонок вручную.</div>
+      {% endif %}
+    </section>
+
+    {% if not read_only %}
+    <section class="panel review-panel">
+      <div class="panel-head compact">
+        <div>
+          <h2>Решение менеджера</h2>
+          <p class="muted small">Подтверждение фиксирует финальную версию и отправляет её в CRM (демо).</p>
+        </div>
+      </div>
+      <div class="review-grid">
+        <label class="field">
+          <span class="field-label">Кто проверяет</span>
+          <input id="reviewer" value="Менеджер">
+        </label>
+        <label class="field">
+          <span class="field-label">Комментарий к решению</span>
+          <input id="review-reason" placeholder="Например: обещание возврата подтверждено">
+        </label>
+      </div>
+      <div class="review-actions">
+        <button id="confirm-btn" class="btn btn-primary" type="button">Подтвердить и отправить в CRM</button>
+        <button id="reject-btn" class="btn btn-danger-ghost" type="button">Отклонить</button>
+        <span id="review-status" class="muted small"></span>
+      </div>
+    </section>
+    {% endif %}
+
+    {% if confirmed %}
+    <section class="panel review-panel">
+      <div class="panel-head compact">
+        <div>
+          <h2>Подтверждено человеком</h2>
+          <p class="muted small">{{ call.reviewer or 'Менеджер' }} · {{ call.review_updated_at or '' }}</p>
+        </div>
+        <span class="badge badge-green">confirmed</span>
+      </div>
+      {% if call.review_reason %}<p class="muted">{{ call.review_reason }}</p>{% endif %}
+      {% if call.changes %}
+      <div class="changes">
+        <div class="field-label">Что изменил человек</div>
+        {% for path, change in call.changes.items() %}
+        <div class="change-row">
+          <code>{{ path }}</code>
+          <span class="muted">{{ change.get('from') }}</span>
+          <span class="change-arrow">→</span>
+          <strong>{{ change.get('to') }}</strong>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <p class="muted small">Изменений нет: менеджер подтвердил версию модели.</p>
+      {% endif %}
+    </section>
+    {% endif %}
+
+    {% if rejected %}
+    <section class="panel review-panel">
+      <div class="panel-head compact">
+        <div>
+          <h2>Отклонено</h2>
+          <p class="muted small">{{ call.reviewer or 'Менеджер' }} · {{ call.review_updated_at or '' }}</p>
+        </div>
+        <span class="badge badge-red">rejected</span>
+      </div>
+      <p class="muted">{{ call.review_reason or 'Причина не указана' }}</p>
+    </section>
+    {% endif %}
+
+    <section class="panel audit-panel">
+      <div class="panel-head compact">
+        <div>
+          <h2>Аудит</h2>
+          <p class="muted small">Что сделала модель и что подтвердил человек.</p>
+        </div>
+      </div>
+      <div class="audit-grid">
+        <div><span class="field-label">Модель</span><div>{{ meta.get('model') or '—' }}</div></div>
+        <div><span class="field-label">Температура</span><div>{{ meta.get('temperature') or '—' }}</div></div>
+        <div><span class="field-label">Задержка</span><div>{{ meta.get('latency_ms') or 0 }} мс</div></div>
+        <div><span class="field-label">Статус обработки</span><div>{{ meta.get('processing_status')|label(status_labels) }}</div></div>
+        <div><span class="field-label">Стоимость</span><div>{{ '%.2f'|format(meta.get('usage', {}).get('cost_rub') or 0) }} ₽</div></div>
+        <div><span class="field-label">Создано</span><div>{{ meta.get('created_at')|datetime }}</div></div>
+        <div><span class="field-label">Request ID</span><div class="mono">{{ call.request_id or '—' }}</div></div>
+        <div><span class="field-label">Проверка</span><div>{{ call.review_status|label(status_labels) }}</div></div>
+      </div>
+    </section>
+    {% endif %}
+  </div>
+</div>
+
+<dialog id="reject-dialog" class="dialog">
+  <form method="dialog" class="dialog-body">
+    <div class="eyebrow">Отклонение</div>
+    <h2>Вернуть звонок в ручную обработку?</h2>
+    <p class="muted">Опишите причину — она сохранится в аудите.</p>
+    <textarea id="reject-reason" rows="3" placeholder="Например: модель неверно поняла интент"></textarea>
+    <div class="dialog-actions">
+      <button class="btn btn-ghost" value="cancel" type="submit">Отмена</button>
+      <button id="reject-submit" class="btn btn-primary" value="reject" type="button">Отклонить</button>
+    </div>
+  </form>
+</dialog>
+
+<script id="draft-data" type="application/json">{{ draft_json|safe }}</script>
+<script id="segments-data" type="application/json">{{ segments_json|safe }}</script>
+<script>
+  window.CALLPILOT = {
+    callId: {{ call.id|tojson }},
+    readOnly: {{ read_only|tojson }},
+    rejected: {{ rejected|tojson }}
+  };
+</script>
+{% endblock %}

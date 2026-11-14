@@ -1,0 +1,17 @@
+.git
+.venv
+.env
+.env.*
+__pycache__
+*.pyc
+.pytest_cache
+.ruff_cache
+.mypy_cache
+data
+call-center/data/*.db
+call-center/data/*.db-*
+call-center/.cache
+call-center/demo/raw
+call-center/demo/*.mp4
+call-center/screenshots
+requirements.lock.txt

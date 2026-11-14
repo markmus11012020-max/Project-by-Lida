@@ -1,0 +1,928 @@
+{
+  "call_01": {
+    "request_id": "67984693-4848-485e-b344-feb609589c55",
+    "input_text": "[s1] Оператор: Здравствуйте, компания Ромашка, меня зовут Дмитрий. Чем могу помочь?\n[s2] Клиент: Здравствуйте, я оплатила заказ номер 12345 три дня назад, но доставки до сих пор нет.\n[s3] Оператор: Понимаю вас, давайте проверю статус заказа. Одну минуту, пожалуйста.\n[s4] Клиент: Хорошо, буду ждать.\n[s5] Оператор: Заказ действительно задержался на складе. Доставка запланирована на завтра до 18:00. Я отправил уведомление курьеру.\n[s6] Клиент: Спасибо, буду ждать.\n[s7] Оператор: Всего доброго. Если будут вопросы, звоните, мы на связи.",
+    "raw_response": "{\"call_type\":\"inbound\",\"intent\":\"delivery\",\"summary\":\"Клиент оплатила заказ №12345 три дня назад, но доставки до сих пор нет. Оператор проверил статус, сообщил о задержке на складе и запланированной доставке завтра до 18:00.\",\"resolution\":\"Оператор подтвердил задержку заказа и сообщил новую дату доставки — завтра до 18:00, а также уведомил курьера.\",\"next_action\":\"Проконтролировать доставку завтра до 18:00 и при необходимости связаться с клиентом.\",\"priority\":\"high\",\"fields\":{\"client_name\":null,\"phone\":null,\"order_id\":\"12345\",\"product\":null,\"amount\":null,\"address\":null},\"sentiment\":\"negative\",\"qa_score\":100,\"qa_findings\":[{\"criterion_id\":\"greeting\",\"criterion\":\"Приветствие и представление\",\"status\":\"pass\",\"severity\":\"medium\",\"evidence\":\"Здравствуйте, компания Ромашка, меня зовут Дмитрий.\",\"segment_id\":\"s1\",\"comment\":null},{\"criterion_id\":\"identification\",\"criterion\":\"Идентификация клиента\",\"status\":\"pass\",\"severity\":\"medium\",\"evidence\":\"заказ номер 12345\",\"segment_id\":\"s2\",\"comment\":null},{\"criterion_id\":\"need_detection\",\"criterion\":\"Выявление потребности\",\"status\":\"pass\",\"severity\":\"high\",\"evidence\":\"доставки до сих пор нет\",\"segment_id\":\"s2\",\"comment\":null},{\"criterion_id\":\"script\",\"criterion\":\"Соблюдение скрипта\",\"status\":\"pass\",\"severity\":\"medium\",\"evidence\":\"давайте проверю статус заказа\",\"segment_id\":\"s3\",\"comment\":null},{\"criterion_id\":\"accuracy\",\"criterion\":\"Достоверность информации\",\"status\":\"pass\",\"severity\":\"critical\",\"evidence\":\"Доставка запланирована на завтра до 18:00.\",\"segment_id\":\"s5\",\"comment\":null},{\"criterion_id\":\"empathy\",\"criterion\":\"Эмпатия и вежливость\",\"status\":\"pass\",\"severity\":\"high\",\"evidence\":\"Понимаю вас\",\"segment_id\":\"s3\",\"comment\":null},{\"criterion_id\":\"resolution\",\"criterion\":\"Решение и следующий шаг\",\"status\":\"pass\",\"severity\":\"high\",\"evidence\":\"Я отправил уведомление курьеру.\",\"segment_id\":\"s5\",\"comment\":null},{\"criterion_id\":\"closing\",\"criterion\":\"Корректное завершение\",\"status\":\"pass\",\"severity\":\"low\",\"evidence\":\"Всего доброго. Если будут вопросы, звоните, мы на связи.\",\"segment_id\":\"s7\",\"comment\":null},{\"criterion_id\":\"compliance\",\"criterion\":\"Комплаенс\",\"status\":\"pass\",\"severity\":\"critical\",\"evidence\":\"Понимаю вас, давайте проверю статус заказа.\",\"segment_id\":\"s3\",\"comment\":null},{\"criterion_id\":\"interruptions\",\"criterion\":\"Перебивания и молчание\",\"status\":\"pass\",\"severity\":\"low\",\"evidence\":\"Одну минуту, пожалуйста.\",\"segment_id\":\"s3\",\"comment\":null}],\"confidence\":\"high\",\"escalate\":false,\"escalate_reason\":null,\"missing_fields\":[\"client_name\",\"phone\",\"product\",\"amount\",\"address\"]}",
+    "result": {
+      "summary": "Клиент оплатила заказ №12345 три дня назад, но доставки до сих пор нет. Оператор проверил статус, сообщил о задержке на складе и запланированной доставке завтра до 18:00.",
+      "priority": "high",
+      "next_action": "Проконтролировать доставку завтра до 18:00 и при необходимости связаться с клиентом.",
+      "fields": {
+        "client_name": null,
+        "phone": null,
+        "order_id": "12345",
+        "product": null,
+        "amount": null,
+        "address": null
+      },
+      "confidence": "high",
+      "escalate": false,
+      "escalate_reason": null,
+      "missing_fields": [
+        "client_name",
+        "phone",
+        "product",
+        "amount",
+        "address"
+      ],
+      "call_type": "inbound",
+      "intent": "delivery",
+      "resolution": "Оператор подтвердил задержку заказа и сообщил новую дату доставки — завтра до 18:00, а также уведомил курьера.",
+      "sentiment": "negative",
+      "qa_score": 100,
+      "qa_findings": [
+        {
+          "criterion_id": "greeting",
+          "criterion": "Приветствие и представление",
+          "status": "pass",
+          "severity": "medium",
+          "evidence": "Здравствуйте, компания Ромашка, меня зовут Дмитрий.",
+          "segment_id": "s1",
+          "comment": null
+        },
+        {
+          "criterion_id": "identification",
+          "criterion": "Идентификация клиента",
+          "status": "pass",
+          "severity": "medium",
+          "evidence": "заказ номер 12345",
+          "segment_id": "s2",
+          "comment": null
+        },
+        {
+          "criterion_id": "need_detection",
+          "criterion": "Выявление потребности",
+          "status": "pass",
+          "severity": "high",
+          "evidence": "доставки до сих пор нет",
+          "segment_id": "s2",
+          "comment": null
+        },
+        {
+          "criterion_id": "script",
+          "criterion": "Соблюдение скрипта",
+          "status": "pass",
+          "severity": "medium",
+          "evidence": "давайте проверю статус заказа",
+          "segment_id": "s3",
+          "comment": null
+        },
+        {
+          "criterion_id": "accuracy",
+          "criterion": "Достоверность информации",
+          "status": "pass",
+          "severity": "critical",
+          "evidence": "Доставка запланирована на завтра до 18:00.",
+          "segment_id": "s5",
+          "comment": null
+        },
+        {
+          "criterion_id": "empathy",
+          "criterion": "Эмпатия и вежливость",
+          "status": "pass",
+          "severity": "high",
+          "evidence": "Понимаю вас",
+          "segment_id": "s3",
+          "comment": null
+        },
+        {
+          "criterion_id": "resolution",
+          "criterion": "Решение и следующий шаг",
+          "status": "pass",
+          "severity": "high",
+          "evidence": "Я отправил уведомление курьеру.",
+          "segment_id": "s5",
+          "comment": null
+        },
+        {
+          "criterion_id": "closing",
+          "criterion": "Корректное завершение",
+          "status": "pass",
+          "severity": "low",
+          "evidence": "Всего доброго. Если будут вопросы, звоните, мы на связи.",
+          "segment_id": "s7",
+          "comment": null
+        },
+        {
+          "criterion_id": "compliance",
+          "criterion": "Комплаенс",
+          "status": "pass",
+          "severity": "critical",
+          "evidence": "Понимаю вас, давайте проверю статус заказа.",
+          "segment_id": "s3",
+          "comment": null
+        },
+        {
+          "criterion_id": "interruptions",
+          "criterion": "Перебивания и молчание",
+          "status": "pass",
+          "severity": "low",
+          "evidence": "Одну минуту, пожалуйста.",
+          "segment_id": "s3",
+          "comment": null
+        }
+      ],
+      "auto_qa_status": "auto_pass"
+    },
+    "meta": {
+      "model": "deepseek/deepseek-v4.1-flash-1017",
+      "temperature": 0.2,
+      "latency_ms": 10358,
+      "created_at": "2026-11-14T15:16:56.276+00:00",
+      "usage": {
+        "completion_tokens": 1312,
+        "prompt_tokens": 2413,
+        "total_tokens": 3725,
+        "completion_tokens_details": {
+          "accepted_prediction_tokens": null,
+          "audio_tokens": 0,
+          "reasoning_tokens": 563,
+          "rejected_prediction_tokens": null,
+          "image_tokens": 0
+        },
+        "prompt_tokens_details": {
+          "audio_tokens": 0,
+          "cache_write_tokens": 0,
+          "cached_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost": 0.21,
+        "cost_rub": 0.21,
+        "balance": 584.94
+      }
+    },
+    "error": null
+  },
+  "call_02": {
+    "request_id": "f03b4d11-f84b-4bc7-99c3-ed4283856094",
+    "input_text": "[s1] Оператор: Здравствуйте, компания Ромашка, Анна слушает.\n[s2] Клиент: Здравствуйте, мне пришёл бракованный товар. Хочу вернуть деньги сегодня.\n[s3] Оператор: Да, конечно, я гарантирую, что деньги вернутся сегодня. Никаких проблем.\n[s4] Клиент: Точно сегодня? Мне нужно оплатить лечение.\n[s5] Оператор: Да, я обещаю. Ждите смс.\n[s6] Клиент: Хорошо, надеюсь.\n[s7] Оператор: До свидания.",
+    "raw_response": "{\"call_type\":\"inbound\",\"intent\":\"refund\",\"summary\":\"Клиент сообщил о бракованном товаре и потребовал вернуть деньги сегодня, пояснив, что средства нужны на лечение. Оператор без проверки данных и оформления заявки гарантировал возврат сегодня и попросил ждать смс.\",\"resolution\":\"Возврат средств не оформлен: оператор лишь устно пообещал возврат сегодня и смс-уведомление, без идентификации клиента и заказа.\",\"next_action\":\"Связаться с клиентом повторно, идентифицировать его и заказ, оформить заявку на возврат бракованного товара и сообщить реальные сроки возврата денег.\",\"priority\":\"high\",\"fields\":{\"client_name\":null,\"phone\":null,\"order_id\":null,\"product\":null,\"amount\":null,\"address\":null},\"sentiment\":\"negative\",\"qa_score\":25,\"qa_findings\":[{\"criterion_id\":\"greeting\",\"criterion\":\"Приветствие и представление\",\"status\":\"pass\",\"severity\":\"medium\",\"evidence\":\"Здравствуйте, компания Ромашка, Анна слушает.\",\"segment_id\":\"s1\",\"comment\":null},{\"criterion_id\":\"identification\",\"criterion\":\"Идентификация клиента\",\"status\":\"fail\",\"severity\":\"medium\",\"evidence\":null,\"segment_id\":null,\"comment\":\"Оператор не уточнил ни имя клиента, ни номер заказа или иной идентификатор.\"},{\"criterion_id\":\"need_detection\",\"criterion\":\"Выявление потребности\",\"status\":\"pass\",\"severity\":\"high\",\"evidence\":\"мне пришёл бракованный товар. Хочу вернуть деньги сегодня\",\"segment_id\":\"s2\",\"comment\":\"Потребность понятна из обращения клиента, но уточняющих вопросов о товаре и заказе оператор не задал.\"},{\"criterion_id\":\"script\",\"criterion\":\"Соблюдение скрипта\",\"status\":\"fail\",\"severity\":\"medium\",\"evidence\":\"Да, конечно, я гарантирую, что деньги вернутся сегодня.\",\"segment_id\":\"s3\",\"comment\":\"Не выполнены обязательные шаги: идентификация, выяснение деталей заказа, оформление заявки на возврат.\"},{\"criterion_id\":\"accuracy\",\"criterion\":\"Достоверность информации\",\"status\":\"fail\",\"severity\":\"critical\",\"evidence\":\"я гарантирую, что деньги вернутся сегодня\",\"segment_id\":\"s3\",\"comment\":\"Ложная гарантия срока возврата денег без проверки заказа и без оформления возврата.\"},{\"criterion_id\":\"empathy\",\"criterion\":\"Эмпатия и вежливость\",\"status\":\"fail\",\"severity\":\"high\",\"evidence\":\"Да, я обещаю. Ждите смс.\",\"segment_id\":\"s5\",\"comment\":\"Оператор проигнорировал уязвимую ситуацию клиента (деньги нужны на лечение) и не проявил участия.\"},{\"criterion_id\":\"resolution\",\"criterion\":\"Решение и следующий шаг\",\"status\":\"fail\",\"severity\":\"high\",\"evidence\":\"Ждите смс.\",\"segment_id\":\"s5\",\"comment\":\"Следующий шаг не зафиксирован: нет номера заявки, сроков и подтверждения оформления возврата.\"},{\"criterion_id\":\"closing\",\"criterion\":\"Корректное завершение\",\"status\":\"fail\",\"severity\":\"low\",\"evidence\":\"До свидания.\",\"segment_id\":\"s7\",\"comment\":\"Оператор попрощался, но не уточнил, остались ли у клиента вопросы.\"},{\"criterion_id\":\"compliance\",\"criterion\":\"Комплаенс\",\"status\":\"fail\",\"severity\":\"critical\",\"evidence\":\"Да, я обещаю. Ждите смс.\",\"segment_id\":\"s5\",\"comment\":\"Ложные гарантии возврата денег в конкретный срок — запрещённая формулировка, создающая необоснованные обязательства.\"},{\"criterion_id\":\"interruptions\",\"criterion\":\"Перебивания и молчание\",\"status\":\"pass\",\"severity\":\"low\",\"evidence\":\"Точно сегодня? Мне нужно оплатить лечение.\",\"segment_id\":\"s4\",\"comment\":\"Перебиваний и длительного молчания в диалоге не зафиксировано.\"}],\"confidence\":\"high\",\"escalate\":true,\"escalate_reason\":\"Жалоба на бракованный товар и запрос возврата денег, критичное нарушение — ложная гарантия срока возврата, уязвимое положение клиента.\",\"missing_fields\":[\"client_name\",\"phone\",\"order_id\",\"product\",\"amount\",\"address\"]}",
+    "result": {
+      "summary": "Клиент сообщил о бракованном товаре и потребовал вернуть деньги сегодня, пояснив, что средства нужны на лечение. Оператор без проверки данных и оформления заявки гарантировал возврат сегодня и попросил ждать смс.",
+      "priority": "high",
+      "next_action": "Связаться с клиентом повторно, идентифицировать его и заказ, оформить заявку на возврат бракованного товара и сообщить реальные сроки возврата денег.",
+      "fields": {
+        "client_name": null,
+        "phone": null,
+        "order_id": null,
+        "product": null,
+        "amount": null,
+        "address": null
+      },
+      "confidence": "high",
+      "escalate": true,
+      "escalate_reason": "Жалоба на бракованный товар и запрос возврата денег, критичное нарушение — ложная гарантия срока возврата, уязвимое положение клиента.; qa_violation; qa_score_below_threshold; negative_customer_contact",
+      "missing_fields": [
+        "client_name",
+        "phone",
+        "order_id",
+        "product",
+        "amount",
+        "address"
+      ],
+      "call_type": "inbound",
+      "intent": "refund",
+      "resolution": "Возврат средств не оформлен: оператор лишь устно пообещал возврат сегодня и смс-уведомление, без идентификации клиента и заказа.",
+      "sentiment": "negative",
+      "qa_score": 0,
+      "qa_findings": [
+        {
+          "criterion_id": "greeting",
+          "criterion": "Приветствие и представление",
+          "status": "pass",
+          "severity": "medium",
+          "evidence": "Здравствуйте, компания Ромашка, Анна слушает.",
+          "segment_id": "s1",
+          "comment": null
+        },
+        {
+          "criterion_id": "identification",
+          "criterion": "Идентификация клиента",
+          "status": "fail",
+          "severity": "medium",
+          "evidence": null,
+          "segment_id": null,
+          "comment": "Оператор не уточнил ни имя клиента, ни номер заказа или иной идентификатор."
+        },
+        {
+          "criterion_id": "need_detection",
+          "criterion": "Выявление потребности",
+          "status": "pass",
+          "severity": "high",
+          "evidence": "мне пришёл бракованный товар. Хочу вернуть деньги сегодня",
+          "segment_id": "s2",
+          "comment": "Потребность понятна из обращения клиента, но уточняющих вопросов о товаре и заказе оператор не задал."
+        },
+        {
+          "criterion_id": "script",
+          "criterion": "Соблюдение скрипта",
+          "status": "fail",
+          "severity": "medium",
+          "evidence": "Да, конечно, я гарантирую, что деньги вернутся сегодня.",
+          "segment_id": "s3",
+          "comment": "Не выполнены обязательные шаги: идентификация, выяснение деталей заказа, оформление заявки на возврат."
+        },
+        {
+          "criterion_id": "accuracy",
+          "criterion": "Достоверность информации",
+          "status": "fail",
+          "severity": "critical",
+          "evidence": "я гарантирую, что деньги вернутся сегодня",
+          "segment_id": "s3",
+          "comment": "Ложная гарантия срока возврата денег без проверки заказа и без оформления возврата."
+        },
+        {
+          "criterion_id": "empathy",
+          "criterion": "Эмпатия и вежливость",
+          "status": "fail",
+          "severity": "high",
+          "evidence": "Да, я обещаю. Ждите смс.",
+          "segment_id": "s5",
+          "comment": "Оператор проигнорировал уязвимую ситуацию клиента (деньги нужны на лечение) и не проявил участия."
+        },
+        {
+          "criterion_id": "resolution",
+          "criterion": "Решение и следующий шаг",
+          "status": "fail",
+          "severity": "high",
+          "evidence": "Ждите смс.",
+          "segment_id": "s5",
+          "comment": "Следующий шаг не зафиксирован: нет номера заявки, сроков и подтверждения оформления возврата."
+        },
+        {
+          "criterion_id": "closing",
+          "criterion": "Корректное завершение",
+          "status": "fail",
+          "severity": "low",
+          "evidence": "До свидания.",
+          "segment_id": "s7",
+          "comment": "Оператор попрощался, но не уточнил, остались ли у клиента вопросы."
+        },
+        {
+          "criterion_id": "compliance",
+          "criterion": "Комплаенс",
+          "status": "fail",
+          "severity": "critical",
+          "evidence": "Да, я обещаю. Ждите смс.",
+          "segment_id": "s5",
+          "comment": "Ложные гарантии возврата денег в конкретный срок — запрещённая формулировка, создающая необоснованные обязательства."
+        },
+        {
+          "criterion_id": "interruptions",
+          "criterion": "Перебивания и молчание",
+          "status": "pass",
+          "severity": "low",
+          "evidence": "Точно сегодня? Мне нужно оплатить лечение.",
+          "segment_id": "s4",
+          "comment": "Перебиваний и длительного молчания в диалоге не зафиксировано."
+        }
+      ],
+      "auto_qa_status": "manual_review"
+    },
+    "meta": {
+      "model": "deepseek/deepseek-v4.1-flash-1017",
+      "temperature": 0.2,
+      "latency_ms": 11089,
+      "created_at": "2026-11-14T15:17:06.658+00:00",
+      "usage": {
+        "completion_tokens": 2186,
+        "prompt_tokens": 2332,
+        "total_tokens": 4518,
+        "completion_tokens_details": {
+          "accepted_prediction_tokens": null,
+          "audio_tokens": 0,
+          "reasoning_tokens": 1153,
+          "rejected_prediction_tokens": null,
+          "image_tokens": 0
+        },
+        "prompt_tokens_details": {
+          "audio_tokens": 0,
+          "cache_write_tokens": 0,
+          "cached_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost": 0.27,
+        "cost_rub": 0.27,
+        "balance": 584.67
+      }
+    },
+    "error": null
+  },
+  "call_03": {
+    "request_id": "722b387d-9264-428a-a439-d4cdf04ba21c",
+    "input_text": "[s1] Оператор: Здравствуйте, компания Ромашка.\n[s2] Клиент: Здравствуйте, не могу войти в личный кабинет, пишет ошибку 403.\n[s3] Оператор: Попробуйте очистить кэш браузера и войти снова. Если не поможет, напишите на support@romashka.ru.\n[s4] Клиент: Поняла, попробую.\n[s5] Оператор: Хорошо.",
+    "raw_response": "{\"call_type\":\"inbound\",\"intent\":\"technical\",\"summary\":\"Клиент не может войти в личный кабинет, появляется ошибка 403. Оператор предложил очистить кэш браузера и при неудаче написать на support@romashka.ru.\",\"resolution\":\"Оператор дал инструкцию по устранению ошибки и резервный канал обращения в поддержку.\",\"next_action\":\"Убедиться, что клиент смог войти после очистки кэша; при повторной ошибке — обработать обращение, направленное на support@romashka.ru.\",\"priority\":\"medium\",\"fields\":{\"client_name\":null,\"phone\":null,\"order_id\":null,\"product\":null,\"amount\":null,\"address\":null},\"sentiment\":\"neutral\",\"qa_score\":65,\"qa_findings\":[{\"criterion_id\":\"greeting\",\"criterion\":\"Приветствие и представление\",\"status\":\"fail\",\"severity\":\"medium\",\"evidence\":\"Здравствуйте, компания Ромашка.\",\"segment_id\":\"s1\",\"comment\":\"Оператор поздоровался и назвал компанию, но не представился по имени.\"},{\"criterion_id\":\"identification\",\"criterion\":\"Идентификация клиента\",\"status\":\"fail\",\"severity\":\"medium\",\"evidence\":null,\"segment_id\":null,\"comment\":\"Оператор не уточнил имя клиента, номер заказа или иной идентификатор.\"},{\"criterion_id\":\"need_detection\",\"criterion\":\"Выявление потребности\",\"status\":\"pass\",\"severity\":\"high\",\"evidence\":\"не могу войти в личный кабинет, пишет ошибку 403\",\"segment_id\":\"s2\",\"comment\":\"Проблема клиента понятна и конкретна.\"},{\"criterion_id\":\"script\",\"criterion\":\"Соблюдение скрипта\",\"status\":\"fail\",\"severity\":\"medium\",\"evidence\":\"Попробуйте очистить кэш браузера и войти снова.\",\"segment_id\":\"s3\",\"comment\":\"Оператор дал решение, но пропустил обязательный шаг идентификации клиента.\"},{\"criterion_id\":\"accuracy\",\"criterion\":\"Достоверность информации\",\"status\":\"pass\",\"severity\":\"critical\",\"evidence\":\"Если не поможет, напишите на support@romashka.ru.\",\"segment_id\":\"s3\",\"comment\":\"Ложных обещаний и неточной информации нет.\"},{\"criterion_id\":\"empathy\",\"criterion\":\"Эмпатия и вежливость\",\"status\":\"pass\",\"severity\":\"high\",\"evidence\":\"Попробуйте очистить кэш браузера и войти снова.\",\"segment_id\":\"s3\",\"comment\":\"Общение вежливое, без давления и грубости.\"},{\"criterion_id\":\"resolution\",\"criterion\":\"Решение и следующий шаг\",\"status\":\"pass\",\"severity\":\"high\",\"evidence\":\"Если не поможет, напишите на support@romashka.ru.\",\"segment_id\":\"s3\",\"comment\":\"Предложено решение и зафиксирован следующий шаг.\"},{\"criterion_id\":\"closing\",\"criterion\":\"Корректное завершение\",\"status\":\"fail\",\"severity\":\"low\",\"evidence\":\"Хорошо.\",\"segment_id\":\"s5\",\"comment\":\"Оператор не попрощался и не уточнил, есть ли ещё вопросы.\"},{\"criterion_id\":\"compliance\",\"criterion\":\"Комплаенс\",\"status\":\"pass\",\"severity\":\"critical\",\"evidence\":\"Попробуйте очистить кэш браузера и войти снова.\",\"segment_id\":\"s3\",\"comment\":\"Запрещённых фраз, разглашения персональных данных и ложных гарантий нет.\"},{\"criterion_id\":\"interruptions\",\"criterion\":\"Перебивания и молчание\",\"status\":\"pass\",\"severity\":\"low\",\"evidence\":\"Поняла, попробую.\",\"segment_id\":\"s4\",\"comment\":\"Перебиваний и длительного молчания не зафиксировано.\"}],\"confidence\":\"high\",\"escalate\":false,\"escalate_reason\":null,\"missing_fields\":[\"client_name\",\"phone\",\"order_id\",\"product\",\"amount\",\"address\"]}",
+    "result": {
+      "summary": "Клиент не может войти в личный кабинет, появляется ошибка 403. Оператор предложил очистить кэш браузера и при неудаче написать на support@romashka.ru.",
+      "priority": "medium",
+      "next_action": "Убедиться, что клиент смог войти после очистки кэша; при повторной ошибке — обработать обращение, направленное на support@romashka.ru.",
+      "fields": {
+        "client_name": null,
+        "phone": null,
+        "order_id": null,
+        "product": null,
+        "amount": null,
+        "address": null
+      },
+      "confidence": "high",
+      "escalate": true,
+      "escalate_reason": "qa_score_below_threshold",
+      "missing_fields": [
+        "client_name",
+        "phone",
+        "order_id",
+        "product",
+        "amount",
+        "address"
+      ],
+      "call_type": "inbound",
+      "intent": "technical",
+      "resolution": "Оператор дал инструкцию по устранению ошибки и резервный канал обращения в поддержку.",
+      "sentiment": "neutral",
+      "qa_score": 65,
+      "qa_findings": [
+        {
+          "criterion_id": "greeting",
+          "criterion": "Приветствие и представление",
+          "status": "fail",
+          "severity": "medium",
+          "evidence": "Здравствуйте, компания Ромашка.",
+          "segment_id": "s1",
+          "comment": "Оператор поздоровался и назвал компанию, но не представился по имени."
+        },
+        {
+          "criterion_id": "identification",
+          "criterion": "Идентификация клиента",
+          "status": "fail",
+          "severity": "medium",
+          "evidence": null,
+          "segment_id": null,
+          "comment": "Оператор не уточнил имя клиента, номер заказа или иной идентификатор."
+        },
+        {
+          "criterion_id": "need_detection",
+          "criterion": "Выявление потребности",
+          "status": "pass",
+          "severity": "high",
+          "evidence": "не могу войти в личный кабинет, пишет ошибку 403",
+          "segment_id": "s2",
+          "comment": "Проблема клиента понятна и конкретна."
+        },
+        {
+          "criterion_id": "script",
+          "criterion": "Соблюдение скрипта",
+          "status": "fail",
+          "severity": "medium",
+          "evidence": "Попробуйте очистить кэш браузера и войти снова.",
+          "segment_id": "s3",
+          "comment": "Оператор дал решение, но пропустил обязательный шаг идентификации клиента."
+        },
+        {
+          "criterion_id": "accuracy",
+          "criterion": "Достоверность информации",
+          "status": "pass",
+          "severity": "critical",
+          "evidence": "Если не поможет, напишите на support@romashka.ru.",
+          "segment_id": "s3",
+          "comment": "Ложных обещаний и неточной информации нет."
+        },
+        {
+          "criterion_id": "empathy",
+          "criterion": "Эмпатия и вежливость",
+          "status": "pass",
+          "severity": "high",
+          "evidence": "Попробуйте очистить кэш браузера и войти снова.",
+          "segment_id": "s3",
+          "comment": "Общение вежливое, без давления и грубости."
+        },
+        {
+          "criterion_id": "resolution",
+          "criterion": "Решение и следующий шаг",
+          "status": "pass",
+          "severity": "high",
+          "evidence": "Если не поможет, напишите на support@romashka.ru.",
+          "segment_id": "s3",
+          "comment": "Предложено решение и зафиксирован следующий шаг."
+        },
+        {
+          "criterion_id": "closing",
+          "criterion": "Корректное завершение",
+          "status": "fail",
+          "severity": "low",
+          "evidence": "Хорошо.",
+          "segment_id": "s5",
+          "comment": "Оператор не попрощался и не уточнил, есть ли ещё вопросы."
+        },
+        {
+          "criterion_id": "compliance",
+          "criterion": "Комплаенс",
+          "status": "pass",
+          "severity": "critical",
+          "evidence": "Попробуйте очистить кэш браузера и войти снова.",
+          "segment_id": "s3",
+          "comment": "Запрещённых фраз, разглашения персональных данных и ложных гарантий нет."
+        },
+        {
+          "criterion_id": "interruptions",
+          "criterion": "Перебивания и молчание",
+          "status": "pass",
+          "severity": "low",
+          "evidence": "Поняла, попробую.",
+          "segment_id": "s4",
+          "comment": "Перебиваний и длительного молчания не зафиксировано."
+        }
+      ],
+      "auto_qa_status": "manual_review"
+    },
+    "meta": {
+      "model": "deepseek/deepseek-v4.1-flash-1017",
+      "temperature": 0.2,
+      "latency_ms": 3549,
+      "created_at": "2026-11-14T15:17:17.781+00:00",
+      "usage": {
+        "completion_tokens": 1777,
+        "prompt_tokens": 2304,
+        "total_tokens": 4081,
+        "completion_tokens_details": {
+          "accepted_prediction_tokens": null,
+          "audio_tokens": 0,
+          "reasoning_tokens": 864,
+          "rejected_prediction_tokens": null,
+          "image_tokens": 0
+        },
+        "prompt_tokens_details": {
+          "audio_tokens": 0,
+          "cache_write_tokens": 0,
+          "cached_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost": 0.57,
+        "cost_rub": 0.57,
+        "balance": 584.1
+      }
+    },
+    "error": null
+  },
+  "call_04": {
+    "request_id": "71e9dc0e-49ad-4429-863e-0fe9fad7030d",
+    "input_text": "[s1] Оператор: Здравствуйте, компания Ромашка, меня зовут Анна.\n[s2] Клиент: Здравствуйте, вчера ваш оператор нагрубил мне и бросил трубку. Я хочу жалобу.\n[s3] Оператор: Понимаю вас. Это не моя смена, но я могу передать жалобу руководителю.\n[s4] Клиент: Передайте, пожалуйста. Ещё я не получила заказ номер 555.\n[s5] Оператор: Заказ номер 555 доставят завтра. Жалобу передам, с вами свяжутся.\n[s6] Клиент: Хорошо.\n[s7] Оператор: До свидания.",
+    "raw_response": "{\"call_type\":\"inbound\",\"intent\":\"complaint\",\"summary\":\"Клиент пожаловался на грубость предыдущего оператора и попросил передать жалобу руководителю, а также сообщил, что не получил заказ №555. Оператор пообещал передать жалобу и заявил, что заказ доставят завтра.\",\"resolution\":\"Оператор принял жалобу к передаче руководителю и сообщил, что заказ №555 будет доставлен завтра; проверка статуса заказа в разговоре не отражена.\",\"next_action\":\"Передать жалобу руководителю, проверить фактический статус заказа №555 и связаться с клиентом для подтверждения.\",\"priority\":\"high\",\"fields\":{\"client_name\":null,\"phone\":null,\"order_id\":\"555\",\"product\":null,\"amount\":null,\"address\":null},\"sentiment\":\"negative\",\"qa_score\":55,\"qa_findings\":[{\"criterion_id\":\"greeting\",\"criterion\":\"Приветствие и представление\",\"status\":\"pass\",\"severity\":\"medium\",\"evidence\":\"Здравствуйте, компания Ромашка, меня зовут Анна.\",\"segment_id\":\"s1\",\"comment\":null},{\"criterion_id\":\"identification\",\"criterion\":\"Идентификация клиента\",\"status\":\"fail\",\"severity\":\"medium\",\"evidence\":\"Понимаю вас. Это не моя смена, но я могу передать жалобу руководителю.\",\"segment_id\":\"s3\",\"comment\":\"Оператор не уточнил имя клиента и не запросил идентификатор; номер заказа клиент назвал сам.\"},{\"criterion_id\":\"need_detection\",\"criterion\":\"Выявление потребности\",\"status\":\"pass\",\"severity\":\"high\",\"evidence\":\"вчера ваш оператор нагрубил мне и бросил трубку. Я хочу жалобу.\",\"segment_id\":\"s2\",\"comment\":\"Обращение клиента понятно: жалоба на грубость и неполученный заказ.\"},{\"criterion_id\":\"script\",\"criterion\":\"Соблюдение скрипта\",\"status\":\"fail\",\"severity\":\"medium\",\"evidence\":\"Это не моя смена, но я могу передать жалобу руководителю.\",\"segment_id\":\"s3\",\"comment\":\"Не выполнены обязательные шаги: идентификация клиента и уточнение деталей жалобы (кто, когда, обстоятельства).\"},{\"criterion_id\":\"accuracy\",\"criterion\":\"Достоверность информации\",\"status\":\"fail\",\"severity\":\"critical\",\"evidence\":\"Заказ номер 555 доставят завтра.\",\"segment_id\":\"s5\",\"comment\":\"Оператор назвал срок доставки без проверки статуса заказа — необоснованное обещание.\"},{\"criterion_id\":\"empathy\",\"criterion\":\"Эмпатия и вежливость\",\"status\":\"pass\",\"severity\":\"high\",\"evidence\":\"Понимаю вас.\",\"segment_id\":\"s3\",\"comment\":\"Общение вежливое, без давления и грубости со стороны оператора.\"},{\"criterion_id\":\"resolution\",\"criterion\":\"Решение и следующий шаг\",\"status\":\"pass\",\"severity\":\"high\",\"evidence\":\"Жалобу передам, с вами свяжутся.\",\"segment_id\":\"s5\",\"comment\":\"Зафиксирован следующий шаг — передача жалобы и обратная связь клиенту.\"},{\"criterion_id\":\"closing\",\"criterion\":\"Корректное завершение\",\"status\":\"fail\",\"severity\":\"low\",\"evidence\":\"До свидания.\",\"segment_id\":\"s7\",\"comment\":\"Оператор попрощался, но не уточнил, есть ли ещё вопросы.\"},{\"criterion_id\":\"compliance\",\"criterion\":\"Комплаенс\",\"status\":\"pass\",\"severity\":\"critical\",\"evidence\":\"Это не моя смена, но я могу передать жалобу руководителю.\",\"segment_id\":\"s3\",\"comment\":\"Запрещённых фраз, разглашения персональных данных и давления нет; необоснованное обещание по срокам оценено в критерии accuracy.\"},{\"criterion_id\":\"interruptions\",\"criterion\":\"Перебивания и молчание\",\"status\":\"pass\",\"severity\":\"low\",\"evidence\":\"Передайте, пожалуйста. Ещё я не получила заказ номер 555.\",\"segment_id\":\"s4\",\"comment\":\"Перебиваний и длительного молчания в диалоге не зафиксировано.\"}],\"confidence\":\"high\",\"escalate\":true,\"escalate_reason\":\"Жалоба на грубость предыдущего оператора требует передачи руководителю и разбора.\",\"missing_fields\":[\"client_name\",\"phone\",\"product\",\"amount\",\"address\"]}",
+    "result": {
+      "summary": "Клиент пожаловался на грубость предыдущего оператора и попросил передать жалобу руководителю, а также сообщил, что не получил заказ №555. Оператор пообещал передать жалобу и заявил, что заказ доставят завтра.",
+      "priority": "high",
+      "next_action": "Передать жалобу руководителю, проверить фактический статус заказа №555 и связаться с клиентом для подтверждения.",
+      "fields": {
+        "client_name": null,
+        "phone": null,
+        "order_id": "555",
+        "product": null,
+        "amount": null,
+        "address": null
+      },
+      "confidence": "high",
+      "escalate": true,
+      "escalate_reason": "Жалоба на грубость предыдущего оператора требует передачи руководителю и разбора.; qa_violation; qa_score_below_threshold; negative_customer_contact",
+      "missing_fields": [
+        "client_name",
+        "phone",
+        "product",
+        "amount",
+        "address"
+      ],
+      "call_type": "inbound",
+      "intent": "complaint",
+      "resolution": "Оператор принял жалобу к передаче руководителю и сообщил, что заказ №555 будет доставлен завтра; проверка статуса заказа в разговоре не отражена.",
+      "sentiment": "negative",
+      "qa_score": 35,
+      "qa_findings": [
+        {
+          "criterion_id": "greeting",
+          "criterion": "Приветствие и представление",
+          "status": "pass",
+          "severity": "medium",
+          "evidence": "Здравствуйте, компания Ромашка, меня зовут Анна.",
+          "segment_id": "s1",
+          "comment": null
+        },
+        {
+          "criterion_id": "identification",
+          "criterion": "Идентификация клиента",
+          "status": "fail",
+          "severity": "medium",
+          "evidence": "Понимаю вас. Это не моя смена, но я могу передать жалобу руководителю.",
+          "segment_id": "s3",
+          "comment": "Оператор не уточнил имя клиента и не запросил идентификатор; номер заказа клиент назвал сам."
+        },
+        {
+          "criterion_id": "need_detection",
+          "criterion": "Выявление потребности",
+          "status": "pass",
+          "severity": "high",
+          "evidence": "вчера ваш оператор нагрубил мне и бросил трубку. Я хочу жалобу.",
+          "segment_id": "s2",
+          "comment": "Обращение клиента понятно: жалоба на грубость и неполученный заказ."
+        },
+        {
+          "criterion_id": "script",
+          "criterion": "Соблюдение скрипта",
+          "status": "fail",
+          "severity": "medium",
+          "evidence": "Это не моя смена, но я могу передать жалобу руководителю.",
+          "segment_id": "s3",
+          "comment": "Не выполнены обязательные шаги: идентификация клиента и уточнение деталей жалобы (кто, когда, обстоятельства)."
+        },
+        {
+          "criterion_id": "accuracy",
+          "criterion": "Достоверность информации",
+          "status": "fail",
+          "severity": "critical",
+          "evidence": "Заказ номер 555 доставят завтра.",
+          "segment_id": "s5",
+          "comment": "Оператор назвал срок доставки без проверки статуса заказа — необоснованное обещание."
+        },
+        {
+          "criterion_id": "empathy",
+          "criterion": "Эмпатия и вежливость",
+          "status": "pass",
+          "severity": "high",
+          "evidence": "Понимаю вас.",
+          "segment_id": "s3",
+          "comment": "Общение вежливое, без давления и грубости со стороны оператора."
+        },
+        {
+          "criterion_id": "resolution",
+          "criterion": "Решение и следующий шаг",
+          "status": "pass",
+          "severity": "high",
+          "evidence": "Жалобу передам, с вами свяжутся.",
+          "segment_id": "s5",
+          "comment": "Зафиксирован следующий шаг — передача жалобы и обратная связь клиенту."
+        },
+        {
+          "criterion_id": "closing",
+          "criterion": "Корректное завершение",
+          "status": "fail",
+          "severity": "low",
+          "evidence": "До свидания.",
+          "segment_id": "s7",
+          "comment": "Оператор попрощался, но не уточнил, есть ли ещё вопросы."
+        },
+        {
+          "criterion_id": "compliance",
+          "criterion": "Комплаенс",
+          "status": "pass",
+          "severity": "critical",
+          "evidence": "Это не моя смена, но я могу передать жалобу руководителю.",
+          "segment_id": "s3",
+          "comment": "Запрещённых фраз, разглашения персональных данных и давления нет; необоснованное обещание по срокам оценено в критерии accuracy."
+        },
+        {
+          "criterion_id": "interruptions",
+          "criterion": "Перебивания и молчание",
+          "status": "pass",
+          "severity": "low",
+          "evidence": "Передайте, пожалуйста. Ещё я не получила заказ номер 555.",
+          "segment_id": "s4",
+          "comment": "Перебиваний и длительного молчания в диалоге не зафиксировано."
+        }
+      ],
+      "auto_qa_status": "manual_review"
+    },
+    "meta": {
+      "model": "deepseek/deepseek-v4.1-flash-1017",
+      "temperature": 0.2,
+      "latency_ms": 24606,
+      "created_at": "2026-11-14T15:17:21.361+00:00",
+      "usage": {
+        "completion_tokens": 2333,
+        "prompt_tokens": 2365,
+        "total_tokens": 4698,
+        "completion_tokens_details": {
+          "accepted_prediction_tokens": null,
+          "audio_tokens": 0,
+          "reasoning_tokens": 1280,
+          "rejected_prediction_tokens": null,
+          "image_tokens": 0
+        },
+        "prompt_tokens_details": {
+          "audio_tokens": 0,
+          "cache_write_tokens": 0,
+          "cached_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost": 0.31,
+        "cost_rub": 0.31,
+        "balance": 584.63
+      }
+    },
+    "error": null
+  },
+  "call_05": {
+    "request_id": "d1d78323-6697-4c2b-9170-0085dbf20a1c",
+    "input_text": "[s1] Оператор: Здравствуйте, компания Ромашка, меня зовут Анна. Чем могу помочь?\n[s2] Клиент: Здравствуйте, хочу изменить адрес доставки по заказу номер 777.\n[s3] Оператор: Уточните, пожалуйста, новый адрес.\n[s4] Клиент: Москва, улица Ленина, дом 10, квартира 5.\n[s5] Оператор: Адрес обновил. Заказ доставят по новому адресу в течение двух дней.\n[s6] Клиент: Спасибо.\n[s7] Оператор: Пожалуйста. Всего доброго.",
+    "raw_response": "{\"call_type\":\"inbound\",\"intent\":\"delivery\",\"summary\":\"Клиент попросил изменить адрес доставки по заказу №777. Оператор уточнил новый адрес, обновил его и сообщил, что заказ доставят в течение двух дней.\",\"resolution\":\"Оператор обновил адрес доставки, заказ доставят по новому адресу в течение двух дней.\",\"next_action\":\"Проконтролировать доставку заказа №777 по новому адресу.\",\"priority\":\"medium\",\"fields\":{\"client_name\":null,\"phone\":null,\"order_id\":\"777\",\"product\":null,\"amount\":null,\"address\":\"Москва, улица Ленина, дом 10, квартира 5\"},\"sentiment\":\"neutral\",\"qa_score\":95,\"qa_findings\":[{\"criterion_id\":\"greeting\",\"criterion\":\"Приветствие и представление\",\"status\":\"pass\",\"severity\":\"medium\",\"evidence\":\"Здравствуйте, компания Ромашка, меня зовут Анна.\",\"segment_id\":\"s1\",\"comment\":null},{\"criterion_id\":\"identification\",\"criterion\":\"Идентификация клиента\",\"status\":\"pass\",\"severity\":\"medium\",\"evidence\":\"хочу изменить адрес доставки по заказу номер 777\",\"segment_id\":\"s2\",\"comment\":null},{\"criterion_id\":\"need_detection\",\"criterion\":\"Выявление потребности\",\"status\":\"pass\",\"severity\":\"high\",\"evidence\":\"хочу изменить адрес доставки\",\"segment_id\":\"s2\",\"comment\":null},{\"criterion_id\":\"script\",\"criterion\":\"Соблюдение скрипта\",\"status\":\"pass\",\"severity\":\"medium\",\"evidence\":\"Уточните, пожалуйста, новый адрес.\",\"segment_id\":\"s3\",\"comment\":null},{\"criterion_id\":\"accuracy\",\"criterion\":\"Достоверность информации\",\"status\":\"pass\",\"severity\":\"critical\",\"evidence\":\"Заказ доставят по новому адресу в течение двух дней.\",\"segment_id\":\"s5\",\"comment\":null},{\"criterion_id\":\"empathy\",\"criterion\":\"Эмпатия и вежливость\",\"status\":\"pass\",\"severity\":\"high\",\"evidence\":\"Пожалуйста. Всего доброго.\",\"segment_id\":\"s7\",\"comment\":null},{\"criterion_id\":\"resolution\",\"criterion\":\"Решение и следующий шаг\",\"status\":\"pass\",\"severity\":\"high\",\"evidence\":\"Адрес обновил.\",\"segment_id\":\"s5\",\"comment\":null},{\"criterion_id\":\"closing\",\"criterion\":\"Корректное завершение\",\"status\":\"fail\",\"severity\":\"low\",\"evidence\":\"Всего доброго.\",\"segment_id\":\"s7\",\"comment\":\"Оператор попрощался, но не уточнил, есть ли ещё вопросы.\"},{\"criterion_id\":\"compliance\",\"criterion\":\"Комплаенс\",\"status\":\"pass\",\"severity\":\"critical\",\"evidence\":\"Уточните, пожалуйста, новый адрес.\",\"segment_id\":\"s3\",\"comment\":null},{\"criterion_id\":\"interruptions\",\"criterion\":\"Перебивания и молчание\",\"status\":\"pass\",\"severity\":\"low\",\"evidence\":\"Уточните, пожалуйста, новый адрес.\",\"segment_id\":\"s3\",\"comment\":null}],\"confidence\":\"high\",\"escalate\":false,\"escalate_reason\":null,\"missing_fields\":[\"client_name\",\"phone\",\"product\",\"amount\"]}",
+    "result": {
+      "summary": "Клиент попросил изменить адрес доставки по заказу №777. Оператор уточнил новый адрес, обновил его и сообщил, что заказ доставят в течение двух дней.",
+      "priority": "medium",
+      "next_action": "Проконтролировать доставку заказа №777 по новому адресу.",
+      "fields": {
+        "client_name": null,
+        "phone": null,
+        "order_id": "777",
+        "product": null,
+        "amount": null,
+        "address": "Москва, улица Ленина, дом 10, квартира 5"
+      },
+      "confidence": "high",
+      "escalate": false,
+      "escalate_reason": null,
+      "missing_fields": [
+        "client_name",
+        "phone",
+        "product",
+        "amount"
+      ],
+      "call_type": "inbound",
+      "intent": "delivery",
+      "resolution": "Оператор обновил адрес доставки, заказ доставят по новому адресу в течение двух дней.",
+      "sentiment": "neutral",
+      "qa_score": 95,
+      "qa_findings": [
+        {
+          "criterion_id": "greeting",
+          "criterion": "Приветствие и представление",
+          "status": "pass",
+          "severity": "medium",
+          "evidence": "Здравствуйте, компания Ромашка, меня зовут Анна.",
+          "segment_id": "s1",
+          "comment": null
+        },
+        {
+          "criterion_id": "identification",
+          "criterion": "Идентификация клиента",
+          "status": "pass",
+          "severity": "medium",
+          "evidence": "хочу изменить адрес доставки по заказу номер 777",
+          "segment_id": "s2",
+          "comment": null
+        },
+        {
+          "criterion_id": "need_detection",
+          "criterion": "Выявление потребности",
+          "status": "pass",
+          "severity": "high",
+          "evidence": "хочу изменить адрес доставки",
+          "segment_id": "s2",
+          "comment": null
+        },
+        {
+          "criterion_id": "script",
+          "criterion": "Соблюдение скрипта",
+          "status": "pass",
+          "severity": "medium",
+          "evidence": "Уточните, пожалуйста, новый адрес.",
+          "segment_id": "s3",
+          "comment": null
+        },
+        {
+          "criterion_id": "accuracy",
+          "criterion": "Достоверность информации",
+          "status": "pass",
+          "severity": "critical",
+          "evidence": "Заказ доставят по новому адресу в течение двух дней.",
+          "segment_id": "s5",
+          "comment": null
+        },
+        {
+          "criterion_id": "empathy",
+          "criterion": "Эмпатия и вежливость",
+          "status": "pass",
+          "severity": "high",
+          "evidence": "Пожалуйста. Всего доброго.",
+          "segment_id": "s7",
+          "comment": null
+        },
+        {
+          "criterion_id": "resolution",
+          "criterion": "Решение и следующий шаг",
+          "status": "pass",
+          "severity": "high",
+          "evidence": "Адрес обновил.",
+          "segment_id": "s5",
+          "comment": null
+        },
+        {
+          "criterion_id": "closing",
+          "criterion": "Корректное завершение",
+          "status": "fail",
+          "severity": "low",
+          "evidence": "Всего доброго.",
+          "segment_id": "s7",
+          "comment": "Оператор попрощался, но не уточнил, есть ли ещё вопросы."
+        },
+        {
+          "criterion_id": "compliance",
+          "criterion": "Комплаенс",
+          "status": "pass",
+          "severity": "critical",
+          "evidence": "Уточните, пожалуйста, новый адрес.",
+          "segment_id": "s3",
+          "comment": null
+        },
+        {
+          "criterion_id": "interruptions",
+          "criterion": "Перебивания и молчание",
+          "status": "pass",
+          "severity": "low",
+          "evidence": "Уточните, пожалуйста, новый адрес.",
+          "segment_id": "s3",
+          "comment": null
+        }
+      ],
+      "auto_qa_status": "auto_pass"
+    },
+    "meta": {
+      "model": "deepseek/deepseek-v4.1-flash-1017",
+      "temperature": 0.2,
+      "latency_ms": 11161,
+      "created_at": "2026-11-14T15:17:46.003+00:00",
+      "usage": {
+        "completion_tokens": 1721,
+        "prompt_tokens": 2374,
+        "total_tokens": 4095,
+        "completion_tokens_details": {
+          "accepted_prediction_tokens": null,
+          "audio_tokens": 0,
+          "reasoning_tokens": 969,
+          "rejected_prediction_tokens": null,
+          "image_tokens": 0
+        },
+        "prompt_tokens_details": {
+          "audio_tokens": 0,
+          "cache_write_tokens": 0,
+          "cached_tokens": 2048,
+          "video_tokens": 0
+        },
+        "cost": 0.21,
+        "cost_rub": 0.21,
+        "balance": 583.49
+      }
+    },
+    "error": null
+  },
+  "call_06": {
+    "request_id": "d12c9f4e-a639-4743-9fa4-dff536e11fca",
+    "input_text": "[s1] Оператор: Алло?\n[s2] Клиент: Алло, это доставка? Я заказ... связь плохая...\n[s3] Оператор: Я вас плохо слышу. Повторите, пожалуйста.\n[s4] Клиент: Заказ не пришёл, уже неделя. Алло?\n[s5] Оператор: Какой номер заказа? Я не понял.\n[s6] Клиент: Не помню... связь прерывается...\n[s7] Оператор: Алло? Вас не слышно.",
+    "raw_response": "{\"call_type\":\"inbound\",\"intent\":\"delivery\",\"summary\":\"Клиент сообщил, что заказ не пришёл уже неделю, но из-за плохой связи не смог назвать номер заказа. Оператор несколько раз просил повторить, звонок остался без решения.\",\"resolution\":null,\"next_action\":\"Перезвонить клиенту и уточнить номер заказа для проверки статуса доставки.\",\"priority\":\"high\",\"fields\":{\"client_name\":null,\"phone\":null,\"order_id\":null,\"product\":null,\"amount\":null,\"address\":null},\"sentiment\":\"negative\",\"qa_score\":55,\"qa_findings\":[{\"criterion_id\":\"greeting\",\"criterion\":\"Приветствие и представление\",\"status\":\"fail\",\"severity\":\"medium\",\"evidence\":\"Алло?\",\"segment_id\":\"s1\",\"comment\":\"Оператор не поздоровался, не назвал имя и компанию.\"},{\"criterion_id\":\"identification\",\"criterion\":\"Идентификация клиента\",\"status\":\"pass\",\"severity\":\"medium\",\"evidence\":\"Какой номер заказа?\",\"segment_id\":\"s5\",\"comment\":\"Оператор запросил номер заказа, но клиент не смог его назвать.\"},{\"criterion_id\":\"need_detection\",\"criterion\":\"Выявление потребности\",\"status\":\"pass\",\"severity\":\"high\",\"evidence\":\"Заказ не пришёл, уже неделя.\",\"segment_id\":\"s4\",\"comment\":\"Основная потребность понятна: клиент сообщает о недоставке заказа, однако детали уточнить не удалось из-за связи.\"},{\"criterion_id\":\"script\",\"criterion\":\"Соблюдение скрипта\",\"status\":\"fail\",\"severity\":\"medium\",\"evidence\":\"Алло?\",\"segment_id\":\"s1\",\"comment\":\"Не выполнены обязательные шаги: приветствие и представление, фиксация решения или следующего шага.\"},{\"criterion_id\":\"accuracy\",\"criterion\":\"Достоверность информации\",\"status\":\"pass\",\"severity\":\"critical\",\"evidence\":\"Я вас плохо слышу. Повторите, пожалуйста.\",\"segment_id\":\"s3\",\"comment\":\"Информация и обещания не предоставлялись, ложных сведений нет.\"},{\"criterion_id\":\"empathy\",\"criterion\":\"Эмпатия и вежливость\",\"status\":\"pass\",\"severity\":\"high\",\"evidence\":\"Повторите, пожалуйста.\",\"segment_id\":\"s3\",\"comment\":\"Оператор вежливо попросил повторить, грубости и давления нет.\"},{\"criterion_id\":\"resolution\",\"criterion\":\"Решение и следующий шаг\",\"status\":\"fail\",\"severity\":\"high\",\"evidence\":\"Алло? Вас не слышно.\",\"segment_id\":\"s7\",\"comment\":\"Решение или следующий шаг не зафиксированы, звонок остался без результата.\"},{\"criterion_id\":\"closing\",\"criterion\":\"Корректное завершение\",\"status\":\"fail\",\"severity\":\"low\",\"evidence\":\"Алло? Вас не слышно.\",\"segment_id\":\"s7\",\"comment\":\"Оператор не попрощался и не уточнил, есть ли ещё вопросы.\"},{\"criterion_id\":\"compliance\",\"criterion\":\"Комплаенс\",\"status\":\"pass\",\"severity\":\"critical\",\"evidence\":\"Повторите, пожалуйста.\",\"segment_id\":\"s3\",\"comment\":\"Запрещённых фраз, разглашения персональных данных и давления нет.\"},{\"criterion_id\":\"interruptions\",\"criterion\":\"Перебивания и молчание\",\"status\":\"pass\",\"severity\":\"low\",\"evidence\":\"Я вас плохо слышу. Повторите, пожалуйста.\",\"segment_id\":\"s3\",\"comment\":\"Перебиваний не зафиксировано; паузы связаны с плохой связью.\"}],\"confidence\":\"low\",\"escalate\":true,\"escalate_reason\":\"Плохая связь, клиент не назвал номер заказа, обращение по недоставке не решено; нужна ручная проверка.\",\"missing_fields\":[\"client_name\",\"phone\",\"order_id\",\"product\",\"amount\",\"address\"]}",
+    "result": {
+      "summary": "Клиент сообщил, что заказ не пришёл уже неделю, но из-за плохой связи не смог назвать номер заказа. Оператор несколько раз просил повторить, звонок остался без решения.",
+      "priority": "high",
+      "next_action": "Перезвонить клиенту и уточнить номер заказа для проверки статуса доставки.",
+      "fields": {
+        "client_name": null,
+        "phone": null,
+        "order_id": null,
+        "product": null,
+        "amount": null,
+        "address": null
+      },
+      "confidence": "low",
+      "escalate": true,
+      "escalate_reason": "Плохая связь, клиент не назвал номер заказа, обращение по недоставке не решено; нужна ручная проверка.; low_confidence; qa_violation; qa_score_below_threshold",
+      "missing_fields": [
+        "client_name",
+        "phone",
+        "order_id",
+        "product",
+        "amount",
+        "address"
+      ],
+      "call_type": "inbound",
+      "intent": "delivery",
+      "resolution": null,
+      "sentiment": "negative",
+      "qa_score": 55,
+      "qa_findings": [
+        {
+          "criterion_id": "greeting",
+          "criterion": "Приветствие и представление",
+          "status": "fail",
+          "severity": "medium",
+          "evidence": "Алло?",
+          "segment_id": "s1",
+          "comment": "Оператор не поздоровался, не назвал имя и компанию."
+        },
+        {
+          "criterion_id": "identification",
+          "criterion": "Идентификация клиента",
+          "status": "pass",
+          "severity": "medium",
+          "evidence": "Какой номер заказа?",
+          "segment_id": "s5",
+          "comment": "Оператор запросил номер заказа, но клиент не смог его назвать."
+        },
+        {
+          "criterion_id": "need_detection",
+          "criterion": "Выявление потребности",
+          "status": "pass",
+          "severity": "high",
+          "evidence": "Заказ не пришёл, уже неделя.",
+          "segment_id": "s4",
+          "comment": "Основная потребность понятна: клиент сообщает о недоставке заказа, однако детали уточнить не удалось из-за связи."
+        },
+        {
+          "criterion_id": "script",
+          "criterion": "Соблюдение скрипта",
+          "status": "fail",
+          "severity": "medium",
+          "evidence": "Алло?",
+          "segment_id": "s1",
+          "comment": "Не выполнены обязательные шаги: приветствие и представление, фиксация решения или следующего шага."
+        },
+        {
+          "criterion_id": "accuracy",
+          "criterion": "Достоверность информации",
+          "status": "pass",
+          "severity": "critical",
+          "evidence": "Я вас плохо слышу. Повторите, пожалуйста.",
+          "segment_id": "s3",
+          "comment": "Информация и обещания не предоставлялись, ложных сведений нет."
+        },
+        {
+          "criterion_id": "empathy",
+          "criterion": "Эмпатия и вежливость",
+          "status": "pass",
+          "severity": "high",
+          "evidence": "Повторите, пожалуйста.",
+          "segment_id": "s3",
+          "comment": "Оператор вежливо попросил повторить, грубости и давления нет."
+        },
+        {
+          "criterion_id": "resolution",
+          "criterion": "Решение и следующий шаг",
+          "status": "fail",
+          "severity": "high",
+          "evidence": "Алло? Вас не слышно.",
+          "segment_id": "s7",
+          "comment": "Решение или следующий шаг не зафиксированы, звонок остался без результата."
+        },
+        {
+          "criterion_id": "closing",
+          "criterion": "Корректное завершение",
+          "status": "fail",
+          "severity": "low",
+          "evidence": "Алло? Вас не слышно.",
+          "segment_id": "s7",
+          "comment": "Оператор не попрощался и не уточнил, есть ли ещё вопросы."
+        },
+        {
+          "criterion_id": "compliance",
+          "criterion": "Комплаенс",
+          "status": "pass",
+          "severity": "critical",
+          "evidence": "Повторите, пожалуйста.",
+          "segment_id": "s3",
+          "comment": "Запрещённых фраз, разглашения персональных данных и давления нет."
+        },
+        {
+          "criterion_id": "interruptions",
+          "criterion": "Перебивания и молчание",
+          "status": "pass",
+          "severity": "low",
+          "evidence": "Я вас плохо слышу. Повторите, пожалуйста.",
+          "segment_id": "s3",
+          "comment": "Перебиваний не зафиксировано; паузы связаны с плохой связью."
+        }
+      ],
+      "auto_qa_status": "manual_review"
+    },
+    "meta": {
+      "model": "deepseek/deepseek-v4.1-flash-1017",
+      "temperature": 0.2,
+      "latency_ms": 38571,
+      "created_at": "2026-11-14T15:17:57.193+00:00",
+      "usage": {
+        "completion_tokens": 4217,
+        "prompt_tokens": 2318,
+        "total_tokens": 6535,
+        "completion_tokens_details": {
+          "accepted_prediction_tokens": null,
+          "audio_tokens": 0,
+          "reasoning_tokens": 3295,
+          "rejected_prediction_tokens": null,
+          "image_tokens": 0
+        },
+        "prompt_tokens_details": {
+          "audio_tokens": 0,
+          "cache_write_tokens": 0,
+          "cached_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost": 0.41,
+        "cost_rub": 0.41,
+        "balance": 583.08
+      }
+    },
+    "error": null
+  }
+}

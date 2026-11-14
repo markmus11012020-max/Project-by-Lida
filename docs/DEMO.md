@@ -121,3 +121,7 @@ Get-Content data/test_run.csv -TotalCount 5
 - Почему не json_schema: не все модели поддерживают; Pydantic надёжнее.
 - Почему SQLite: MVP на одной машине, легко заменить на PostgreSQL.
 - Где 60 откликов: шаблоны и трекер в docs, отправка — карьерная часть.
+
+## Отдельное демо для колл-центров
+
+CallPilot находится в call-center/. Запуск: call-center\start.bat, интерфейс: http://127.0.0.1:8020. Там 6 синтетических звонков, аудио, QA-чек-лист, подтверждение менеджером и готовая QA-аналитика. Для рассылки используйте call-center/OUTREACH.md и скриншоты из call-center/screenshots/.

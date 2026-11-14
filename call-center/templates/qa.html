@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+{% block title %}QA-аналитика · CallPilot{% endblock %}
+{% block eyebrow %}Качество{% endblock %}
+{% block page_title %}QA-аналитика{% endblock %}
+{% block page_subtitle %}100% звонков проверены. В ручную проверку уходят только исключения.{% endblock %}
+
+{% block content %}
+<section class="kpi-grid">
+  <article class="kpi-card">
+    <div class="kpi-label">Покрытие QA</div>
+    <div class="kpi-value">{{ metrics.qa_coverage|round(0)|int }}%</div>
+    <div class="kpi-note">{{ metrics.processed }} из {{ metrics.total }} звонков</div>
+  </article>
+  <article class="kpi-card kpi-green">
+    <div class="kpi-label">Авто-проверка</div>
+    <div class="kpi-value">{{ metrics.auto_pass }}</div>
+    <div class="kpi-note">{{ metrics.auto_pass_rate|round(0)|int }}% прошли без человека</div>
+  </article>
+  <article class="kpi-card kpi-amber">
+    <div class="kpi-label">Ручная проверка</div>
+    <div class="kpi-value">{{ metrics.manual_review }}</div>
+    <div class="kpi-note">{{ metrics.manual_review_rate|round(0)|int }}% у менеджера</div>
+  </article>
+  <article class="kpi-card">
+    <div class="kpi-label">Средний QA-score</div>
+    <div class="kpi-value">{{ metrics.avg_qa_score }}</div>
+    <div class="kpi-note">из 100</div>
+  </article>
+  <article class="kpi-card">
+    <div class="kpi-label">Правки после модели</div>
+    <div class="kpi-value">{{ metrics.edit_rate }}%</div>
+    <div class="kpi-note">от подтверждённых звонков</div>
+  </article>
+  <article class="kpi-card">
+    <div class="kpi-label">Стоимость разбора</div>
+    <div class="kpi-value">{{ metrics.cost_per_call_rub }} ₽</div>
+    <div class="kpi-note">LLM-разбор без TTS</div>
+  </article>
+</section>
+
+<section class="qa-grid">
+  <article class="panel">
+    <div class="panel-head compact">
+      <div>
+        <h2>Распределение проверки</h2>
+        <p class="muted small">Менеджер смотрит только звонки с нарушениями или низкой уверенностью.</p>
+      </div>
+    </div>
+    {% set auto_pct = (metrics.auto_pass / metrics.processed * 100) if metrics.processed else 0 %}
+    <div class="donut-wrap">
+      <div class="donut" style="--auto: {{ auto_pct }}%">
+        <div class="donut-hole">
+          <strong>{{ auto_pct|round(0)|int }}%</strong>
+          <span>авто</span>
+        </div>
+      </div>
+      <div class="legend">
+        <div class="legend-row"><span class="dot dot-green"></span> Авто-проверка <strong>{{ metrics.auto_pass }}</strong></div>
+        <div class="legend-row"><span class="dot dot-amber"></span> Ручная проверка <strong>{{ metrics.manual_review }}</strong></div>
+        <div class="legend-row"><span class="dot dot-gray"></span> Не обработано <strong>{{ metrics.new }}</strong></div>
+      </div>
+    </div>
+  </article>
+
+  <article class="panel">
+    <div class="panel-head compact">
+      <div>
+        <h2>Топ интентов</h2>
+        <p class="muted small">Что чаще всего спрашивают клиенты.</p>
+      </div>
+    </div>
+    {% if metrics.top_intents %}
+    {% set max_intent = metrics.top_intents[0][1] %}
+    <div class="bars">
+      {% for intent, count in metrics.top_intents %}
+      <div class="bar-row">
+        <span class="bar-label">{{ intent|label(intent_labels) }}</span>
+        <div class="bar-track"><div class="bar-fill" style="width: {{ (count / max_intent * 100)|round(0) }}%"></div></div>
+        <strong>{{ count }}</strong>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="muted">Нет данных.</p>
+    {% endif %}
+  </article>
+
+  <article class="panel">
+    <div class="panel-head compact">
+      <div>
+        <h2>Топ нарушений</h2>
+        <p class="muted small">Где модель чаще всего ставит fail.</p>
+      </div>
+    </div>
+    {% if metrics.top_violations %}
+    {% set max_violation = metrics.top_violations[0][1] %}
+    <div class="bars">
+      {% for name, count in metrics.top_violations %}
+      <div class="bar-row">
+        <span class="bar-label">{{ name }}</span>
+        <div class="bar-track"><div class="bar-fill bar-fill-red" style="width: {{ (count / max_violation * 100)|round(0) }}%"></div></div>
+        <strong>{{ count }}</strong>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="muted">Нарушений не найдено.</p>
+    {% endif %}
+  </article>
+
+  <article class="panel">
+    <div class="panel-head compact">
+      <div>
+        <h2>Очередь менеджера</h2>
+        <p class="muted small">Звонки, которые вышли за метрики и ждут решения.</p>
+      </div>
+    </div>
+    {% if metrics.flagged %}
+    <div class="stack">
+      {% for call in metrics.flagged %}
+      {% set result = call.result or {} %}
+      <a class="queue-row" href="/calls/{{ call.id }}?role=manager">
+        <div>
+          <strong>{{ call.id }}</strong>
+          <div class="muted small">{{ call.title }} · {{ result.get('intent')|label(intent_labels) }}</div>
+        </div>
+        <div class="queue-right">
+          <span class="score {% if (result.get('qa_score') or 0) >= 85 %}score-green{% elif (result.get('qa_score') or 0) >= 60 %}score-amber{% else %}score-red{% endif %}">{{ result.get('qa_score') }}</span>
+          <span class="badge badge-amber">проверить</span>
+        </div>
+      </a>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-inline">Очередь пуста: все звонки прошли авто-проверку или уже подтверждены.</div>
+    {% endif %}
+  </article>
+</section>
+
+<section class="panel pilot-panel">
+  <div>
+    <div class="eyebrow">Пилот</div>
+    <h2>100–300 звонков за 2 недели</h2>
+    <p class="muted">Считаем покрытие QA, auto-pass, долю правок, найденные нарушения, экономию постобработки и стоимость разбора. Без замены операторов и без риска для линии.</p>
+  </div>
+  <div class="pilot-metrics">
+    <div><strong>100%</strong><span>звонков проверено</span></div>
+    <div><strong>−40%</strong><span>цель по ACW</span></div>
+    <div><strong>только исключения</strong><span>уходят менеджеру</span></div>
+  </div>
+  <a class="btn btn-primary" href="/offer">Смотреть оффер</a>
+</section>
+{% endblock %}

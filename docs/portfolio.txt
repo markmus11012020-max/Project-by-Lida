@@ -18,6 +18,12 @@
 
 Python, FastAPI, SQLite, Pydantic, OpenAI SDK, AITUNNEL, pytest.
 
+АДРЕСНОЕ ПРИЛОЖЕНИЕ
+
+CallPilot — QA и постобработка звонков для колл-центров:
+100% звонков, аудио с таймкодами, QA-чек-лист, ручная проверка
+только исключений, оффер и шаблоны рассылки.
+
 ССЫЛКИ
 
 Репозиторий: https://github.com/markmus11012020-max/Project-by-Lida

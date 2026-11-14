@@ -16,7 +16,7 @@ def test_health_and_scenarios(api_client_factory) -> None:
     scenarios = client.get("/scenarios")
     assert scenarios.status_code == 200
     keys = {item["key"] for item in scenarios.json()}
-    assert keys == {"support", "sales", "documents"}
+    assert keys == {"support", "sales", "documents", "call_qa"}
 
 
 def test_ingest_and_read_endpoints(api_client_factory) -> None:

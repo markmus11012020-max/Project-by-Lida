@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CallPilot — 100% контроль качества звонков</title>
+  <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body class="marketing-body">
+<header class="marketing-nav">
+  <a class="brand brand-dark" href="/">
+    <img src="/static/logo.svg" alt="CallPilot" width="42" height="42">
+    <span>CallPilot</span>
+  </a>
+  <nav class="marketing-links">
+    <a href="#how">Как работает</a>
+    <a href="#why">Почему это выгодно</a>
+    <a href="#pilot">Пилот</a>
+    <a href="/offer">Оффер</a>
+  </nav>
+  <div class="marketing-actions">
+    <a class="btn btn-ghost" href="/qa">QA-аналитика</a>
+    <a class="btn btn-primary" href="/dashboard">Открыть демо</a>
+  </div>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="hero-glow hero-glow-a"></div>
+    <div class="hero-glow hero-glow-b"></div>
+    <div class="hero-grid">
+      <div class="hero-copy">
+        <div class="eyebrow light">AI-контроль качества звонков</div>
+        <h1>100% звонков под контролем. <span>Менеджер смотрит только исключения.</span></h1>
+        <p class="hero-lead">CallPilot расшифровывает звонки, собирает карточку в CRM, проверяет каждый звонок по чек-листу и отправляет человеку только нарушения и спорные случаи.</p>
+        <div class="hero-cta">
+          <a class="btn btn-primary btn-large" href="/dashboard">Открыть демо <span>→</span></a>
+          <a class="btn btn-ghost-light btn-large" href="/offer">Смотреть оффер</a>
+        </div>
+        <div class="hero-trust">
+          <span>✓ 6 демо-звонков</span>
+          <span>✓ 10 критериев QA</span>
+          <span>✓ аудио + таймкоды</span>
+        </div>
+      </div>
+
+      <div class="hero-visual">
+        <div class="mock-window">
+          <div class="mock-topbar">
+            <div class="mock-dots"><span></span><span></span><span></span></div>
+            <span class="mock-title">CallPilot · карточка звонка</span>
+            <span class="badge badge-amber">ручная проверка</span>
+          </div>
+          <div class="mock-body">
+            <div class="mock-call-head">
+              <div>
+                <div class="mock-eyebrow">Звонок #1042 · возврат</div>
+                <div class="mock-subject">Клиент требует возврат сегодня</div>
+              </div>
+              <div class="mock-score">62<small>QA</small></div>
+            </div>
+            <div class="mock-audio">
+              <button class="mock-play" type="button">▶</button>
+              <div class="mock-wave">
+                <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+              </div>
+              <span class="mock-time">0:14</span>
+            </div>
+            <div class="mock-transcript">
+              <div class="mock-line">
+                <span class="mock-speaker">Оператор</span>
+                <p>Я гарантирую, что деньги вернутся сегодня. Никаких проблем.</p>
+              </div>
+              <div class="mock-finding">
+                <span class="badge badge-red">critical</span>
+                <strong>Нарушение: ложное обещание</strong>
+                <p>«Я гарантирую, что деньги вернутся сегодня»</p>
+              </div>
+            </div>
+            <div class="mock-footer">
+              <span class="badge badge-gray">авто-проверка не пройдена</span>
+              <span class="mock-link">Открыть звонок →</span>
+            </div>
+          </div>
+        </div>
+        <div class="float-card float-card-a">
+          <span class="float-icon">✓</span>
+          <div><strong>100% QA</strong><small>все звонки проверены</small></div>
+        </div>
+        <div class="float-card float-card-b">
+          <span class="float-icon">⚑</span>
+          <div><strong>только исключения</strong><small>менеджеру</small></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="hero-metrics">
+      <div><strong>100%</strong><span>звонков проходят разбор</span></div>
+      <div><strong>{{ metrics.total }}</strong><span>звонков в демо</span></div>
+      <div><strong>{{ metrics.avg_qa_score }}</strong><span>средний QA-score</span></div>
+      <div><strong>{{ metrics.cost_per_call_rub }} ₽</strong><span>LLM-разбор звонка</span></div>
+    </div>
+  </section>
+
+  <section class="section" id="how">
+    <div class="section-head">
+      <div class="eyebrow">Как это работает</div>
+      <h2>От звонка до решения — четыре шага</h2>
+      <p class="muted">Человек остаётся в контуре: модель готовит черновик, сотрудник подтверждает.</p>
+    </div>
+    <div class="steps">
+      <article class="step-card">
+        <div class="step-number">01</div>
+        <h3>Звонок</h3>
+        <p>Запись из телефонии или демо-аудио. Никаких изменений в работе оператора.</p>
+      </article>
+      <article class="step-card">
+        <div class="step-number">02</div>
+        <h3>Транскрипт</h3>
+        <p>Речь превращается в диалог с репликами и таймкодами для быстрой проверки.</p>
+      </article>
+      <article class="step-card">
+        <div class="step-number">03</div>
+        <h3>Карточка и QA</h3>
+        <p>Модель собирает поля для CRM и проверяет звонок по 10 критериям качества.</p>
+      </article>
+      <article class="step-card">
+        <div class="step-number">04</div>
+        <h3>Подтверждение</h3>
+        <p>Менеджер видит только нарушения. Остальные звонки проходят автоматически.</p>
+      </article>
+    </div>
+  </section>
+
+  <section class="section section-split" id="why">
+    <div class="section-head">
+      <div class="eyebrow">Почему это выгодно</div>
+      <h2>Не «ещё один бот», а контроль качества и постобработка</h2>
+      <p class="muted">CallPilot не заменяет операторов. Он снимает рутину и делает качество прозрачным.</p>
+    </div>
+    <div class="feature-grid">
+      <article class="feature-card">
+        <div class="feature-icon">◈</div>
+        <h3>100% покрытие QA</h3>
+        <p>Вместо выборочного прослушивания 2–5% звонков — проверка каждого звонка по единому чек-листу.</p>
+      </article>
+      <article class="feature-card">
+        <div class="feature-icon">↯</div>
+        <h3>Меньше постобработки</h3>
+        <p>Карточка, резюме и следующий шаг уже готовы. Оператор не печатает вручную после звонка.</p>
+      </article>
+      <article class="feature-card">
+        <div class="feature-icon">◉</div>
+        <h3>Прозрачный аудит</h3>
+        <p>Видно, что нашла модель, что подтвердил человек и какие поля изменились. Это важно для руководителя и QA.</p>
+      </article>
+    </div>
+  </section>
+
+  <section class="section section-split">
+    <div class="section-head">
+      <div class="eyebrow">Что видит менеджер</div>
+      <h2>Не сырой транскрипт, а готовое решение</h2>
+    </div>
+    <div class="feature-grid">
+      <article class="feature-card">
+        <div class="feature-icon">♪</div>
+        <h3>Аудио с таймкодами</h3>
+        <p>Клик по цитате — и плеер перематывается на момент нарушения. Проверка занимает секунды.</p>
+      </article>
+      <article class="feature-card">
+        <div class="feature-icon">✓</div>
+        <h3>QA-чек-лист</h3>
+        <p>Приветствие, идентификация, скрипт, комплаенс, эмпатия, решение, завершение — всё в одном экране.</p>
+      </article>
+      <article class="feature-card">
+        <div class="feature-icon">⚑</div>
+        <h3>Решение человека</h3>
+        <p>Подтвердить, отменить ложное срабатывание или отклонить звонок. Каждое действие — в аудите.</p>
+      </article>
+    </div>
+  </section>
+
+  <section class="section pilot-section" id="pilot">
+    <div class="pilot-card">
+      <div>
+        <div class="eyebrow">Пилот</div>
+        <h2>100–300 звонков за 2 недели</h2>
+        <p>Подключаем записи, прогоняем через CallPilot и показываем цифры: покрытие QA, auto-pass, найденные нарушения, долю правок, экономию постобработки и стоимость разбора.</p>
+        <div class="hero-cta">
+          <a class="btn btn-primary btn-large" href="/offer">Получить оффер</a>
+          <a class="btn btn-ghost btn-large" href="/dashboard">Посмотреть демо</a>
+        </div>
+      </div>
+      <div class="pilot-list">
+        <div><span>01</span> Собираем 100–300 звонков</div>
+        <div><span>02</span> Настраиваем чек-лист под ваш QA</div>
+        <div><span>03</span> Замеряем до/после</div>
+        <div><span>04</span> Показываем цифры и план v2</div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="marketing-footer">
+  <div class="brand brand-dark">
+    <img src="/static/logo.svg" alt="CallPilot" width="36" height="36">
+    <span>CallPilot</span>
+  </div>
+  <p>Демо на синтетических звонках. Для пилота подключаем реальную телефонию и CRM.</p>
+  <a href="/offer">Оффер →</a>
+</footer>
+</body>
+</html>
