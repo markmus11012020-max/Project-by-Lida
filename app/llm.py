@@ -67,6 +67,7 @@ class AITunnelClient:
             )
 
         last_error: Exception | None = None
+        max_tokens = self.settings.aitunnel_max_tokens
         for attempt in range(1, 3):
             started = time.perf_counter()
             try:
@@ -74,14 +75,27 @@ class AITunnelClient:
                     model=self.settings.aitunnel_model,
                     messages=messages,
                     temperature=self.settings.aitunnel_temperature,
-                    max_tokens=self.settings.aitunnel_max_tokens,
+                    max_tokens=max_tokens,
                     response_format={"type": "json_object"},
                 )
                 latency_ms = int((time.perf_counter() - started) * 1000)
                 if not response.choices:
                     raise LLMError("LLM вернул пустой список choices")
 
-                content = response.choices[0].message.content or ""
+                choice = response.choices[0]
+                if choice.finish_reason == "length":
+                    if attempt == 1:
+                        max_tokens = min(max_tokens * 2, 8000)
+                        logger.warning(
+                            "LLM response truncated, retrying with max_tokens=%s",
+                            max_tokens,
+                        )
+                        continue
+                    raise LLMError(
+                        "Ответ LLM обрезан по лимиту max_tokens после повтора"
+                    )
+
+                content = choice.message.content or ""
                 usage: dict[str, Any] = {}
                 if response.usage is not None:
                     usage = response.usage.model_dump()

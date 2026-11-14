@@ -155,6 +155,7 @@ def cmd_batch(args: argparse.Namespace) -> int:
                 "summary": result.get("summary"),
                 "next_action": result.get("next_action"),
                 "score": result.get("score"),
+                "model": response.meta.model,
                 "latency_ms": response.meta.latency_ms,
                 "cost_rub": cost,
                 "error": response.error,

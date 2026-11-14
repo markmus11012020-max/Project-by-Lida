@@ -76,6 +76,27 @@ def test_missing_critical_fields_force_escalation() -> None:
     assert "need" in checked.missing_fields
 
 
+def test_support_question_with_desired_outcome_is_processed() -> None:
+    payload = {
+        **SUPPORT_OK,
+        "fields": {
+            **SUPPORT_OK["fields"],
+            "issue": None,
+            "desired_outcome": "узнать условия доставки в Казань",
+        },
+        "missing_fields": ["issue", "order_id", "product"],
+        "confidence": "high",
+        "escalate": False,
+    }
+    result = SupportResult.model_validate(payload)
+    checked, status, reasons = apply_qc(
+        result, SCENARIOS[ScenarioKey.SUPPORT]
+    )
+    assert checked.escalate is False
+    assert status == ProcessStatus.PROCESSED
+    assert reasons == []
+
+
 def test_model_escalation_is_respected() -> None:
     payload = {
         **SUPPORT_OK,

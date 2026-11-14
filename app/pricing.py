@@ -16,6 +16,8 @@ PRICES_RUB_PER_MILLION: dict[str, tuple[float, float]] = {
     "deepseek-v4-flash": (18.2, 36.4),
     "deepseek-v4.1-flash": (9.0, 100.0),
     "deepseek-v4.1-flash-1017": (30.0, 120.0),
+    "deepseek/deepseek-v4.1-flash": (9.0, 100.0),
+    "deepseek/deepseek-v4.1-flash-1017": (30.0, 120.0),
 }
 
 

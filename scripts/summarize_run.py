@@ -16,7 +16,10 @@ def _configure_stdout() -> None:
             stream.reconfigure(encoding="utf-8")
 
 
-def _build_summary(rows: list[dict[str, Any]]) -> str:
+def _build_summary(
+    rows: list[dict[str, Any]],
+    model_override: str = "",
+) -> str:
     total = len(rows)
     statuses = Counter(row["actual_status"] for row in rows)
     scenarios: dict[str, Counter[str]] = defaultdict(Counter)
@@ -37,10 +40,15 @@ def _build_summary(rows: list[dict[str, Any]]) -> str:
         else 0
     )
     automation = statuses.get("processed", 0) / total * 100 if total else 0
+    model = model_override or next(
+        (row.get("model") for row in rows if row.get("model")),
+        "не указана",
+    )
 
     lines = [
         "# Результаты live-прогона",
         "",
+        f"Модель: {model}",
         f"Всего кейсов: {total}",
         f"Валидный бизнес-результат: {valid}",
         f"Обработано автоматически: {statuses.get('processed', 0)}",
@@ -128,6 +136,11 @@ def main(argv: list[str] | None = None) -> int:
         default="docs/test_run_summary.md",
         help="Куда сохранить Markdown",
     )
+    parser.add_argument(
+        "--model",
+        default="",
+        help="Модель для отчёта, если её нет в JSON",
+    )
     args = parser.parse_args(argv)
 
     source = Path(args.input)
@@ -140,7 +153,7 @@ def main(argv: list[str] | None = None) -> int:
         print("В файле нет результатов.")
         return 1
 
-    text = _build_summary(rows)
+    text = _build_summary(rows, model_override=args.model)
     output = Path(args.output)
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(text, encoding="utf-8")

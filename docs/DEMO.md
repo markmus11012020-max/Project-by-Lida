@@ -105,7 +105,7 @@ Invoke-RestMethod "http://127.0.0.1:8000/audit/ВАШ_REQUEST_ID?include_raw=tru
 Get-Content data/test_run.csv -TotalCount 5
 ```
 
-Итог: 30 кейсов, около 70 процентов автоматизации, 0 invalid и error, прозрачный аудит. Экономия времени на 30 кейсах — около 69 процентов.
+Итог: 30 кейсов, 66.7 процента автоматизации, 0 invalid и error, прозрачный аудит. Экономия времени на 30 кейсах — около 67 процентов.
 
 ## Команды для проверки
 
@@ -117,7 +117,7 @@ Get-Content data/test_run.csv -TotalCount 5
 
 ## Что говорить, если спросят
 
-- Модель: gpt-4o-mini, temperature 0.2, JSON-режим.
+- Модель: из .env, в текущей конфигурации deepseek/deepseek-v4.1-flash-1017; temperature 0.2, JSON-режим.
 - Почему не json_schema: не все модели поддерживают; Pydantic надёжнее.
 - Почему SQLite: MVP на одной машине, легко заменить на PostgreSQL.
 - Где 60 откликов: шаблоны и трекер в docs, отправка — карьерная часть.

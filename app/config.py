@@ -31,7 +31,7 @@ class Settings(BaseSettings):
     aitunnel_base_url: str = Field(default="https://api.aitunnel.ru/v1/")
     aitunnel_model: str = Field(default="gpt-4o-mini")
     aitunnel_temperature: float = Field(default=0.2, ge=0.0, le=2.0)
-    aitunnel_max_tokens: int = Field(default=800, ge=1, le=32000)
+    aitunnel_max_tokens: int = Field(default=2500, ge=1, le=32000)
     aitunnel_timeout: float = Field(default=60.0, gt=0)
 
     database_path: Path = Field(default=BASE_DIR / "data" / "app.db")
