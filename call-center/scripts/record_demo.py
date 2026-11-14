@@ -35,16 +35,16 @@ FINAL_VIDEO = DEMO_DIR / "callpilot-demo.mp4"
 BASE_URL = "http://127.0.0.1:8020"
 PAUSE_MS = 450
 
-# Natural Russian intonation pauses at punctuation boundaries.
+# Natural Russian intonation pauses. Commas are NOT split into separate
+# chunks: edge-tts handles them naturally, without a long artificial pause.
 PAUSE_BY_MARK = {
-    ".": 360,
-    "!": 420,
-    "?": 420,
-    "…": 500,
-    ";": 280,
-    ":": 280,
-    ",": 140,
-    "dash": 220,
+    ".": 260,
+    "!": 320,
+    "?": 320,
+    "…": 380,
+    ";": 220,
+    ":": 220,
+    "dash": 160,
 }
 
 
@@ -54,11 +54,23 @@ def _configure_stdout() -> None:
             stream.reconfigure(encoding="utf-8")
 
 
-def _split_for_tts(text: str) -> list[tuple[str, int]]:
-    """Split narration into clauses, keeping punctuation and pause length.
+def _tts_text(text: str) -> str:
+    """Text for the voice, not for the screen.
 
-    This makes Russian intonation explicit: comma, dash, colon and sentence
-    endings get their own short pauses instead of relying on the TTS defaults.
+    The brand must sound like «КоллПайлот», not like an English word.
+    """
+
+    return (
+        text.replace("CallPilot", "КоллПайлот")
+        .replace("AI-контроль", "ИИ-контроль")
+    )
+
+
+def _split_for_tts(text: str) -> list[tuple[str, int]]:
+    """Split narration into clauses at strong punctuation only.
+
+    Commas stay inside the phrase: edge-tts reads them with natural Russian
+    intonation. Explicit pauses are added only at sentence/dash/colon boundaries.
     """
 
     chunks: list[tuple[str, int]] = []
@@ -87,7 +99,7 @@ def _split_for_tts(text: str) -> list[tuple[str, int]]:
             continue
 
         buffer.append(char)
-        if char in ".!?…;:,":
+        if char in ".!?…;:":
             cursor = index + 1
             while cursor < length and text[cursor] in "»”’\"')]":
                 buffer.append(text[cursor])
@@ -165,7 +177,7 @@ async def _build_scene_audio(
 ) -> None:
     if target.exists() and target.stat().st_size > 1000:
         return
-    chunks = _split_for_tts(text)
+    chunks = _split_for_tts(_tts_text(text))
     if not chunks:
         raise RuntimeError("Empty TTS text")
 
