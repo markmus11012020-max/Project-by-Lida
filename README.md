@@ -67,6 +67,8 @@ Windows PowerShell:
 Linux или macOS:
 .venv/bin/python -m pip install -r requirements.txt
 
+Полный набор зафиксированных версий находится в requirements.lock.txt.
+
 Шаг 3. Создать локальный файл .env.
 
 Windows PowerShell:
@@ -170,7 +172,8 @@ HTTP 422 возвращается только при неверном теле 
 .venv\Scripts\python.exe -m pytest -q
 
 Проверяются схемы, контроль качества, эскалация, API, база, экспорт и формат
-README. Live-прогон запускается отдельно через CLI.
+README. Сейчас в наборе 62 теста, все проходят. Live-прогон запускается
+отдельно через CLI и требует реального ключа AITUNNEL.
 
 13. ТЕСТОВЫЕ ВХОДЫ
 
@@ -226,10 +229,13 @@ docs/TZ.md — техническое задание по шаблону.
 docs/REPORT.md — отчёт по практике.
 docs/DEFENSE.md — сценарий защиты на 5-7 минут.
 docs/DEMO.md — сценарий демо на 2-3 минуты.
+docs/ACCEPTANCE.md — чек-лист приёмки.
+docs/test_run_summary.md — результаты live-прогона.
 docs/economics.txt — мини-экономика.
 docs/feedback_templates.txt — шаблоны откликов.
 docs/feedback_log.csv — трекер 60 откликов.
 docs/portfolio.txt — упаковка кейса в портфолио.
+docs/architecture.mmd — схема архитектуры.
 docs/reference/Тех Задание_Шаблон .txt — исходный шаблон технического задания.
 
 19. АВТОР И СРОКИ
