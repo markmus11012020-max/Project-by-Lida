@@ -82,7 +82,7 @@ cp .env.example .env
 Файл .env создаётся как копия .env.example и не коммитится в Git.
 
 AITUNNEL_API_KEY=sk-your-key-here
-AITUNNEL_BASE_URL=https://api.aitunnel.ru/v1
+AITUNNEL_BASE_URL=https://api.aitunnel.ru/v1/
 AITUNNEL_MODEL=gpt-4o-mini
 AITUNNEL_TEMPERATURE=0.2
 AITUNNEL_MAX_TOKENS=800

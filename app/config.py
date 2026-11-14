@@ -28,7 +28,7 @@ class Settings(BaseSettings):
     app_version: str = "1.0.0"
 
     aitunnel_api_key: str = Field(default="")
-    aitunnel_base_url: str = Field(default="https://api.aitunnel.ru/v1")
+    aitunnel_base_url: str = Field(default="https://api.aitunnel.ru/v1/")
     aitunnel_model: str = Field(default="gpt-4o-mini")
     aitunnel_temperature: float = Field(default=0.2, ge=0.0, le=2.0)
     aitunnel_max_tokens: int = Field(default=800, ge=1, le=32000)
