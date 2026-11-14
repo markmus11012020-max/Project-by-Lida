@@ -188,6 +188,10 @@ prompt injection.
 Результаты сохраняются в data/test_run.json и data/test_run.csv.
 Тестовая база: data/test_run.db.
 
+Сводка по прогону в docs/test_run_summary.md:
+
+.venv\Scripts\python.exe -m scripts.summarize_run
+
 14. РЕЗУЛЬТАТЫ
 
 Раздел заполняется после live-прогона на реальном ключе AITUNNEL.

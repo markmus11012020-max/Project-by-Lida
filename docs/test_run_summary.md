@@ -17,13 +17,19 @@
 .venv\Scripts\python.exe -m app.cli batch --strict
 ```
 
-4. Сгенерируйте экономику:
+4. Сгенерируйте сводку:
+
+```powershell
+.venv\Scripts\python.exe -m scripts.summarize_run
+```
+
+5. Сгенерируйте экономику:
 
 ```powershell
 .venv\Scripts\python.exe -m scripts.economics
 ```
 
-5. Перенесите цифры из data/test_run.json и docs/economics.txt в этот файл и в docs/REPORT.md.
+6. Перенесите цифры из data/test_run.json и docs/economics.txt в docs/REPORT.md.
 
 ## Ожидаемая структура
 

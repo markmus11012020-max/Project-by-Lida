@@ -32,6 +32,7 @@
 .venv\Scripts\python.exe -m pytest -q
 .venv\Scripts\python.exe -m scripts.check_readme
 .venv\Scripts\python.exe -m app.cli batch --strict
+.venv\Scripts\python.exe -m scripts.summarize_run
 .venv\Scripts\python.exe -m scripts.economics
 ```
 
