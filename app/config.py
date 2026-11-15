@@ -45,9 +45,18 @@ class Settings(BaseSettings):
     audio_max_bytes: int = Field(default=50 * 1024 * 1024, ge=1)
     audio_url_allowlist: str = Field(default="")
 
-    @field_validator("database_path", mode="after")
+    pii_vault_key: str = Field(default="")
+    pii_vault_path: Path = Field(default=BASE_DIR / "data" / "pii_vault.db")
+    pii_vault_ttl_seconds: int = Field(default=86400, ge=60)
+
+    crm_webhook_enabled: bool = Field(default=False)
+    crm_webhook_url: str = Field(default="")
+    crm_webhook_secret: str = Field(default="")
+    crm_outbox_path: Path = Field(default=BASE_DIR / "data" / "crm_outbox.db")
+
+    @field_validator("database_path", "pii_vault_path", "crm_outbox_path", mode="after")
     @classmethod
-    def resolve_database_path(cls, value: Path) -> Path:
+    def resolve_path(cls, value: Path) -> Path:
         if value.is_absolute():
             return value
         return (BASE_DIR / value).resolve()

@@ -11,6 +11,7 @@ from typing import Any
 
 from app.config import BASE_DIR, Settings, get_settings
 from app.db import Database
+from app.integrations import CRMWebhookClient, OutboxDispatcher
 from app.llm import AITunnelClient
 from app.pricing import cost_from_usage
 from app.scenarios.registry import SCENARIOS
@@ -220,6 +221,39 @@ def cmd_stats(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_outbox(args: argparse.Namespace) -> int:
+    settings = get_settings()
+    if not settings.crm_webhook_enabled:
+        raise SystemExit("CRM_WEBHOOK_ENABLED=false")
+    if not settings.crm_webhook_url or not settings.crm_webhook_secret:
+        raise SystemExit("Укажите CRM_WEBHOOK_URL и CRM_WEBHOOK_SECRET")
+
+    service = build_service(settings=settings)
+    if service.outbox is None:
+        raise SystemExit("Outbox не инициализирован")
+    client = CRMWebhookClient(
+        settings.crm_webhook_url,
+        settings.crm_webhook_secret,
+    )
+    report = OutboxDispatcher(
+        service.outbox,
+        client,
+        service.vault,
+    ).run_once()
+    print(
+        json.dumps(
+            {
+                "sent": report.sent,
+                "failed": report.failed,
+                "skipped": report.skipped,
+            },
+            ensure_ascii=False,
+            indent=2,
+        )
+    )
+    return 0 if report.failed == 0 else 1
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description="LLM process automation MVP: поддержка, продажи, документы"
@@ -274,6 +308,12 @@ def build_parser() -> argparse.ArgumentParser:
         help="Путь к SQLite",
     )
     stats.set_defaults(func=cmd_stats)
+
+    outbox = subparsers.add_parser(
+        "outbox",
+        help="Отправить накопившиеся CRM-вебхуки",
+    )
+    outbox.set_defaults(func=cmd_outbox)
     return parser
 
 

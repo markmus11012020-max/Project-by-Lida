@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass, field
-from typing import Iterable, Literal
+from typing import Any, Iterable, Literal
 
 PIIKind = Literal[
     "PERSON",
@@ -234,14 +234,37 @@ def _overlaps(left: _Candidate, right: _Candidate) -> bool:
     return left.start < right.end and right.start < left.end
 
 
-class Anonymizer:
-    """Regex-based reversible masking of Russian PII."""
+class MaskingSession:
+    """Shared token namespace for one request.
 
-    def __init__(self, enabled: bool = True) -> None:
-        self.enabled = enabled
+    The same session masks the input, the LLM result, raw responses and
+    metadata. Tokens stay consistent, so the result can be restored without
+    leaking unmasked values into the database.
+    """
+
+    def __init__(self, anonymizer: "Anonymizer") -> None:
+        self.anonymizer = anonymizer
+        self._counters: dict[str, int] = {}
+        self._token_by_key: dict[tuple[str, str], str] = {}
+        self._mapping: dict[str, str] = {}
+        self._kinds: dict[str, PIIKind] = {}
+
+    @property
+    def mapping(self) -> dict[str, str]:
+        return dict(self._mapping)
+
+    @property
+    def kinds(self) -> dict[str, PIIKind]:
+        return dict(self._kinds)
+
+    def stats(self) -> dict[str, int]:
+        counts: dict[str, int] = {}
+        for kind in self._kinds.values():
+            counts[kind] = counts.get(kind, 0) + 1
+        return counts
 
     def anonymize(self, text: str) -> AnonymizationResult:
-        if not text or not self.enabled:
+        if not text or not self.anonymizer.enabled:
             return AnonymizationResult(text=text)
 
         candidates: list[_Candidate] = []
@@ -314,21 +337,18 @@ class Anonymizer:
             else:
                 merged.append(candidate)
 
-        counters: dict[str, int] = {}
-        token_by_key: dict[tuple[str, str], str] = {}
         entities: list[PIIEntity] = []
-        mapping: dict[str, str] = {}
-        kinds: dict[str, PIIKind] = {}
-
         for candidate in merged:
             key = (candidate.kind, candidate.value)
-            token = token_by_key.get(key)
+            token = self._token_by_key.get(key)
             if token is None:
-                counters[candidate.kind] = counters.get(candidate.kind, 0) + 1
-                token = f"[{candidate.kind}_{counters[candidate.kind]}]"
-                token_by_key[key] = token
-                mapping[token] = candidate.value
-                kinds[token] = candidate.kind
+                self._counters[candidate.kind] = (
+                    self._counters.get(candidate.kind, 0) + 1
+                )
+                token = f"[{candidate.kind}_{self._counters[candidate.kind]}]"
+                self._token_by_key[key] = token
+                self._mapping[token] = candidate.value
+                self._kinds[token] = candidate.kind
             entities.append(
                 PIIEntity(
                     kind=candidate.kind,
@@ -355,10 +375,63 @@ class Anonymizer:
         return AnonymizationResult(
             text=masked_text,
             entities=entities,
-            mapping=mapping,
-            kinds=kinds,
+            mapping=dict(self._mapping),
+            kinds=dict(self._kinds),
             stats=stats,
         )
+
+    def mask_value(self, value: Any) -> Any:
+        if isinstance(value, str):
+            return self.anonymize(value).text
+        if isinstance(value, dict):
+            return {key: self.mask_value(item) for key, item in value.items()}
+        if isinstance(value, list):
+            return [self.mask_value(item) for item in value]
+        if isinstance(value, tuple):
+            return tuple(self.mask_value(item) for item in value)
+        return value
+
+    def restore_value(
+        self,
+        value: Any,
+        allowed_kinds: Iterable[str] | None = None,
+    ) -> Any:
+        allowed = (
+            {kind.upper() for kind in allowed_kinds}
+            if allowed_kinds is not None
+            else None
+        )
+        if isinstance(value, str):
+            for token, original in self._mapping.items():
+                if allowed is not None and self._kinds[token] not in allowed:
+                    continue
+                value = value.replace(token, original)
+            return value
+        if isinstance(value, dict):
+            return {
+                key: self.restore_value(item, allowed_kinds)
+                for key, item in value.items()
+            }
+        if isinstance(value, list):
+            return [self.restore_value(item, allowed_kinds) for item in value]
+        if isinstance(value, tuple):
+            return tuple(
+                self.restore_value(item, allowed_kinds) for item in value
+            )
+        return value
+
+
+class Anonymizer:
+    """Regex-based reversible masking of Russian PII."""
+
+    def __init__(self, enabled: bool = True) -> None:
+        self.enabled = enabled
+
+    def session(self) -> MaskingSession:
+        return MaskingSession(self)
+
+    def anonymize(self, text: str) -> AnonymizationResult:
+        return self.session().anonymize(text)
 
     def mask(self, text: str) -> str:
         return self.anonymize(text).text
