@@ -79,6 +79,10 @@ class Settings(BaseSettings):
         default="sqlite:///call-center/data/queue.db"
     )
 
+    oktell_sync_interval_seconds: int = Field(default=300, ge=10)
+    crm_dispatch_interval_seconds: int = Field(default=60, ge=10)
+    retention_interval_seconds: int = Field(default=86400, ge=60)
+
     @field_validator("database_path", "pii_vault_path", "crm_outbox_path", "audio_key_path", mode="after")
     @classmethod
     def resolve_path(cls, value: Path) -> Path:

@@ -178,6 +178,51 @@ python call-center/scripts/worker.py --once
 
 Задача `retention_cleanup` удаляет зашифрованные файлы старше `AUDIO_RETENTION_DAYS` и оставляет карточку и транскрипт. Аудио отдаётся через `/calls/{id}/audio` с расшифровкой на сервере.
 
+## Планировщик
+
+```text
+python call-center/scripts/scheduler.py
+```
+
+Или:
+
+```text
+call-center\start-scheduler.bat
+```
+
+Планировщик ставит в очередь:
+
+- `oktell_sync` — каждые `OKTELL_SYNC_INTERVAL_SECONDS`;
+- `crm_dispatch` — каждые `CRM_DISPATCH_INTERVAL_SECONDS`;
+- `retention_cleanup` — каждые `RETENTION_INTERVAL_SECONDS`.
+
+Повторная задача того же типа не ставится, пока предыдущая pending/running.
+
+## Golden set
+
+Шаблон:
+
+```text
+call-center/data/golden_set.example.jsonl
+```
+
+Скопируйте его в `call-center/data/golden_set.jsonl` и замените синтетические кейсы на 100+ реальных звонков с разметкой двух QA.
+
+Запуск:
+
+```text
+python call-center/scripts/evaluate_golden.py --file call-center/data/golden_set.jsonl --output call-center/data/golden_report.json
+```
+
+Отчёт считает:
+
+- status accuracy;
+- auto-pass accuracy;
+- согласие по каждому критерию;
+- critical recall;
+- false critical;
+- MAE по QA-score.
+
 ## QA-правила
 
 Каждый звонок оценивается по 10 критериям:

@@ -176,6 +176,18 @@ class SQLiteJobQueue:
                 (now, job_id),
             )
 
+    def has_active(self, kind: str) -> bool:
+        with closing(self._connect()) as connection:
+            row = connection.execute(
+                """
+                SELECT 1 FROM jobs
+                WHERE kind=? AND status IN ('pending', 'running')
+                LIMIT 1
+                """,
+                (kind,),
+            ).fetchone()
+        return row is not None
+
     def fail(
         self,
         job_id: str,
@@ -315,6 +327,18 @@ class PostgresJobQueue:
                 """,
                 (now, job_id),
             )
+
+    def has_active(self, kind: str) -> bool:
+        with self._connect() as connection:
+            row = connection.execute(
+                """
+                SELECT 1 FROM jobs
+                WHERE kind=%s AND status IN ('pending', 'running')
+                LIMIT 1
+                """,
+                (kind,),
+            ).fetchone()
+        return row is not None
 
     def fail(
         self,
