@@ -235,4 +235,38 @@
         });
     });
   }
+
+  /* Keyboard shortcuts: Space, Ctrl+Enter, R, N */
+  document.addEventListener("keydown", function (event) {
+    var target = event.target;
+    if (
+      target &&
+      target.closest &&
+      target.closest("input, textarea, select, button, a, [contenteditable='true']")
+    ) {
+      return;
+    }
+    if (rejectDialog && rejectDialog.open) return;
+
+    var key = String(event.key || "").toLowerCase();
+    if (event.code === "Space" && audio) {
+      event.preventDefault();
+      if (audio.paused) audio.play(); else audio.pause();
+      return;
+    }
+    if ((event.ctrlKey || event.metaKey) && event.key === "Enter" && confirmBtn) {
+      event.preventDefault();
+      if (!confirmBtn.disabled) confirmBtn.click();
+      return;
+    }
+    if (key === "r" && rejectBtn) {
+      event.preventDefault();
+      rejectBtn.click();
+      return;
+    }
+    if (key === "n" && config.nextCallUrl) {
+      event.preventDefault();
+      window.location.href = config.nextCallUrl;
+    }
+  });
 })();

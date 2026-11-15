@@ -13,6 +13,9 @@
 
 {% block topbar_actions %}
 <a class="btn btn-ghost" href="/dashboard?role={{ role }}">← К обзору</a>
+{% if next_call %}
+<a class="btn btn-primary" href="/calls/{{ next_call.id }}?role={{ role }}" title="Горячая клавиша: N">Следующий →</a>
+{% endif %}
 {% if call.result and not read_only %}
 <form method="post" action="/calls/{{ call.id }}/process" class="inline-form">
   <button class="btn btn-ghost" type="submit" title="Запустить модель заново">↻ Пересчитать</button>
@@ -137,6 +140,10 @@
 
       <div class="tag-row">
         {% if call.source == 'real' %}<span class="badge badge-gray">152-ФЗ · данные анонимизированы</span>{% endif %}
+        <span class="badge {% if call.review_priority == 'critical' %}badge-red{% elif call.review_priority == 'high' %}badge-amber{% else %}badge-gray{% endif %}">
+          {{ call.review_priority|label(priority_labels) }} · SLA {{ call.review_sla_hours }} ч
+        </span>
+        {% if call.sla_overdue %}<span class="badge badge-red">SLA просрочен</span>{% endif %}
         <span class="tag">{{ result.get('intent')|label(intent_labels) }}</span>
         <span class="tag tag-soft">{{ result.get('sentiment')|label(sentiment_labels) }}</span>
         <span class="tag tag-soft">confidence: {{ result.get('confidence') or '—' }}</span>
@@ -282,7 +289,7 @@
       <div class="panel-head compact">
         <div>
           <h2>Решение менеджера</h2>
-          <p class="muted small">Подтверждение фиксирует финальную версию и отправляет её в CRM (демо).</p>
+          <p class="muted small">Подтверждение фиксирует финальную версию и ставит её в очередь CRM. Горячие клавиши: Space — аудио, Ctrl+Enter — подтвердить, R — отклонить, N — следующий.</p>
         </div>
       </div>
       <div class="review-grid">
@@ -385,7 +392,8 @@
   window.CALLPILOT = {
     callId: {{ call.id|tojson }},
     readOnly: {{ read_only|tojson }},
-    rejected: {{ rejected|tojson }}
+    rejected: {{ rejected|tojson }},
+    nextCallUrl: {% if next_call %}{{ ("/calls/" ~ next_call.id ~ "?role=" ~ role)|tojson }}{% else %}null{% endif %}
   };
 </script>
 {% endblock %}

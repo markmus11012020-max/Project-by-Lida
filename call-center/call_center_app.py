@@ -104,6 +104,11 @@ SEVERITY_LABELS = {
     "high": "Высокий",
     "critical": "Критичный",
 }
+PRIORITY_LABELS = {
+    "critical": "Критичный",
+    "high": "Высокий",
+    "normal": "Обычный",
+}
 SENTIMENT_LABELS = {
     "positive": "Позитивный",
     "neutral": "Нейтральный",
@@ -162,6 +167,7 @@ templates.env.globals.update(
     status_labels=STATUS_LABELS,
     finding_labels=FINDING_LABELS,
     severity_labels=SEVERITY_LABELS,
+    priority_labels=PRIORITY_LABELS,
     sentiment_labels=SENTIMENT_LABELS,
     qa_criteria=QA_CRITERIA,
     qa_criteria_count=len(QA_CRITERIA),
@@ -199,6 +205,7 @@ def dashboard(
     qa: str = "all",
     role: str = "manager",
     source: str = "all",
+    priority: str = "all",
 ):
     calls = store.list_calls(source=source)
     metrics = store.metrics()
@@ -210,6 +217,10 @@ def dashboard(
             for call in calls
             if (call.get("result") or {}).get("auto_qa_status") == qa
         ]
+    if priority != "all":
+        calls = [
+            call for call in calls if call.get("review_priority") == priority
+        ]
     return templates.TemplateResponse(
         request=request,
         name="dashboard.html",
@@ -219,6 +230,7 @@ def dashboard(
             "status_filter": status,
             "qa_filter": qa,
             "source_filter": source,
+            "priority_filter": priority,
             "role": role,
         },
     )
@@ -231,6 +243,11 @@ def call_detail(request: Request, call_id: str, role: str = "manager"):
         raise HTTPException(status_code=404, detail="Звонок не найден")
     draft = call.get("result") or {}
     read_only = call["review_status"] in {"confirmed", "rejected"}
+    next_call = (
+        store.next_pending_call(call_id)
+        if call["review_status"] == "pending"
+        else None
+    )
     return templates.TemplateResponse(
         request=request,
         name="call_detail.html",
@@ -245,6 +262,7 @@ def call_detail(request: Request, call_id: str, role: str = "manager"):
             "role": role,
             "confirmed": call["review_status"] == "confirmed",
             "rejected": call["review_status"] == "rejected",
+            "next_call": next_call,
         },
     )
 

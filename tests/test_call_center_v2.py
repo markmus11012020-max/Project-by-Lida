@@ -428,3 +428,39 @@ def test_audio_route_returns_decrypted_bytes(
     assert response.status_code == 200
     assert response.headers["content-type"].startswith("audio/wav")
     assert response.content == source.read_bytes()
+
+
+def test_priority_and_sla_are_computed(tmp_path: Path) -> None:
+    store, settings, _payload_data = _store(tmp_path)
+    critical = _payload()
+    critical["qa_findings"][8]["status"] = "fail"
+    critical["qa_findings"][8]["severity"] = "critical"
+    store.service = ProcessService(
+        settings=settings,
+        db=store.core_db,
+        llm=FakeLLMClient([critical]),
+        scenarios=SCENARIOS,
+    )
+
+    call_id = store.ingest_audio(
+        _wav(tmp_path / "critical.wav"),
+        filename="critical.wav",
+        external_id="ext-critical",
+    )
+    call = store.get_call(call_id)
+    assert call is not None
+    assert call["review_priority"] == "critical"
+    assert call["review_sla_hours"] == 1
+    assert call["sla_overdue"] is False
+    assert store.metrics()["critical_pending"] >= 1
+
+    with store._connect() as connection, connection:
+        connection.execute(
+            "UPDATE processing_log SET created_at=? WHERE id=?",
+            ("2020-01-01T00:00:00+00:00", call["request_id"]),
+        )
+
+    overdue = store.get_call(call_id)
+    assert overdue is not None
+    assert overdue["sla_overdue"] is True
+    assert store.metrics()["overdue"] >= 1

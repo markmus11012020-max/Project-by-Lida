@@ -49,6 +49,11 @@
     <div class="kpi-value">{{ metrics.cost_per_call_rub }} ₽</div>
     <div class="kpi-note">LLM-разбор без TTS</div>
   </article>
+  <article class="kpi-card kpi-amber">
+    <div class="kpi-label">SLA ревью</div>
+    <div class="kpi-value">{{ metrics.overdue }}</div>
+    <div class="kpi-note">{{ metrics.critical_pending }} критичных · ожидание {{ metrics.oldest_wait_minutes }} мин</div>
+  </article>
 </section>
 
 <section class="panel overview-banner">
@@ -82,9 +87,16 @@
     <div class="filters">
       <div class="filter-group">
         <span class="filter-label">Источник</span>
-        <a class="pill {% if source_filter == 'all' %}active{% endif %}" href="/dashboard?role={{ role }}&status={{ status_filter }}&qa={{ qa_filter }}&source=all">Все</a>
-        <a class="pill {% if source_filter == 'real' %}active{% endif %}" href="/dashboard?role={{ role }}&status={{ status_filter }}&qa={{ qa_filter }}&source=real">Реальные</a>
-        <a class="pill {% if source_filter == 'demo' %}active{% endif %}" href="/dashboard?role={{ role }}&status={{ status_filter }}&qa={{ qa_filter }}&source=demo">Демо</a>
+        <a class="pill {% if source_filter == 'all' %}active{% endif %}" href="/dashboard?role={{ role }}&status={{ status_filter }}&qa={{ qa_filter }}&priority={{ priority_filter }}&source=all">Все</a>
+        <a class="pill {% if source_filter == 'real' %}active{% endif %}" href="/dashboard?role={{ role }}&status={{ status_filter }}&qa={{ qa_filter }}&priority={{ priority_filter }}&source=real">Реальные</a>
+        <a class="pill {% if source_filter == 'demo' %}active{% endif %}" href="/dashboard?role={{ role }}&status={{ status_filter }}&qa={{ qa_filter }}&priority={{ priority_filter }}&source=demo">Демо</a>
+      </div>
+      <div class="filter-group">
+        <span class="filter-label">Приоритет</span>
+        <a class="pill {% if priority_filter == 'all' %}active{% endif %}" href="/dashboard?role={{ role }}&status={{ status_filter }}&qa={{ qa_filter }}&source={{ source_filter }}&priority=all">Все</a>
+        <a class="pill {% if priority_filter == 'critical' %}active{% endif %}" href="/dashboard?role={{ role }}&status={{ status_filter }}&qa={{ qa_filter }}&source={{ source_filter }}&priority=critical">Критичные</a>
+        <a class="pill {% if priority_filter == 'high' %}active{% endif %}" href="/dashboard?role={{ role }}&status={{ status_filter }}&qa={{ qa_filter }}&source={{ source_filter }}&priority=high">Высокие</a>
+        <a class="pill {% if priority_filter == 'normal' %}active{% endif %}" href="/dashboard?role={{ role }}&status={{ status_filter }}&qa={{ qa_filter }}&source={{ source_filter }}&priority=normal">Обычные</a>
       </div>
       <div class="filter-group">
         <span class="filter-label">Статус</span>
@@ -112,6 +124,7 @@
           <th>Интент</th>
           <th>QA-score</th>
           <th>Статус</th>
+          <th>Приоритет / SLA</th>
           <th>Проверка</th>
           <th></th>
         </tr>
@@ -152,6 +165,16 @@
           </td>
           <td>
             <span class="{{ display|badge }}">{{ display|label(status_labels) }}</span>
+          </td>
+          <td>
+            <span class="badge {% if call.review_priority == 'critical' %}badge-red{% elif call.review_priority == 'high' %}badge-amber{% else %}badge-gray{% endif %}">
+              {{ call.review_priority|label(priority_labels) }}
+            </span>
+            {% if call.review_status == 'pending' %}
+            <div class="muted small {% if call.sla_overdue %}text-red{% endif %}">
+              {% if call.sla_overdue %}просрочено{% else %}до {{ call.review_due_at|datetime }}{% endif %}
+            </div>
+            {% endif %}
           </td>
           <td>
             {% if call.review_status == 'confirmed' %}

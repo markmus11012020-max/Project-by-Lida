@@ -71,6 +71,47 @@ def utc_now() -> str:
     return datetime.now(timezone.utc).isoformat(timespec="milliseconds")
 
 
+PRIORITY_RANK = {"critical": 0, "high": 1, "normal": 2}
+PRIORITY_SLA_HOURS = {"critical": 1, "high": 4, "normal": 24}
+
+
+def review_priority(result: dict[str, Any] | None) -> str:
+    if not result:
+        return "normal"
+    findings = result.get("qa_findings") or []
+    for finding in findings:
+        if (
+            finding.get("status") == "fail"
+            and finding.get("severity") == "critical"
+        ):
+            return "critical"
+    if result.get("escalate"):
+        return "high"
+    for finding in findings:
+        if (
+            finding.get("status") == "fail"
+            and finding.get("severity") == "high"
+        ):
+            return "high"
+    try:
+        score = int(result.get("qa_score") or 0)
+    except (TypeError, ValueError):
+        score = 0
+    if score and score < 60:
+        return "high"
+    return "normal"
+
+
+def _parse_datetime(value: Any) -> datetime:
+    try:
+        parsed = datetime.fromisoformat(str(value))
+    except (TypeError, ValueError):
+        return datetime.now(timezone.utc)
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=timezone.utc)
+    return parsed
+
+
 def _json_loads(value: str | None, default: Any) -> Any:
     if not value:
         return default
@@ -301,6 +342,18 @@ class CallStore:
         final = _json_loads(row["final_json"], None)
         display = final or draft
         review_status = row["review_status"] or "new"
+        priority = review_priority(display)
+        sla_hours = PRIORITY_SLA_HOURS[priority]
+        created_at = _parse_datetime(
+            row["created_at"] or row["call_created_at"]
+        )
+        due_at = created_at + timedelta(hours=sla_hours)
+        now = datetime.now(timezone.utc)
+        overdue = review_status == "pending" and now > due_at
+        waiting_minutes = max(
+            0,
+            int((now - created_at).total_seconds() // 60),
+        )
         audio_file = row["audio_file"]
         encrypted = bool(audio_file and audio_file.startswith("encrypted/"))
         if encrypted:
@@ -331,6 +384,11 @@ class CallStore:
             "audio_mime": row["audio_mime"],
             "audio_deleted_at": row["audio_deleted_at"],
             "duration_ms": row["duration_ms"] or audio_meta.get("duration_ms", 0),
+            "review_priority": priority,
+            "review_sla_hours": sla_hours,
+            "review_due_at": due_at.isoformat(timespec="milliseconds"),
+            "sla_overdue": overdue,
+            "waiting_minutes": waiting_minutes,
             "review_status": review_status,
             "reviewer": row["reviewer"],
             "review_reason": row["reason"],
@@ -358,7 +416,7 @@ class CallStore:
     _SELECT = """
         SELECT c.id, c.title, c.client, c.operator, c.transcript_json, c.audio_file,
                c.source, c.external_id, c.duration_ms, c.audio_mime,
-               c.audio_deleted_at,
+               c.audio_deleted_at, c.created_at AS call_created_at,
                r.request_id, r.status AS review_status, r.reviewer, r.final_json,
                r.changes_json, r.reason, r.updated_at,
                b.result_json, b.status AS processing_status,
@@ -380,7 +438,16 @@ class CallStore:
         query += " ORDER BY c.created_at DESC, c.id"
         with closing(self._connect()) as connection:
             rows = connection.execute(query, params).fetchall()
-        return [self._row_to_call(row, manifest) for row in rows]
+        calls = [self._row_to_call(row, manifest) for row in rows]
+        calls.sort(
+            key=lambda call: (
+                0 if call.get("review_status") == "pending" else 1,
+                PRIORITY_RANK.get(call.get("review_priority"), 2),
+                call.get("review_due_at") or "",
+                call.get("id") or "",
+            )
+        )
+        return calls
 
     def get_call(self, call_id: str) -> dict[str, Any] | None:
         manifest = self._audio_manifest()
@@ -402,6 +469,19 @@ class CallStore:
                 (external_id,),
             ).fetchone()
         return self._row_to_call(row, manifest) if row else None
+
+    def next_pending_call(self, call_id: str) -> dict[str, Any] | None:
+        pending = [
+            call
+            for call in self.list_calls()
+            if call.get("review_status") == "pending"
+        ]
+        if not pending:
+            return None
+        for index, call in enumerate(pending):
+            if call["id"] == call_id:
+                return pending[(index + 1) % len(pending)]
+        return pending[0]
 
     def get_audio(self, call_id: str) -> tuple[bytes, str] | None:
         call = self.get_call(call_id)
@@ -767,10 +847,30 @@ class CallStore:
             for call in processed
         ]
         total_cost = sum(costs)
+        pending_calls = [
+            call for call in calls if call.get("review_status") == "pending"
+        ]
         return {
             "total": total,
             "processed": len(processed),
             "pending": statuses.get("pending", 0),
+            "critical_pending": sum(
+                1
+                for call in pending_calls
+                if call.get("review_priority") == "critical"
+            ),
+            "high_pending": sum(
+                1
+                for call in pending_calls
+                if call.get("review_priority") == "high"
+            ),
+            "overdue": sum(
+                1 for call in pending_calls if call.get("sla_overdue")
+            ),
+            "oldest_wait_minutes": max(
+                (call.get("waiting_minutes", 0) for call in pending_calls),
+                default=0,
+            ),
             "confirmed": statuses.get("confirmed", 0),
             "rejected": statuses.get("rejected", 0),
             "new": statuses.get("new", 0),
