@@ -10,7 +10,6 @@ from call-center/data/seed_results.json on the first run.
 from __future__ import annotations
 
 import json
-import sqlite3
 import sys
 from pathlib import Path
 
@@ -46,13 +45,12 @@ def main() -> int:
     for call in DEMO_CALLS:
         print(f"Обрабатываю {call['id']} — {call['title']}...")
         response = store.process_call(call["id"], source="demo_seed")
-        with sqlite3.connect(str(DB_PATH)) as connection:
-            row = connection.execute(
-                "SELECT input_text, raw_response FROM processing_log WHERE id = ?",
-                (response.request_id,),
-            ).fetchone()
-        input_text = row[0] if row else ""
-        raw_response = row[1] if row else None
+        audit = store.core_db.get_audit(
+            response.request_id,
+            include_raw=True,
+        ) or {}
+        input_text = audit.get("input_text") or ""
+        raw_response = audit.get("raw_response")
         result = response.result or {}
         seed[call["id"]] = {
             "request_id": response.request_id,

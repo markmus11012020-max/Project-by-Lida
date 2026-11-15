@@ -35,6 +35,8 @@ class Settings(BaseSettings):
     aitunnel_timeout: float = Field(default=60.0, gt=0)
 
     database_path: Path = Field(default=BASE_DIR / "data" / "app.db")
+    database_url: str = Field(default="")
+    callpilot_db_url: str = Field(default="")
     log_level: str = Field(default="INFO")
     debug: bool = Field(default=False)
 

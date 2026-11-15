@@ -5,7 +5,6 @@ from __future__ import annotations
 import hashlib
 import json
 import shutil
-import sqlite3
 import sys
 import uuid
 from collections import Counter
@@ -30,6 +29,7 @@ from app.audio import (  # noqa: E402
 )
 from app.config import Settings  # noqa: E402
 from app.db import Database  # noqa: E402
+from app.db_compat import DBConnection, connect_db  # noqa: E402
 from app.llm import AITunnelClient  # noqa: E402
 from app.scenarios.call_qa import call_qa_qc  # noqa: E402
 from app.scenarios.registry import SCENARIOS  # noqa: E402
@@ -104,16 +104,29 @@ class CallStore:
     def __init__(
         self,
         settings: Settings,
-        db_path: Path,
+        db_path: Path | str,
         stt_client: STTClient | None = None,
         audio_dir: Path | None = None,
+        db_url: str | None = None,
     ) -> None:
         self.settings = settings
-        self.db_path = Path(db_path)
+        target = str(db_path)
+        if db_url is None:
+            if settings.callpilot_db_url.strip():
+                db_url = settings.callpilot_db_url.strip()
+            elif target.startswith(("postgres://", "postgresql://")):
+                db_url = target
+        self.db_url = db_url or ""
+        self.db_path = (
+            Path(db_path) if not self.db_url else Path(".")
+        )
         self.audio_dir = Path(audio_dir) if audio_dir else (
             CALL_CENTER_DIR / "static" / "audio"
         )
-        self.core_db = Database(self.db_path)
+        self.core_db = Database(
+            None if self.db_url else self.db_path,
+            url=self.db_url or None,
+        )
         self.core_db.init()
         self._init_call_tables()
         self._seed_calls()
@@ -135,12 +148,11 @@ class CallStore:
             else None
         )
 
-    def _connect(self) -> sqlite3.Connection:
-        connection = sqlite3.connect(str(self.db_path), timeout=10)
-        connection.row_factory = sqlite3.Row
-        connection.execute("PRAGMA foreign_keys=ON")
-        connection.execute("PRAGMA busy_timeout=5000")
-        return connection
+    def _connect(self) -> DBConnection:
+        return connect_db(
+            None if self.db_url else self.db_path,
+            self.db_url or None,
+        )
 
     def _init_call_tables(self) -> None:
         with closing(self._connect()) as connection, connection:
@@ -148,11 +160,8 @@ class CallStore:
             self._ensure_columns(connection)
 
     @staticmethod
-    def _ensure_columns(connection: sqlite3.Connection) -> None:
-        existing = {
-            row["name"]
-            for row in connection.execute("PRAGMA table_info(demo_calls)")
-        }
+    def _ensure_columns(connection: DBConnection) -> None:
+        existing = connection.columns("demo_calls")
         columns = {
             "source": "TEXT NOT NULL DEFAULT 'demo'",
             "external_id": "TEXT",
@@ -175,9 +184,10 @@ class CallStore:
             for call in DEMO_CALLS:
                 connection.execute(
                     """
-                    INSERT OR IGNORE INTO demo_calls
+                    INSERT INTO demo_calls
                     (id, title, client, operator, transcript_json, audio_file, created_at)
                     VALUES (?, ?, ?, ?, ?, ?, ?)
+                    ON CONFLICT(id) DO NOTHING
                     """,
                     (
                         call["id"],
@@ -234,10 +244,18 @@ class CallStore:
             with closing(self._connect()) as connection, connection:
                 connection.execute(
                     """
-                    INSERT OR REPLACE INTO call_reviews
+                    INSERT INTO call_reviews
                     (call_id, request_id, status, reviewer, final_json,
                      changes_json, reason, updated_at)
                     VALUES (?, ?, 'pending', NULL, NULL, NULL, NULL, ?)
+                    ON CONFLICT(call_id) DO UPDATE SET
+                        request_id = excluded.request_id,
+                        status = 'pending',
+                        reviewer = NULL,
+                        final_json = NULL,
+                        changes_json = NULL,
+                        reason = NULL,
+                        updated_at = excluded.updated_at
                     """,
                     (call_id, request_id, utc_now()),
                 )
@@ -248,7 +266,7 @@ class CallStore:
             return {}
         return json.loads(path.read_text(encoding="utf-8"))
 
-    def _row_to_call(self, row: sqlite3.Row, manifest: dict[str, Any]) -> dict[str, Any]:
+    def _row_to_call(self, row: Any, manifest: dict[str, Any]) -> dict[str, Any]:
         transcript = _json_loads(row["transcript_json"], [])
         audio_meta = manifest.get(row["id"], {})
         timings = {

@@ -3,11 +3,11 @@
 from __future__ import annotations
 
 import json
-import sqlite3
 from contextlib import closing
 from pathlib import Path
 from typing import Any
 
+from app.db_compat import DBConnection, connect_db
 from app.pricing import cost_from_usage
 
 SCHEMA = """
@@ -73,17 +73,16 @@ def _text(value: Any) -> str:
 
 
 class Database:
-    def __init__(self, path: Path) -> None:
-        self.path = Path(path)
+    def __init__(
+        self,
+        path: Path | None = None,
+        url: str | None = None,
+    ) -> None:
+        self.path = Path(path) if path is not None else None
+        self.url = url or None
 
-    def _connect(self) -> sqlite3.Connection:
-        self.path.parent.mkdir(parents=True, exist_ok=True)
-        connection = sqlite3.connect(str(self.path), timeout=10)
-        connection.row_factory = sqlite3.Row
-        connection.execute("PRAGMA journal_mode=WAL")
-        connection.execute("PRAGMA foreign_keys=ON")
-        connection.execute("PRAGMA busy_timeout=5000")
-        return connection
+    def _connect(self) -> DBConnection:
+        return connect_db(self.path, self.url)
 
     def init(self) -> None:
         with closing(self._connect()) as connection, connection:
@@ -167,7 +166,7 @@ class Database:
             )
 
     @staticmethod
-    def _result_from_row(row: sqlite3.Row) -> dict[str, Any]:
+    def _result_from_row(row: Any) -> dict[str, Any]:
         return {
             "request_id": row["id"],
             "scenario": row["scenario"],

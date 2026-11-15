@@ -30,7 +30,10 @@ def build_service(
     db_path: Path | None = None,
 ) -> ProcessService:
     settings = settings or get_settings()
-    db = Database(db_path or settings.database_path)
+    db = Database(
+        db_path or settings.database_path,
+        url=None if db_path else (settings.database_url or None),
+    )
     db.init()
     return ProcessService(
         settings=settings,

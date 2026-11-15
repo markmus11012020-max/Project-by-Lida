@@ -66,7 +66,10 @@ def create_app(
         if service is not None:
             application.state.service = service
         else:
-            db = Database(settings.database_path)
+            db = Database(
+                settings.database_path,
+                url=settings.database_url or None,
+            )
             db.init()
             llm = AITunnelClient(settings)
             application.state.service = ProcessService(

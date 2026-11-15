@@ -1,10 +1,13 @@
 from __future__ import annotations
 
-import sys
+import os
 import sqlite3
+import sys
+import uuid
 import wave
 from pathlib import Path
 
+import pytest
 from fastapi.testclient import TestClient
 
 from app.audio import STTResult, STTSegment
@@ -302,3 +305,55 @@ def test_worker_audio_handler_ingests_call(tmp_path: Path) -> None:
     call = store.find_by_external_id("ext-worker")
     assert call is not None
     assert call["title"] == "Из очереди"
+
+
+@pytest.mark.skipif(
+    not os.getenv("TEST_DATABASE_URL"),
+    reason="TEST_DATABASE_URL is not set",
+)
+def test_call_store_postgres_roundtrip(tmp_path: Path) -> None:
+    url = os.environ["TEST_DATABASE_URL"]
+    settings = Settings(
+        _env_file=None,
+        aitunnel_api_key="sk-test",
+        database_path=tmp_path / "unused.db",
+        database_url=url,
+        callpilot_db_url=url,
+        crm_webhook_enabled=True,
+        crm_outbox_path=tmp_path / "outbox.db",
+    )
+    store = CallStore(
+        settings,
+        tmp_path / "unused.db",
+        stt_client=FakeSTT(),
+        audio_dir=tmp_path / "audio",
+    )
+    payload = _payload()
+    payload["fields"] = {
+        "client_name": "Анна",
+        "contact": "+7 900 123-45-67",
+    }
+    store.service = ProcessService(
+        settings=settings,
+        db=store.core_db,
+        llm=FakeLLMClient([payload]),
+        scenarios=SCENARIOS,
+    )
+
+    external_id = f"pg-{uuid.uuid4().hex[:10]}"
+    call_id = store.ingest_audio(
+        _wav(tmp_path / "pg.wav"),
+        filename="pg.wav",
+        title="PostgreSQL звонок",
+        external_id=external_id,
+    )
+
+    call = store.get_call(call_id)
+    assert call is not None
+    assert call["source"] == "real"
+    assert call["draft_result"]["fields"]["client_name"] == "[PERSON_1]"
+    assert store.find_by_external_id(external_id)["id"] == call_id
+
+    store.confirm_call(call_id, call["draft_result"], "QA")
+    outbox = WebhookOutbox(settings.crm_outbox_path)
+    assert outbox.get(call["request_id"]) is not None

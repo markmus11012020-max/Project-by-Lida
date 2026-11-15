@@ -143,6 +143,17 @@ Worker обрабатывает:
 
 При `CALLPILOT_ASYNC_UPLOAD=true` upload возвращает управление сразу, а звонок появляется в очереди после обработки worker-ом.
 
+## PostgreSQL
+
+Для CallPilot:
+
+```text
+CALLPILOT_DB_URL=postgresql://user:password@host:5432/callpilot
+DATABASE_URL=postgresql://user:password@host:5432/callpilot
+```
+
+`DATABASE_URL` используется основным приложением и CLI, `CALLPILOT_DB_URL` — приложением CallPilot и worker-ом. Схема создаётся автоматически при старте. Для production-миграций следующий шаг — Alembic.
+
 ## QA-правила
 
 Каждый звонок оценивается по 10 критериям:
