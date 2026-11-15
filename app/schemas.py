@@ -136,6 +136,16 @@ class ProcessRequest(BaseModel):
     text: str = Field(min_length=3, max_length=20000)
     source: str = Field(default="api", max_length=50)
     metadata: dict[str, str] = Field(default_factory=dict)
+    anonymize: bool = False
+
+
+class AudioURLRequest(BaseModel):
+    model_config = ConfigDict(str_strip_whitespace=True)
+
+    url: str = Field(min_length=8, max_length=2000)
+    scenario: ScenarioKey = ScenarioKey.CALL_QA
+    source: str = Field(default="audio_url", max_length=50)
+    external_id: str | None = Field(default=None, max_length=120)
 
 
 class CommonResult(BaseModel):
@@ -252,6 +262,8 @@ class ProcessMeta(BaseModel):
     latency_ms: int
     created_at: str
     usage: dict[str, Any] = Field(default_factory=dict)
+    pii_masked: bool = False
+    pii_entities: dict[str, int] = Field(default_factory=dict)
 
 
 class ProcessResponse(BaseModel):

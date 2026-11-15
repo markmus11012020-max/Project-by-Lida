@@ -19,6 +19,7 @@ from app.qc import (
     validate_result,
 )
 from app.scenarios.base import ScenarioConfig
+from app.security import Anonymizer
 from app.schemas import (
     ProcessMeta,
     ProcessResponse,
@@ -40,11 +41,13 @@ class ProcessService:
         db: Database,
         llm: LLMClient,
         scenarios: dict[ScenarioKey, ScenarioConfig],
+        anonymizer: Anonymizer | None = None,
     ) -> None:
         self.settings = settings
         self.db = db
         self.llm = llm
         self.scenarios = scenarios
+        self.anonymizer = anonymizer or Anonymizer()
 
     def process(
         self,
@@ -52,12 +55,15 @@ class ProcessService:
         text: str,
         source: str = "api",
         metadata: dict[str, str] | None = None,
+        anonymize: bool = False,
     ) -> ProcessResponse:
         scenario = self.scenarios[ScenarioKey(scenario_key)]
         request_id = str(uuid.uuid4())
         created_at = utc_now()
         metadata = metadata or {}
-        input_hash = hashlib.sha256(text.encode("utf-8")).hexdigest()
+        anonymized = self.anonymizer.anonymize(text) if anonymize else None
+        llm_text = anonymized.text if anonymized is not None else text
+        input_hash = hashlib.sha256(llm_text.encode("utf-8")).hexdigest()
 
         started = time.perf_counter()
         status = ProcessStatus.ERROR
@@ -68,7 +74,7 @@ class ProcessService:
         model = self.settings.aitunnel_model
 
         try:
-            messages = scenario.build_messages(text)
+            messages = scenario.build_messages(llm_text)
             llm_response = self.llm.complete_json(messages)
             raw_response = llm_response.content
             usage = llm_response.usage
@@ -122,7 +128,7 @@ class ProcessService:
             "id": request_id,
             "scenario": scenario.key,
             "source": source,
-            "input_text": text,
+            "input_text": llm_text,
             "input_hash": input_hash,
             "status": status,
             "raw_response": raw_response,
@@ -155,6 +161,8 @@ class ProcessService:
                 latency_ms=latency_ms,
                 created_at=created_at,
                 usage=usage,
+                pii_masked=anonymized is not None,
+                pii_entities=anonymized.stats if anonymized is not None else {},
             ),
             error=error,
         )

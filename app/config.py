@@ -38,6 +38,13 @@ class Settings(BaseSettings):
     log_level: str = Field(default="INFO")
     debug: bool = Field(default=False)
 
+    stt_api_url: str = Field(default="")
+    stt_api_key: str = Field(default="")
+    stt_model: str = Field(default="whisper-1")
+    stt_timeout: float = Field(default=120.0, gt=0)
+    audio_max_bytes: int = Field(default=50 * 1024 * 1024, ge=1)
+    audio_url_allowlist: str = Field(default="")
+
     @field_validator("database_path", mode="after")
     @classmethod
     def resolve_database_path(cls, value: Path) -> Path:
@@ -50,6 +57,10 @@ class Settings(BaseSettings):
         key = self.aitunnel_api_key.strip()
         placeholders = {"", "sk-your-key-here", "sk-aitunnel-xxx"}
         return bool(key) and key not in placeholders
+
+    @property
+    def stt_configured(self) -> bool:
+        return bool(self.stt_api_url.strip())
 
 
 @lru_cache

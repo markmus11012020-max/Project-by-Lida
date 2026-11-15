@@ -66,6 +66,25 @@ def test_ingest_validation_errors(api_client_factory) -> None:
     assert short_text.status_code == 422
 
 
+def test_ingest_with_pii_masking(api_client_factory) -> None:
+    client = api_client_factory(FakeLLMClient([SUPPORT_OK]))
+    response = client.post(
+        "/ingest",
+        json={
+            "scenario": "support",
+            "text": "Анна, +7 900 123-45-67. Оплатила заказ.",
+            "anonymize": True,
+        },
+    )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["meta"]["pii_masked"] is True
+    audit = client.get(f"/audit/{payload['request_id']}")
+    assert audit.status_code == 200
+    assert "+7 900 123-45-67" not in audit.json()["input_text"]
+
+
 def test_missing_result_returns_404(api_client_factory) -> None:
     client = api_client_factory(FakeLLMClient([]))
     assert client.get("/results/does-not-exist").status_code == 404

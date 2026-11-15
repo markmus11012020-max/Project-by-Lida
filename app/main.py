@@ -2,22 +2,45 @@
 
 from __future__ import annotations
 
+import asyncio
 import csv
 import io
 import json
 import logging
 from contextlib import asynccontextmanager
+from pathlib import Path
 from typing import AsyncIterator
 
-from fastapi import Depends, FastAPI, HTTPException, Query, Request
+from fastapi import (
+    Depends,
+    FastAPI,
+    File,
+    Form,
+    HTTPException,
+    Query,
+    Request,
+    UploadFile,
+)
 from fastapi.responses import RedirectResponse, Response
 
+from app.audio import (
+    AudioTooLargeError,
+    AudioURLValidationError,
+    AudioValidationError,
+    STTClient,
+    STTError,
+    download_audio_url,
+    save_upload_to_temp,
+    transcript_text,
+    validate_audio_file,
+)
 from app.config import Settings, get_settings
 from app.db import Database
 from app.llm import AITunnelClient
 from app.pricing import cost_from_usage
 from app.scenarios.registry import SCENARIOS
 from app.schemas import (
+    AudioURLRequest,
     ProcessRequest,
     ProcessResponse,
     ProcessStatus,
@@ -30,6 +53,7 @@ from app.service import ProcessService
 def create_app(
     settings: Settings | None = None,
     service: ProcessService | None = None,
+    stt_client: STTClient | None = None,
 ) -> FastAPI:
     settings = settings or get_settings()
     logging.basicConfig(
@@ -51,6 +75,16 @@ def create_app(
                 llm=llm,
                 scenarios=SCENARIOS,
             )
+        application.state.stt_client = stt_client or (
+            STTClient(
+                settings.stt_api_url,
+                api_key=settings.stt_api_key,
+                model=settings.stt_model,
+                timeout=settings.stt_timeout,
+            )
+            if settings.stt_configured
+            else None
+        )
         yield
 
     application = FastAPI(
@@ -65,9 +99,47 @@ def create_app(
     if service is not None:
         # Makes TestClient usable without entering the lifespan context.
         application.state.service = service
+    if stt_client is not None:
+        application.state.stt_client = stt_client
 
     def get_service(request: Request) -> ProcessService:
         return request.app.state.service
+
+    def get_stt_client(request: Request) -> STTClient | None:
+        return getattr(request.app.state, "stt_client", None)
+
+    async def _process_audio(
+        path: Path,
+        filename: str,
+        scenario: ScenarioKey,
+        source: str,
+        external_id: str | None,
+        svc: ProcessService,
+        stt: STTClient,
+    ) -> ProcessResponse:
+        info = validate_audio_file(
+            path,
+            filename=filename,
+            max_bytes=settings.audio_max_bytes,
+        )
+        result = await asyncio.to_thread(stt.transcribe, path, filename)
+        text = transcript_text(result)
+        metadata = {
+            "audio_filename": info.filename,
+            "audio_duration_ms": str(info.duration_ms),
+            "audio_channels": str(info.channels or ""),
+            "audio_format": info.audio_format,
+        }
+        if external_id:
+            metadata["external_id"] = external_id
+        return await asyncio.to_thread(
+            svc.process,
+            scenario,
+            text,
+            source=source,
+            metadata=metadata,
+            anonymize=True,
+        )
 
     @application.get("/", include_in_schema=False)
     def root() -> RedirectResponse:
@@ -83,7 +155,94 @@ def create_app(
             text=payload.text,
             source=payload.source,
             metadata=payload.metadata,
+            anonymize=payload.anonymize,
         )
+
+    @application.post(
+        "/api/v1/calls/ingest-audio",
+        response_model=ProcessResponse,
+    )
+    async def ingest_audio(
+        file: UploadFile = File(...),
+        scenario: ScenarioKey = Form(ScenarioKey.CALL_QA),
+        source: str = Form("audio", max_length=50),
+        external_id: str | None = Form(None, max_length=120),
+        svc: ProcessService = Depends(get_service),
+        stt: STTClient | None = Depends(get_stt_client),
+    ) -> ProcessResponse:
+        if stt is None:
+            raise HTTPException(
+                status_code=503,
+                detail="STT не настроен: укажите STT_API_URL",
+            )
+
+        path = None
+        try:
+            path = await save_upload_to_temp(file, settings.audio_max_bytes)
+            return await _process_audio(
+                path,
+                file.filename or path.name,
+                scenario,
+                source,
+                external_id,
+                svc,
+                stt,
+            )
+        except AudioTooLargeError as exc:
+            raise HTTPException(status_code=413, detail=str(exc)) from exc
+        except AudioValidationError as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
+        except STTError as exc:
+            raise HTTPException(status_code=502, detail=str(exc)) from exc
+        finally:
+            if path is not None:
+                path.unlink(missing_ok=True)
+            await file.close()
+
+    @application.post(
+        "/api/v1/calls/ingest-audio-url",
+        response_model=ProcessResponse,
+    )
+    async def ingest_audio_url(
+        payload: AudioURLRequest,
+        svc: ProcessService = Depends(get_service),
+        stt: STTClient | None = Depends(get_stt_client),
+    ) -> ProcessResponse:
+        if stt is None:
+            raise HTTPException(
+                status_code=503,
+                detail="STT не настроен: укажите STT_API_URL",
+            )
+
+        path = None
+        try:
+            downloaded = await asyncio.to_thread(
+                download_audio_url,
+                payload.url,
+                settings.audio_max_bytes,
+                settings.audio_url_allowlist,
+            )
+            path = downloaded.path
+            return await _process_audio(
+                path,
+                downloaded.filename,
+                payload.scenario,
+                payload.source,
+                payload.external_id,
+                svc,
+                stt,
+            )
+        except AudioTooLargeError as exc:
+            raise HTTPException(status_code=413, detail=str(exc)) from exc
+        except AudioURLValidationError as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
+        except AudioValidationError as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
+        except STTError as exc:
+            raise HTTPException(status_code=502, detail=str(exc)) from exc
+        finally:
+            if path is not None:
+                path.unlink(missing_ok=True)
 
     @application.get("/scenarios", response_model=list[ScenarioInfo])
     def scenarios() -> list[ScenarioInfo]:
