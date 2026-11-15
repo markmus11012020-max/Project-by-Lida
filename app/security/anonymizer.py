@@ -257,6 +257,32 @@ class MaskingSession:
     def kinds(self) -> dict[str, PIIKind]:
         return dict(self._kinds)
 
+    def load(
+        self,
+        mapping: dict[str, str],
+        kinds: dict[str, str],
+    ) -> None:
+        """Load an existing token namespace before masking a later edit."""
+
+        self._mapping = dict(mapping)
+        self._kinds = {
+            token: kind for token, kind in kinds.items() if kind
+        }
+        self._token_by_key = {}
+        self._counters = {}
+        for token, original in self._mapping.items():
+            kind = self._kinds.get(token)
+            if not kind:
+                continue
+            self._token_by_key[(kind, original)] = token
+            match = re.fullmatch(r"\[([A-Z]+)_(\d+)\]", token)
+            if match and match.group(1) == kind:
+                number = int(match.group(2))
+                self._counters[kind] = max(
+                    self._counters.get(kind, 0),
+                    number,
+                )
+
     def stats(self) -> dict[str, int]:
         counts: dict[str, int] = {}
         for kind in self._kinds.values():

@@ -111,9 +111,11 @@ def test_confirm_real_call_enqueues_masked_crm_payload(tmp_path: Path) -> None:
     call = store.get_call(call_id)
     assert call is not None
 
+    final = dict(call["draft_result"])
+    final["next_action"] = "Финальное действие после ревью"
     store.confirm_call(
         call_id,
-        call["draft_result"],
+        final,
         reviewer="QA",
         reason="Проверено",
     )
@@ -122,6 +124,7 @@ def test_confirm_real_call_enqueues_masked_crm_payload(tmp_path: Path) -> None:
     item = outbox.get(call["request_id"])
     assert item is not None
     payload = item["payload"]
+    assert payload["next_action"] == "Финальное действие после ревью"
     assert payload["client_fields"]["client_name"] == "[PERSON_1]"
     assert payload["client_fields"]["contact"] == "[PHONE_1]"
     assert "+7 900 123-45-67" not in str(payload)

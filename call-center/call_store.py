@@ -540,10 +540,20 @@ class CallStore:
             and call.get("request_id")
             and call.get("draft_result")
         ):
-            self.service.enqueue_crm(
-                str(call["request_id"]),
-                call["draft_result"],
-            )
+            request_id = str(call["request_id"])
+            crm_result = final_json
+            entry = self.service.get_pii(request_id)
+            if entry is not None:
+                session = self.service.anonymizer.session()
+                session.load(entry.mapping, entry.kinds)
+                crm_result = session.mask_value(final_json)
+                self.service.vault.put(
+                    request_id,
+                    session.mapping,
+                    session.kinds,
+                    ttl_seconds=self.settings.pii_vault_ttl_seconds,
+                )
+            self.service.enqueue_crm(request_id, crm_result)
         return self.get_call(call_id) or call
 
     def reject_call(

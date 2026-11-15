@@ -105,6 +105,20 @@ def test_masking_session_shares_tokens_between_input_and_result() -> None:
     }
 
 
+def test_session_load_reuses_existing_tokens() -> None:
+    base = Anonymizer().anonymize("Анна, +7 900 123-45-67")
+    session = Anonymizer().session()
+    session.load(base.mapping, base.kinds)
+
+    masked = session.mask_value(
+        {"name": "Анна", "phone": "+7 900 111-22-33"}
+    )
+
+    assert masked["name"] == "[PERSON_1]"
+    assert masked["phone"] == "[PHONE_2]"
+    assert session.restore_value(masked)["phone"] == "+7 900 111-22-33"
+
+
 def test_encrypted_vault_persists_and_hides_mapping(tmp_path: Path) -> None:
     path = tmp_path / "vault.db"
     mapping = {"[PERSON_1]": "Анна", "[PHONE_1]": "+7 900 123-45-67"}
