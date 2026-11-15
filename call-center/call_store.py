@@ -4,12 +4,11 @@ from __future__ import annotations
 
 import hashlib
 import json
-import shutil
 import sys
 import uuid
 from collections import Counter
 from contextlib import closing
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
@@ -23,6 +22,8 @@ from app.audio import (  # noqa: E402
     STTError,
     STTResult,
     STTSegment,
+    AudioVault,
+    mime_for_extension,
     speaker_label,
     transcript_text,
     validate_audio_file,
@@ -48,7 +49,9 @@ CREATE TABLE IF NOT EXISTS demo_calls (
     created_at TEXT NOT NULL,
     source TEXT NOT NULL DEFAULT 'demo',
     external_id TEXT,
-    duration_ms INTEGER NOT NULL DEFAULT 0
+    duration_ms INTEGER NOT NULL DEFAULT 0,
+    audio_mime TEXT,
+    audio_deleted_at TEXT
 );
 
 CREATE TABLE IF NOT EXISTS call_reviews (
@@ -108,6 +111,7 @@ class CallStore:
         stt_client: STTClient | None = None,
         audio_dir: Path | None = None,
         db_url: str | None = None,
+        audio_vault: AudioVault | None = None,
     ) -> None:
         self.settings = settings
         target = str(db_path)
@@ -121,14 +125,17 @@ class CallStore:
             Path(db_path) if not self.db_url else Path(".")
         )
         self.audio_dir = Path(audio_dir) if audio_dir else (
-            CALL_CENTER_DIR / "static" / "audio"
+            CALL_CENTER_DIR / "data" / "audio"
         )
+        self.static_audio_dir = CALL_CENTER_DIR / "static" / "audio"
+        self.audio_vault = audio_vault or AudioVault.from_settings(settings)
         self.core_db = Database(
             None if self.db_url else self.db_path,
             url=self.db_url or None,
         )
-        self.core_db.init()
-        self._init_call_tables()
+        if settings.schema_auto_create:
+            self.core_db.init()
+            self._init_call_tables()
         self._seed_calls()
         self._seed_cached_results()
         self.service = ProcessService(
@@ -166,6 +173,8 @@ class CallStore:
             "source": "TEXT NOT NULL DEFAULT 'demo'",
             "external_id": "TEXT",
             "duration_ms": "INTEGER NOT NULL DEFAULT 0",
+            "audio_mime": "TEXT",
+            "audio_deleted_at": "TEXT",
         }
         for name, definition in columns.items():
             if name not in existing:
@@ -293,7 +302,19 @@ class CallStore:
         display = final or draft
         review_status = row["review_status"] or "new"
         audio_file = row["audio_file"]
-        audio_path = self.audio_dir / (audio_file or "")
+        encrypted = bool(audio_file and audio_file.startswith("encrypted/"))
+        if encrypted:
+            audio_path = self.audio_dir / f"{row['id']}.enc"
+            audio_url = (
+                f"/calls/{row['id']}/audio" if audio_path.exists() else None
+            )
+        else:
+            audio_path = self.static_audio_dir / (audio_file or "")
+            audio_url = (
+                f"/static/audio/{audio_file}"
+                if audio_file and audio_path.exists()
+                else None
+            )
         return {
             "id": row["id"],
             "title": row["title"],
@@ -306,9 +327,9 @@ class CallStore:
                 {"segments": transcript}
             ) if transcript else "",
             "audio_file": audio_file,
-            "audio_url": f"/static/audio/{audio_file}"
-            if audio_file and audio_path.exists()
-            else None,
+            "audio_url": audio_url,
+            "audio_mime": row["audio_mime"],
+            "audio_deleted_at": row["audio_deleted_at"],
             "duration_ms": row["duration_ms"] or audio_meta.get("duration_ms", 0),
             "review_status": review_status,
             "reviewer": row["reviewer"],
@@ -336,7 +357,8 @@ class CallStore:
 
     _SELECT = """
         SELECT c.id, c.title, c.client, c.operator, c.transcript_json, c.audio_file,
-               c.source, c.external_id, c.duration_ms,
+               c.source, c.external_id, c.duration_ms, c.audio_mime,
+               c.audio_deleted_at,
                r.request_id, r.status AS review_status, r.reviewer, r.final_json,
                r.changes_json, r.reason, r.updated_at,
                b.result_json, b.status AS processing_status,
@@ -380,6 +402,56 @@ class CallStore:
                 (external_id,),
             ).fetchone()
         return self._row_to_call(row, manifest) if row else None
+
+    def get_audio(self, call_id: str) -> tuple[bytes, str] | None:
+        call = self.get_call(call_id)
+        if call is None:
+            return None
+        audio_file = call.get("audio_file") or ""
+        if not audio_file.startswith("encrypted/"):
+            return None
+        path = self.audio_dir / f"{call_id}.enc"
+        if not path.exists():
+            return None
+        return (
+            self.audio_vault.decrypt_file(path),
+            call.get("audio_mime") or "application/octet-stream",
+        )
+
+    def purge_expired_audio(self, days: int | None = None) -> int:
+        retention = (
+            self.settings.audio_retention_days if days is None else days
+        )
+        cutoff = (
+            datetime.now(timezone.utc) - timedelta(days=retention)
+        ).isoformat(timespec="milliseconds")
+        with closing(self._connect()) as connection:
+            rows = connection.execute(
+                """
+                SELECT id FROM demo_calls
+                WHERE source = 'real'
+                  AND audio_file LIKE 'encrypted/%'
+                  AND audio_deleted_at IS NULL
+                  AND created_at < ?
+                """,
+                (cutoff,),
+            ).fetchall()
+        deleted = 0
+        for row in rows:
+            call_id = row["id"]
+            path = self.audio_dir / f"{call_id}.enc"
+            path.unlink(missing_ok=True)
+            with closing(self._connect()) as connection, connection:
+                connection.execute(
+                    """
+                    UPDATE demo_calls
+                    SET audio_file=NULL, audio_deleted_at=?
+                    WHERE id=?
+                    """,
+                    (utc_now(), call_id),
+                )
+            deleted += 1
+        return deleted
 
     def _demo_transcript(self, call_id: str) -> str:
         with closing(self._connect()) as connection:
@@ -474,18 +546,20 @@ class CallStore:
             or "—"
         )
         call_id = f"real_{uuid.uuid4().hex[:10]}"
-        audio_dir = self.audio_dir / "real"
-        audio_dir.mkdir(parents=True, exist_ok=True)
-        audio_file = f"real/{call_id}{info.extension}"
-        shutil.copyfile(audio_path, self.audio_dir / audio_file)
+        audio_file = f"encrypted/{call_id}.enc"
+        self.audio_vault.encrypt_file(
+            audio_path,
+            self.audio_dir / f"{call_id}.enc",
+        )
 
         with closing(self._connect()) as connection, connection:
             connection.execute(
                 """
                 INSERT INTO demo_calls (
                     id, title, client, operator, transcript_json, audio_file,
-                    created_at, source, external_id, duration_ms
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, 'real', ?, ?)
+                    created_at, source, external_id, duration_ms, audio_mime,
+                    audio_deleted_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, 'real', ?, ?, ?, NULL)
                 """,
                 (
                     call_id,
@@ -497,6 +571,7 @@ class CallStore:
                     utc_now(),
                     external_id,
                     info.duration_ms,
+                    mime_for_extension(info.extension),
                 ),
             )
             connection.execute(

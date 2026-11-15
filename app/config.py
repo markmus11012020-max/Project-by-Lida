@@ -47,6 +47,12 @@ class Settings(BaseSettings):
     audio_max_bytes: int = Field(default=50 * 1024 * 1024, ge=1)
     audio_url_allowlist: str = Field(default="")
 
+    audio_encryption_key: str = Field(default="")
+    audio_key_path: Path = Field(default=BASE_DIR / "data" / "audio.key")
+    audio_retention_days: int = Field(default=30, ge=0)
+
+    schema_auto_create: bool = Field(default=True)
+
     pii_vault_key: str = Field(default="")
     pii_vault_path: Path = Field(default=BASE_DIR / "data" / "pii_vault.db")
     pii_vault_ttl_seconds: int = Field(default=86400, ge=60)
@@ -73,7 +79,7 @@ class Settings(BaseSettings):
         default="sqlite:///call-center/data/queue.db"
     )
 
-    @field_validator("database_path", "pii_vault_path", "crm_outbox_path", mode="after")
+    @field_validator("database_path", "pii_vault_path", "crm_outbox_path", "audio_key_path", mode="after")
     @classmethod
     def resolve_path(cls, value: Path) -> Path:
         if value.is_absolute():

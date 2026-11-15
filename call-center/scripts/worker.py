@@ -103,10 +103,17 @@ def build_handlers(store: CallStore, settings):
             report.skipped,
         )
 
+    def retention_cleanup(payload: dict) -> None:
+        deleted = store.purge_expired_audio(
+            days=payload.get("days"),
+        )
+        logger.info("retention cleanup: deleted=%s", deleted)
+
     return {
         "audio_ingest": audio_ingest,
         "oktell_sync": oktell_sync,
         "crm_dispatch": crm_dispatch,
+        "retention_cleanup": retention_cleanup,
     }
 
 
@@ -121,6 +128,12 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--poll", type=float, default=1.0)
     parser.add_argument("--max-jobs", type=int, default=0)
     parser.add_argument("--once", action="store_true")
+    parser.add_argument(
+        "--enqueue",
+        choices=["retention_cleanup", "oktell_sync", "crm_dispatch"],
+        default="",
+    )
+    parser.add_argument("--payload", default="{}")
     args = parser.parse_args(argv)
 
     store, settings = build_store()
@@ -129,6 +142,11 @@ def main(argv: list[str] | None = None) -> int:
         settings.callpilot_queue_url,
     )
     queue = create_queue(queue_url)
+
+    if args.enqueue:
+        job_id = queue.enqueue(args.enqueue, json.loads(args.payload))
+        print(json.dumps({"job_id": job_id, "kind": args.enqueue}, ensure_ascii=False))
+        return 0
 
     worker = Worker(
         queue=queue,

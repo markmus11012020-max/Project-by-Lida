@@ -34,7 +34,8 @@ def build_service(
         db_path or settings.database_path,
         url=None if db_path else (settings.database_url or None),
     )
-    db.init()
+    if settings.schema_auto_create:
+        db.init()
     return ProcessService(
         settings=settings,
         db=db,

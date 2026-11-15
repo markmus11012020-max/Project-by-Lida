@@ -32,6 +32,9 @@ call-center/demo/tts/
 call-center/demo/*.mp4
 call-center/static/audio/real/
 call-center/data/queue/
+call-center/data/audio/
+call-center/data/*.key
+data/*.key
 
 # IDE and OS
 .idea/

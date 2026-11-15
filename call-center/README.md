@@ -152,7 +152,31 @@ CALLPILOT_DB_URL=postgresql://user:password@host:5432/callpilot
 DATABASE_URL=postgresql://user:password@host:5432/callpilot
 ```
 
-`DATABASE_URL` используется основным приложением и CLI, `CALLPILOT_DB_URL` — приложением CallPilot и worker-ом. Схема создаётся автоматически при старте. Для production-миграций следующий шаг — Alembic.
+`DATABASE_URL` используется основным приложением и CLI, `CALLPILOT_DB_URL` — приложением CallPilot и worker-ом. Схема создаётся автоматически при старте. Для production-миграций:
+
+```text
+python -m alembic -c alembic.ini upgrade head
+SCHEMA_AUTO_CREATE=false
+```
+
+## Аудио: шифрование и retention
+
+Реальные записи хранятся в `call-center/data/audio/` в зашифрованном виде. Для ключа:
+
+```text
+AUDIO_ENCRYPTION_KEY=<длинный случайный ключ>
+AUDIO_RETENTION_DAYS=30
+```
+
+Если ключ не задан, используется `PII_VAULT_KEY`, а для локального демо — development-ключ. В production задайте отдельный ключ.
+
+Очистка старых записей:
+
+```text
+python call-center/scripts/worker.py --once
+```
+
+Задача `retention_cleanup` удаляет зашифрованные файлы старше `AUDIO_RETENTION_DAYS` и оставляет карточку и транскрипт. Аудио отдаётся через `/calls/{id}/audio` с расшифровкой на сервере.
 
 ## QA-правила
 

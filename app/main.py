@@ -70,7 +70,8 @@ def create_app(
                 settings.database_path,
                 url=settings.database_url or None,
             )
-            db.init()
+            if settings.schema_auto_create:
+                db.init()
             llm = AITunnelClient(settings)
             application.state.service = ProcessService(
                 settings=settings,

@@ -357,3 +357,74 @@ def test_call_store_postgres_roundtrip(tmp_path: Path) -> None:
     store.confirm_call(call_id, call["draft_result"], "QA")
     outbox = WebhookOutbox(settings.crm_outbox_path)
     assert outbox.get(call["request_id"]) is not None
+
+
+def test_real_audio_is_encrypted_and_decrypted(tmp_path: Path) -> None:
+    store, _settings, _payload_data = _store(tmp_path)
+    source = _wav(tmp_path / "encrypted.wav")
+    call_id = store.ingest_audio(
+        source,
+        filename="encrypted.wav",
+        external_id="ext-encrypted",
+    )
+
+    call = store.get_call(call_id)
+    assert call is not None
+    assert call["audio_file"].startswith("encrypted/")
+    assert call["audio_url"] == f"/calls/{call_id}/audio"
+    assert call["audio_mime"] == "audio/wav"
+
+    encrypted = tmp_path / "audio" / f"{call_id}.enc"
+    assert encrypted.exists()
+    assert not encrypted.read_bytes().startswith(b"RIFF")
+
+    payload = store.get_audio(call_id)
+    assert payload is not None
+    data, mime = payload
+    assert mime == "audio/wav"
+    assert data == source.read_bytes()
+
+
+def test_audio_retention_removes_encrypted_file(tmp_path: Path) -> None:
+    store, _settings, _payload_data = _store(tmp_path)
+    call_id = store.ingest_audio(
+        _wav(tmp_path / "retention.wav"),
+        filename="retention.wav",
+        external_id="ext-retention",
+    )
+    encrypted = tmp_path / "audio" / f"{call_id}.enc"
+    assert encrypted.exists()
+
+    assert store.purge_expired_audio(days=0) == 1
+
+    call = store.get_call(call_id)
+    assert call is not None
+    assert call["audio_file"] is None
+    assert call["audio_url"] is None
+    assert call["audio_deleted_at"] is not None
+    assert not encrypted.exists()
+    assert store.get_audio(call_id) is None
+
+
+def test_audio_route_returns_decrypted_bytes(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    store, settings, _payload_data = _store(tmp_path)
+    source = _wav(tmp_path / "route.wav")
+    call_id = store.ingest_audio(
+        source,
+        filename="route.wav",
+        external_id="ext-route-audio",
+    )
+
+    import call_center_app
+
+    monkeypatch.setattr(call_center_app, "store", store)
+    monkeypatch.setattr(call_center_app, "settings", settings)
+    client = TestClient(call_center_app.app)
+
+    response = client.get(f"/calls/{call_id}/audio")
+    assert response.status_code == 200
+    assert response.headers["content-type"].startswith("audio/wav")
+    assert response.content == source.read_bytes()

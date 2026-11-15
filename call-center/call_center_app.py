@@ -19,7 +19,7 @@ from fastapi import (
     Request,
     UploadFile,
 )
-from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel, ValidationError
@@ -246,6 +246,19 @@ def call_detail(request: Request, call_id: str, role: str = "manager"):
             "confirmed": call["review_status"] == "confirmed",
             "rejected": call["review_status"] == "rejected",
         },
+    )
+
+
+@app.get("/calls/{call_id}/audio")
+def call_audio(call_id: str):
+    payload = store.get_audio(call_id)
+    if payload is None:
+        raise HTTPException(status_code=404, detail="Аудио не найдено")
+    data, mime = payload
+    return Response(
+        content=data,
+        media_type=mime,
+        headers={"Cache-Control": "private, max-age=300"},
     )
 
 

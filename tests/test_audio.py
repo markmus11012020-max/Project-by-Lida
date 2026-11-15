@@ -9,6 +9,8 @@ import pytest
 
 from app.audio import (
     AudioValidationError,
+    AudioVault,
+    AudioVaultError,
     STTClient,
     STTError,
     STTResult,
@@ -162,3 +164,17 @@ def test_stt_empty_response(tmp_path: Path) -> None:
     )
     with pytest.raises(STTError):
         client.transcribe(path)
+
+
+def test_audio_vault_roundtrip_and_wrong_key(tmp_path: Path) -> None:
+    source = _wav(tmp_path / "call.wav")
+    encrypted = tmp_path / "call.enc"
+
+    vault = AudioVault("secret")
+    vault.encrypt_file(source, encrypted)
+    assert encrypted.exists()
+    assert not encrypted.read_bytes().startswith(b"RIFF")
+    assert vault.decrypt_file(encrypted) == source.read_bytes()
+
+    with pytest.raises(AudioVaultError):
+        AudioVault("other-secret").decrypt_file(encrypted)

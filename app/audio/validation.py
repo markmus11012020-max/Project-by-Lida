@@ -8,6 +8,12 @@ from pathlib import Path
 import mutagen
 
 ALLOWED_EXTENSIONS = {".mp3", ".wav", ".ogg", ".m4a"}
+MIME_BY_EXTENSION = {
+    ".mp3": "audio/mpeg",
+    ".wav": "audio/wav",
+    ".ogg": "audio/ogg",
+    ".m4a": "audio/mp4",
+}
 ALLOWED_FORMATS = {
     "MPEGInfo",
     "WaveStreamInfo",
@@ -87,3 +93,7 @@ def validate_audio_file(
         sample_rate=getattr(info, "sample_rate", None),
         audio_format=audio_format,
     )
+
+
+def mime_for_extension(extension: str) -> str:
+    return MIME_BY_EXTENSION.get(extension.lower(), "application/octet-stream")
