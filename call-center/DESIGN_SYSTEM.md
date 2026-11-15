@@ -348,12 +348,13 @@ H1 занимает всю ширину контейнера, а лид/CTA и �
 
 ## 15. Видео
 
-- Запись: Playwright, 1440×900, 25 fps.
+- Запись: Playwright, 25 fps; продукт — 1440×900, защита — 1920×1080.
 - Кодек: H.264 + AAC.
-- Длительность: около 2:27 с естественными паузами на знаках препинания.
-- Сценарий: hero → dashboard → карточка звонка → цитата → QA-чек-лист → аудит → подтверждение → QA-аналитика → оффер.
-- Файл: `call-center/demo/callpilot-demo.mp4` (не коммитится).
-- Скрипт: `call-center/scripts/record_demo.py`.
+- Продуктовое демо: около 2:27, сценарий hero → dashboard → карточка звонка → цитата → QA-чек-лист → аудит → подтверждение → QA-аналитика → оффер.
+- Защита: 5–7 минут, 10 слайдов, сценарий из `docs/DEFENSE.md`: проблема → контекст → архитектура → QA → результаты → экономика → риски → v2.
+- Файлы: `call-center/demo/callpilot-demo.mp4`, `call-center/demo/callpilot-defense.mp4` (не коммитятся).
+- Скрипты: `call-center/scripts/record_demo.py`, `call-center/scripts/record_defense.py`.
+- Слайды защиты: `call-center/demo/defense_slides.html`.
 
 ---
 

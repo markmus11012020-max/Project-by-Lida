@@ -1,0 +1,341 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>CallPilot — защита проекта</title>
+<style>
+  :root {
+    --navy: #0b1220;
+    --navy-2: #121f35;
+    --ink: #0f172a;
+    --muted: #94a3b8;
+    --teal: #14b8a6;
+    --teal-light: #5eead4;
+    --amber: #f59e0b;
+    --red: #ef4444;
+    --line: rgba(148, 163, 184, .2);
+    --font: "Segoe UI", "Inter", system-ui, -apple-system, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; }
+  body { font-family: var(--font); background: var(--navy); color: #f8fafc; }
+  .slide {
+    position: absolute; inset: 0; display: none; flex-direction: column;
+    padding: 54px 78px 44px;
+    background:
+      radial-gradient(90% 90% at 100% 0%, rgba(20, 184, 166, .14), transparent 55%),
+      radial-gradient(80% 80% at 0% 100%, rgba(37, 99, 235, .12), transparent 55%),
+      var(--navy);
+  }
+  .slide.active { display: flex; animation: fade .45s ease; }
+  @keyframes fade { from { opacity: .25; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+  .slide.light { background: #f8fafc; color: var(--ink); }
+  .topbar { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-bottom: 34px; }
+  .brand { display: flex; align-items: center; gap: 14px; font-size: 22px; font-weight: 800; letter-spacing: -.02em; }
+  .brand img { width: 46px; height: 46px; border-radius: 12px; }
+  .slide.light .brand { color: var(--ink); }
+  .slide-no { font-size: 14px; color: var(--muted); letter-spacing: .12em; }
+  .kicker { font-size: 17px; text-transform: uppercase; letter-spacing: .12em; color: var(--teal-light); font-weight: 800; margin-bottom: 14px; }
+  .slide.light .kicker { color: #0f766e; }
+  h1 { font-size: 68px; line-height: 1.02; letter-spacing: -.05em; margin: 0 0 18px; }
+  h2 { font-size: 52px; line-height: 1.05; letter-spacing: -.045em; margin: 0 0 18px; }
+  .lead { font-size: 24px; line-height: 1.5; color: #cbd5e1; max-width: 1000px; }
+  .slide.light .lead { color: #334155; }
+  .grid-2 { display: grid; grid-template-columns: 1.05fr .95fr; gap: 46px; align-items: center; flex: 1; min-height: 0; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 26px; }
+  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 26px; }
+  .card {
+    background: rgba(255, 255, 255, .055); border: 1px solid var(--line);
+    border-radius: 18px; padding: 24px 26px;
+  }
+  .slide.light .card { background: #fff; border-color: #e2e8f0; box-shadow: 0 12px 30px rgba(15, 23, 42, .06); }
+  .card h3 { font-size: 21px; margin: 0 0 8px; }
+  .card p { font-size: 16px; line-height: 1.5; color: #cbd5e1; margin: 0; }
+  .slide.light .card p { color: #475569; }
+  .metric { display: flex; flex-direction: column; gap: 5px; }
+  .metric strong { font-size: 40px; letter-spacing: -.04em; color: var(--teal-light); line-height: 1; }
+  .slide.light .metric strong { color: #0f766e; }
+  .metric span { font-size: 14px; color: var(--muted); }
+  .slide.light .metric span { color: #64748b; }
+  .metric-sm strong { font-size: 30px; }
+  .accent { color: var(--teal-light); }
+  .slide.light .accent { color: #0f766e; }
+  .muted { color: var(--muted); }
+  .slide.light .muted { color: #64748b; }
+  .shot {
+    width: 100%; max-height: 610px; object-fit: cover; object-position: top center;
+    border-radius: 16px; box-shadow: 0 24px 60px rgba(0, 0, 0, .35);
+    border: 1px solid rgba(255, 255, 255, .12);
+  }
+  .shot-frame { background: rgba(255, 255, 255, .04); border: 1px solid var(--line); border-radius: 20px; padding: 10px; }
+  .flow { display: flex; flex-direction: column; gap: 10px; margin-top: 26px; }
+  .flow-row { display: flex; align-items: center; gap: 10px; }
+  .flow-box {
+    background: rgba(255, 255, 255, .06); border: 1px solid var(--line); border-radius: 12px;
+    padding: 14px 18px; font-size: 16px; font-weight: 700; flex: 1; text-align: center;
+  }
+  .flow-box.hot { border-color: rgba(94, 234, 212, .5); color: var(--teal-light); }
+  .arrow { color: var(--teal-light); font-size: 20px; }
+  .list { margin: 18px 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 11px; }
+  .list li { position: relative; padding-left: 24px; font-size: 18px; line-height: 1.45; color: #cbd5e1; }
+  .list li::before { content: "✓"; position: absolute; left: 0; color: var(--teal-light); font-weight: 800; }
+  .slide.light .list li { color: #334155; }
+  .slide.light .list li::before { color: #0f766e; }
+  .num-list { counter-reset: item; margin: 18px 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 12px; }
+  .num-list li { counter-increment: item; position: relative; padding-left: 38px; font-size: 17px; line-height: 1.45; color: #cbd5e1; }
+  .num-list li::before { content: counter(item, decimal-leading-zero); position: absolute; left: 0; color: var(--teal-light); font-weight: 800; font-size: 13px; top: 2px; }
+  .slide.light .num-list li { color: #334155; }
+  .slide.light .num-list li::before { color: #0f766e; }
+  .bottom-note { margin-top: auto; padding-top: 24px; font-size: 14px; color: var(--muted); border-top: 1px solid var(--line); }
+  .slide.light .bottom-note { color: #64748b; border-color: #e2e8f0; }
+  .badge { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 999px; font-size: 12px; font-weight: 800; }
+  .badge-green { background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; }
+  .badge-red { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
+  .badge-amber { background: #fffbeb; color: #b45309; border: 1px solid #fde68a; }
+  .risk-table { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 18px; margin-top: 24px; }
+  .risk-row { display: flex; flex-direction: column; gap: 3px; padding: 14px 16px; background: rgba(255, 255, 255, .055); border: 1px solid var(--line); border-radius: 12px; }
+  .risk-row strong { font-size: 16px; }
+  .risk-row span { font-size: 14px; color: #cbd5e1; line-height: 1.45; }
+  .final { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; flex: 1; }
+  .final img { width: 84px; height: 84px; border-radius: 22px; margin-bottom: 22px; }
+  .final h1 { font-size: 76px; }
+  .final p { font-size: 24px; color: #cbd5e1; max-width: 900px; line-height: 1.5; }
+  .final .cta { margin-top: 28px; display: flex; gap: 12px; }
+  .pill { padding: 10px 16px; border-radius: 999px; background: rgba(94, 234, 212, .1); color: var(--teal-light); font-size: 15px; font-weight: 700; border: 1px solid rgba(94, 234, 212, .25); }
+</style>
+</head>
+<body>
+
+<!-- 1 -->
+<section class="slide active" data-slide="0">
+  <div class="topbar">
+    <div class="brand"><img src="../static/logo.svg" alt="">CallPilot</div>
+    <div class="slide-no">ЗАЩИТА · 01 / 10</div>
+  </div>
+  <div class="grid-2">
+    <div>
+      <div class="kicker">Учебный проект · URK071</div>
+      <h1>Автоматизация процесса с LLM от входа до действия</h1>
+      <p class="lead">CallPilot: контроль качества звонков, карточка в CRM и ручная проверка только исключений.</p>
+      <div class="grid-3" style="margin-top:32px">
+        <div class="metric"><strong>3</strong><span>сценария</span></div>
+        <div class="metric"><strong>30</strong><span>тестовых кейсов</span></div>
+        <div class="metric"><strong>75</strong><span>автотестов</span></div>
+      </div>
+    </div>
+    <div class="shot-frame"><img class="shot" src="../screenshots/landing_1920.png" alt=""></div>
+  </div>
+  <div class="bottom-note">CallPilot · демо на синтетических данных · 2026</div>
+</section>
+
+<!-- 2 -->
+<section class="slide light" data-slide="1">
+  <div class="topbar">
+    <div class="brand"><img src="../static/logo.svg" alt="">CallPilot</div>
+    <div class="slide-no">ПРОБЛЕМА · 02 / 10</div>
+  </div>
+  <div class="kicker">Проблема</div>
+  <h2>Колл-центры тонут в рутине</h2>
+  <p class="lead">Входящие обрабатываются вручную: время теряется, ошибки не видны, а QA проверяет лишь малую часть звонков.</p>
+  <div class="grid-4">
+    <div class="card"><div class="metric"><strong>2–5%</strong><span>звонков слушает QA</span></div></div>
+    <div class="card"><div class="metric"><strong>2–5 мин</strong><span>постобработки на звонок</span></div></div>
+    <div class="card"><div class="metric"><strong>0</strong><span>единой картины причин</span></div></div>
+    <div class="card"><div class="metric"><strong>∞</strong><span>потерянных жалоб</span></div></div>
+  </div>
+  <div class="bottom-note">Нужен процесс: вход → структура → контроль качества → действие</div>
+</section>
+
+<!-- 3 -->
+<section class="slide" data-slide="2">
+  <div class="topbar">
+    <div class="brand"><img src="../static/logo.svg" alt="">CallPilot</div>
+    <div class="slide-no">КОНТЕКСТ · 03 / 10</div>
+  </div>
+  <div class="grid-2">
+    <div>
+      <div class="kicker">Контекст и ограничения</div>
+      <h2>Один процесс, три конфигурации</h2>
+      <ul class="list">
+        <li>Малый/средний бизнес, до 500 входящих в сутки</li>
+        <li>Один вход: API или файл</li>
+        <li>Одно действие: SQLite / CSV</li>
+        <li>Максимум две интеграции</li>
+        <li>A — основной кейс, B и C — конфигурации того же конвейера</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Что не входит в MVP</h3>
+      <p>CRM, почта, авторизация, мультитенантность, production-деплой и замена операторов.</p>
+      <div style="height:18px"></div>
+      <span class="badge badge-green">Фокус: завершённость и качество</span>
+    </div>
+  </div>
+  <div class="bottom-note">Ограничения осознанные: лучше работающий узкий процесс, чем хрупкий «всё сразу»</div>
+</section>
+
+<!-- 4 -->
+<section class="slide" data-slide="3">
+  <div class="topbar">
+    <div class="brand"><img src="../static/logo.svg" alt="">CallPilot</div>
+    <div class="slide-no">АРХИТЕКТУРА · 04 / 10</div>
+  </div>
+  <div class="kicker">Архитектура</div>
+  <h2>От входа до действия</h2>
+  <div class="flow">
+    <div class="flow-row"><div class="flow-box">Вход: API / файл</div><span class="arrow">→</span><div class="flow-box">Сценарий A / B / C</div><span class="arrow">→</span><div class="flow-box">System prompt + схема</div></div>
+    <div class="flow-row"><div class="flow-box hot">AITUNNEL LLM · JSON mode</div><span class="arrow">→</span><div class="flow-box">JSON parse</div><span class="arrow">→</span><div class="flow-box">Pydantic validation</div></div>
+    <div class="flow-row"><div class="flow-box">QC / эскалация</div><span class="arrow">→</span><div class="flow-box">SQLite: аудит + результат</div><span class="arrow">→</span><div class="flow-box hot">Действие</div></div>
+  </div>
+  <div class="grid-3" style="margin-top:20px">
+    <div class="card"><div class="metric metric-sm"><strong>0.2</strong><span>temperature</span></div></div>
+    <div class="card"><div class="metric metric-sm"><strong>2500</strong><span>max_tokens + retry при обрезке</span></div></div>
+    <div class="card"><div class="metric metric-sm"><strong>2</strong><span>попытки при сбое API</span></div></div>
+  </div>
+  <div class="bottom-note">Модель не доверяется: код проверяет схему, диапазоны, enum и бизнес-правила</div>
+</section>
+
+<!-- 5 -->
+<section class="slide light" data-slide="4">
+  <div class="topbar">
+    <div class="brand"><img src="../static/logo.svg" alt="">CallPilot</div>
+    <div class="slide-no">КАЧЕСТВО · 05 / 10</div>
+  </div>
+  <div class="grid-2">
+    <div>
+      <div class="kicker">Контроль качества</div>
+      <h2>Модель проверяет всё. Человек — только исключения.</h2>
+      <ul class="list">
+        <li>10 критериев QA: скрипт, комплаенс, эмпатия, решение</li>
+        <li>Severity берётся из чек-листа, а не из ответа модели</li>
+        <li>Auto-pass при score ≥ 85 и без critical/high</li>
+        <li>Журнал: вход, сырой ответ, результат, статус</li>
+        <li>Подтверждение менеджером и diff правок</li>
+      </ul>
+    </div>
+    <div class="shot-frame"><img class="shot" src="../screenshots/call_detail.png" alt=""></div>
+  </div>
+  <div class="bottom-note">Ошибка не теряется: invalid JSON → fallback, спорный кейс → человек</div>
+</section>
+
+<!-- 6 -->
+<section class="slide" data-slide="5">
+  <div class="topbar">
+    <div class="brand"><img src="../static/logo.svg" alt="">CallPilot</div>
+    <div class="slide-no">РЕЗУЛЬТАТЫ · 06 / 10</div>
+  </div>
+  <div class="kicker">Результаты</div>
+  <h2>30 кейсов, 0 ошибок</h2>
+  <div class="grid-4">
+    <div class="card"><div class="metric"><strong>30/30</strong><span>валидных результатов</span></div></div>
+    <div class="card"><div class="metric"><strong>20 / 10</strong><span>auto / manual</span></div></div>
+    <div class="card"><div class="metric"><strong>66.7%</strong><span>автоматизации</span></div></div>
+    <div class="card"><div class="metric"><strong>2.04 ₽</strong><span>за 30 кейсов</span></div></div>
+  </div>
+  <div class="grid-3" style="margin-top:18px">
+    <div class="card"><div class="metric metric-sm"><strong>3397 мс</strong><span>средняя задержка</span></div></div>
+    <div class="card"><div class="metric metric-sm"><strong>0</strong><span>invalid / error</span></div></div>
+    <div class="card"><div class="metric metric-sm"><strong>30/30</strong><span>совпадение с ожиданием</span></div></div>
+  </div>
+  <div class="bottom-note">Live-прогон на deepseek-v4.1-flash; тест-кейсы: поддержка, продажи, документы</div>
+</section>
+
+<!-- 7 -->
+<section class="slide" data-slide="6">
+  <div class="topbar">
+    <div class="brand"><img src="../static/logo.svg" alt="">CallPilot</div>
+    <div class="slide-no">ПРОДУКТ · 07 / 10</div>
+  </div>
+  <div class="grid-2">
+    <div>
+      <div class="kicker">CallPilot</div>
+      <h2>100% QA звонков</h2>
+      <p class="lead">Расшифровка, карточка, аудио с таймкодами и QA-чек-лист. Менеджер смотрит только нарушения.</p>
+      <div class="grid-3" style="margin-top:26px">
+        <div class="metric"><strong>100%</strong><span>покрытие QA</span></div>
+        <div class="metric"><strong>10</strong><span>критериев</span></div>
+        <div class="metric"><strong>2 сек</strong><span>до цитаты</span></div>
+      </div>
+    </div>
+    <div class="shot-frame"><img class="shot" src="../screenshots/call_detail.png" alt=""></div>
+  </div>
+  <div class="bottom-note">6 демо-звонков: 2 auto-pass, 4 manual_review · пилот 100–300 звонков</div>
+</section>
+
+<!-- 8 -->
+<section class="slide light" data-slide="7">
+  <div class="topbar">
+    <div class="brand"><img src="../static/logo.svg" alt="">CallPilot</div>
+    <div class="slide-no">ЭКОНОМИКА · 08 / 10</div>
+  </div>
+  <div class="kicker">Экономика</div>
+  <h2>Минус две трети ручного времени</h2>
+  <div class="grid-4">
+    <div class="card"><div class="metric"><strong>180 мин</strong><span>вручную на 30 кейсов</span></div></div>
+    <div class="card"><div class="metric"><strong>60 мин</strong><span>с автоматизацией</span></div></div>
+    <div class="card"><div class="metric"><strong>120 мин</strong><span>экономии</span></div></div>
+    <div class="card"><div class="metric"><strong>66.7%</strong><span>сокращение времени</span></div></div>
+  </div>
+  <div class="grid-2" style="margin-top:26px; align-items:start">
+    <div class="card">
+      <h3>Пилот</h3>
+      <p>100–300 звонков, 2 недели. Считаем покрытие QA, auto-pass, нарушения, правки и экономию.</p>
+    </div>
+    <div class="card">
+      <h3>Стоимость</h3>
+      <p>2.04 ₽ за 30 LLM-разборов. Основная ценность — время менеджера и прозрачность, а не токены.</p>
+    </div>
+  </div>
+  <div class="bottom-note">Допущения: 6 мин вручную, 0.5 мин проверки auto, 5 мин на эскалацию</div>
+</section>
+
+<!-- 9 -->
+<section class="slide" data-slide="8">
+  <div class="topbar">
+    <div class="brand"><img src="../static/logo.svg" alt="">CallPilot</div>
+    <div class="slide-no">РИСКИ · 09 / 10</div>
+  </div>
+  <div class="kicker">Риски и защита</div>
+  <h2>Что может сломаться и как мы это закрыли</h2>
+  <div class="risk-table">
+    <div class="risk-row"><strong>Модель выдумывает факты</strong><span>Запрет на добавление данных, missing_fields, low confidence, few-shot</span></div>
+    <div class="risk-row"><strong>Невалидный JSON</strong><span>JSON mode, Pydantic, retry при обрезке, fallback + эскалация</span></div>
+    <div class="risk-row"><strong>Ошибка в оценке лида</strong><span>Score 0–100, проверка согласованности с категорией</span></div>
+    <div class="risk-row"><strong>Персональные данные</strong><span>Синтетические кейсы, .env вне Git, маскирование в v2</span></div>
+    <div class="risk-row"><strong>Стоимость и задержка</strong><span>Дешёвая модель, лимит токенов, аудит стоимости</span></div>
+    <div class="risk-row"><strong>Человек не смотрит</strong><span>Эскалация только по риску, выборочный аудит, метрики правок</span></div>
+  </div>
+  <div class="bottom-note">Ключевой принцип: LLM готовит черновик, решение принимает человек</div>
+</section>
+
+<!-- 10 -->
+<section class="slide" data-slide="9">
+  <div class="topbar">
+    <div class="brand"><img src="../static/logo.svg" alt="">CallPilot</div>
+    <div class="slide-no">ИТОГ · 10 / 10</div>
+  </div>
+  <div class="final">
+    <img src="../static/logo.svg" alt="">
+    <h1>CallPilot</h1>
+    <p>Работающий MVP: вход → LLM → JSON → контроль качества → действие. Пилот на 100–300 звонках за 2 недели.</p>
+    <p style="font-size:17px;color:#94a3b8;margin-top:16px">v2: PostgreSQL · очередь задач · CRM и телефония · маскирование ПДн · публичный демо-стенд</p>
+    <div class="cta">
+      <span class="pill">100% QA</span>
+      <span class="pill">только исключения менеджеру</span>
+      <span class="pill">аудит каждого решения</span>
+    </div>
+  </div>
+  <div class="bottom-note">Спасибо за внимание · готов ответить на вопросы</div>
+</section>
+
+<script>
+  function showSlide(index) {
+    var slides = document.querySelectorAll('.slide');
+    slides.forEach(function (slide, i) {
+      slide.classList.toggle('active', i === index);
+    });
+  }
+  window.showSlide = showSlide;
+</script>
+</body>
+</html>
