@@ -27,7 +27,10 @@
 
 {% block content %}
 {% if request.query_params.get('confirmed') %}
-<div class="alert alert-green">Карточка подтверждена. Финальная версия зафиксирована в аудите и отправлена в CRM (демо).</div>
+<div class="alert alert-green">
+  Карточка подтверждена. Финальная версия зафиксирована в аудите.
+  {% if call.source == 'real' %}Результат поставлен в очередь CRM.{% endif %}
+</div>
 {% endif %}
 {% if request.query_params.get('rejected') %}
 <div class="alert alert-amber">Звонок отклонён и возвращён в ручную обработку.</div>
@@ -47,7 +50,13 @@
       <div class="panel-head compact">
         <div>
           <h2>Аудио звонка</h2>
-          <p class="muted small">Синтетическое демо-аудио. Нажмите на реплику или нарушение, чтобы перемотать.</p>
+          <p class="muted small">
+            {% if call.source == 'real' %}
+            Реальная запись. Персональные данные в транскрипте и карточке замаскированы.
+            {% else %}
+            Синтетическое демо-аудио. Нажмите на реплику или нарушение, чтобы перемотать.
+            {% endif %}
+          </p>
         </div>
         <span class="badge badge-gray">{{ call.duration_ms|duration }}</span>
       </div>
@@ -127,6 +136,7 @@
       {% endif %}
 
       <div class="tag-row">
+        {% if call.source == 'real' %}<span class="badge badge-gray">152-ФЗ · данные анонимизированы</span>{% endif %}
         <span class="tag">{{ result.get('intent')|label(intent_labels) }}</span>
         <span class="tag tag-soft">{{ result.get('sentiment')|label(sentiment_labels) }}</span>
         <span class="tag tag-soft">confidence: {{ result.get('confidence') or '—' }}</span>
@@ -138,7 +148,7 @@
         {{ read_field('Интент', result.get('intent')|label(intent_labels)) }}
         {{ read_field('Приоритет', result.get('priority')|label({'low':'Низкий','medium':'Средний','high':'Высокий'})) }}
         {{ read_field('Клиент', result.get('fields', {}).get('client_name')) }}
-        {{ read_field('Телефон', result.get('fields', {}).get('phone')) }}
+        {{ read_field('Телефон', result.get('fields', {}).get('phone') or result.get('fields', {}).get('contact')) }}
         {{ read_field('Заказ', result.get('fields', {}).get('order_id')) }}
         {{ read_field('Сумма', result.get('fields', {}).get('amount')) }}
         {{ read_field('Товар', result.get('fields', {}).get('product')) }}
@@ -176,7 +186,7 @@
         </label>
         <label class="field">
           <span class="field-label">Телефон</span>
-          <input data-path="fields.phone" value="{{ result.get('fields', {}).get('phone') or '' }}">
+          <input data-path="fields.phone" value="{{ result.get('fields', {}).get('phone') or result.get('fields', {}).get('contact') or '' }}">
         </label>
         <label class="field">
           <span class="field-label">Заказ</span>

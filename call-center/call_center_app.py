@@ -9,7 +9,14 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import (
+    FastAPI,
+    File,
+    Form,
+    HTTPException,
+    Request,
+    UploadFile,
+)
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -21,6 +28,12 @@ sys.path.insert(0, str(PROJECT_ROOT))
 sys.path.insert(0, str(CALL_CENTER_DIR))
 
 from app.config import get_settings  # noqa: E402
+from app.audio import (  # noqa: E402
+    AudioTooLargeError,
+    AudioValidationError,
+    STTError,
+    save_upload_to_temp,
+)
 from app.scenarios.call_qa import AUTO_PASS_SCORE, QA_CRITERIA  # noqa: E402
 from call_store import CallStore  # noqa: E402
 
@@ -171,8 +184,9 @@ def dashboard(
     status: str = "all",
     qa: str = "all",
     role: str = "manager",
+    source: str = "all",
 ):
-    calls = store.list_calls()
+    calls = store.list_calls(source=source)
     metrics = store.metrics()
     if status != "all":
         calls = [call for call in calls if _display_status(call) == status]
@@ -190,6 +204,7 @@ def dashboard(
             "metrics": metrics,
             "status_filter": status,
             "qa_filter": qa,
+            "source_filter": source,
             "role": role,
         },
     )
@@ -218,6 +233,43 @@ def call_detail(request: Request, call_id: str, role: str = "manager"):
             "rejected": call["review_status"] == "rejected",
         },
     )
+
+
+@app.post("/review/upload")
+async def upload_real_call(
+    file: UploadFile = File(...),
+    title: str = Form("", max_length=200),
+    external_id: str = Form("", max_length=120),
+):
+    if store.stt_client is None:
+        raise HTTPException(
+            status_code=503,
+            detail="STT не настроен: укажите STT_API_URL",
+        )
+
+    path = None
+    try:
+        path = await save_upload_to_temp(file, settings.audio_max_bytes)
+        call_id = store.ingest_audio(
+            path,
+            filename=file.filename or path.name,
+            title=title,
+            external_id=external_id.strip() or None,
+        )
+        return RedirectResponse(
+            url=f"/calls/{call_id}?processed=1",
+            status_code=303,
+        )
+    except AudioTooLargeError as exc:
+        raise HTTPException(status_code=413, detail=str(exc)) from exc
+    except AudioValidationError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    except STTError as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+    finally:
+        if path is not None:
+            path.unlink(missing_ok=True)
+        await file.close()
 
 
 @app.post("/calls/{call_id}/process")

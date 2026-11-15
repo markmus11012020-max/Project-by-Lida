@@ -5,6 +5,10 @@
 {% block page_subtitle %}100% звонков проходят разбор. Менеджер видит только исключения.{% endblock %}
 
 {% block topbar_actions %}
+<form method="post" action="/review/upload" enctype="multipart/form-data" class="inline-form">
+  <input class="audio-file-input" type="file" name="file" accept=".mp3,.wav,.ogg,.m4a" required aria-label="Аудиофайл">
+  <button class="btn btn-primary btn-small" type="submit">Загрузить звонок</button>
+</form>
 <form method="post" action="/demo/reset" class="inline-form">
   <button class="btn btn-ghost" type="submit" title="Пересоздать демо-данные">↺ Сбросить демо</button>
 </form>
@@ -15,7 +19,7 @@
   <article class="kpi-card">
     <div class="kpi-label">Всего звонков</div>
     <div class="kpi-value">{{ metrics.total }}</div>
-    <div class="kpi-note">демо-выборка</div>
+    <div class="kpi-note">демо и реальные</div>
   </article>
   <article class="kpi-card">
     <div class="kpi-label">Покрытие QA</div>
@@ -70,21 +74,27 @@
   <div class="panel-head">
     <div>
       <h2>Очередь звонков</h2>
-      <p class="muted">Синтетические звонки. Можно открыть карточку, прослушать аудио и проверить QA.</p>
+      <p class="muted">Демо и реальные звонки. Откройте карточку, прослушайте аудио и проверьте QA.</p>
     </div>
     <div class="filters">
       <div class="filter-group">
+        <span class="filter-label">Источник</span>
+        <a class="pill {% if source_filter == 'all' %}active{% endif %}" href="/dashboard?role={{ role }}&status={{ status_filter }}&qa={{ qa_filter }}&source=all">Все</a>
+        <a class="pill {% if source_filter == 'real' %}active{% endif %}" href="/dashboard?role={{ role }}&status={{ status_filter }}&qa={{ qa_filter }}&source=real">Реальные</a>
+        <a class="pill {% if source_filter == 'demo' %}active{% endif %}" href="/dashboard?role={{ role }}&status={{ status_filter }}&qa={{ qa_filter }}&source=demo">Демо</a>
+      </div>
+      <div class="filter-group">
         <span class="filter-label">Статус</span>
-        <a class="pill {% if status_filter == 'all' %}active{% endif %}" href="/dashboard?role={{ role }}&qa={{ qa_filter }}&status=all">Все</a>
-        <a class="pill {% if status_filter == 'pending' %}active{% endif %}" href="/dashboard?role={{ role }}&qa={{ qa_filter }}&status=pending">На проверке</a>
-        <a class="pill {% if status_filter == 'confirmed' %}active{% endif %}" href="/dashboard?role={{ role }}&qa={{ qa_filter }}&status=confirmed">Подтверждён</a>
-        <a class="pill {% if status_filter == 'rejected' %}active{% endif %}" href="/dashboard?role={{ role }}&qa={{ qa_filter }}&status=rejected">Отклонён</a>
+        <a class="pill {% if status_filter == 'all' %}active{% endif %}" href="/dashboard?role={{ role }}&qa={{ qa_filter }}&source={{ source_filter }}&status=all">Все</a>
+        <a class="pill {% if status_filter == 'pending' %}active{% endif %}" href="/dashboard?role={{ role }}&qa={{ qa_filter }}&source={{ source_filter }}&status=pending">На проверке</a>
+        <a class="pill {% if status_filter == 'confirmed' %}active{% endif %}" href="/dashboard?role={{ role }}&qa={{ qa_filter }}&source={{ source_filter }}&status=confirmed">Подтверждён</a>
+        <a class="pill {% if status_filter == 'rejected' %}active{% endif %}" href="/dashboard?role={{ role }}&qa={{ qa_filter }}&source={{ source_filter }}&status=rejected">Отклонён</a>
       </div>
       <div class="filter-group">
         <span class="filter-label">QA</span>
-        <a class="pill {% if qa_filter == 'all' %}active{% endif %}" href="/dashboard?role={{ role }}&status={{ status_filter }}&qa=all">Все</a>
-        <a class="pill {% if qa_filter == 'auto_pass' %}active{% endif %}" href="/dashboard?role={{ role }}&status={{ status_filter }}&qa=auto_pass">Авто</a>
-        <a class="pill {% if qa_filter == 'manual_review' %}active{% endif %}" href="/dashboard?role={{ role }}&status={{ status_filter }}&qa=manual_review">Ручная</a>
+        <a class="pill {% if qa_filter == 'all' %}active{% endif %}" href="/dashboard?role={{ role }}&status={{ status_filter }}&source={{ source_filter }}&qa=all">Все</a>
+        <a class="pill {% if qa_filter == 'auto_pass' %}active{% endif %}" href="/dashboard?role={{ role }}&status={{ status_filter }}&source={{ source_filter }}&qa=auto_pass">Авто</a>
+        <a class="pill {% if qa_filter == 'manual_review' %}active{% endif %}" href="/dashboard?role={{ role }}&status={{ status_filter }}&source={{ source_filter }}&qa=manual_review">Ручная</a>
       </div>
     </div>
   </div>
@@ -114,6 +124,7 @@
               <span class="call-title">{{ call.title }}</span>
             </a>
             {% if call.audio_url %}<span class="audio-mark">♪</span>{% endif %}
+            {% if call.source == 'real' %}<span class="badge badge-gray">реальный</span>{% endif %}
           </td>
           <td>
             <div class="person">{{ call.client }}</div>

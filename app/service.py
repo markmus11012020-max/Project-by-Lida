@@ -24,6 +24,7 @@ from app.security import (
     Anonymizer,
     EncryptedSQLitePIIVault,
     InMemoryPIIVault,
+    MaskingSession,
     PIIVault,
 )
 from app.schemas import (
@@ -76,12 +77,15 @@ class ProcessService:
         source: str = "api",
         metadata: dict[str, str] | None = None,
         anonymize: bool = False,
+        masking_session: MaskingSession | None = None,
     ) -> ProcessResponse:
         scenario = self.scenarios[ScenarioKey(scenario_key)]
         request_id = str(uuid.uuid4())
         created_at = utc_now()
         metadata = metadata or {}
-        session = self.anonymizer.session() if anonymize else None
+        session = masking_session
+        if session is None and anonymize:
+            session = self.anonymizer.session()
         anonymized = session.anonymize(text) if session is not None else None
         llm_text = anonymized.text if anonymized is not None else text
         input_hash = hashlib.sha256(llm_text.encode("utf-8")).hexdigest()
@@ -184,16 +188,6 @@ class ProcessService:
         }
         self.db.save(log, stored_result)
 
-        if (
-            self.outbox is not None
-            and session is not None
-            and status in {ProcessStatus.PROCESSED, ProcessStatus.ESCALATED}
-        ):
-            self.outbox.enqueue(
-                request_id,
-                self._crm_payload(request_id, stored_result, status),
-            )
-
         logger.info(
             "request_id=%s scenario=%s status=%s latency_ms=%s",
             request_id,
@@ -255,6 +249,30 @@ class ProcessService:
 
     def get_pii(self, request_id: str):
         return self.vault.get(request_id)
+
+    def enqueue_crm(
+        self,
+        request_id: str,
+        result: dict[str, Any],
+    ) -> bool:
+        """Queue a confirmed result for CRM delivery.
+
+        The result must already be PII-masked. The outbox worker restores only
+        the allowed client fields from the vault before sending.
+        """
+
+        if self.outbox is None:
+            return False
+        status = (
+            ProcessStatus.ESCALATED
+            if result.get("escalate")
+            else ProcessStatus.PROCESSED
+        )
+        self.outbox.enqueue(
+            request_id,
+            self._crm_payload(request_id, result, status),
+        )
+        return True
 
     # Read-side helpers keep the API layer free of SQL details.
 

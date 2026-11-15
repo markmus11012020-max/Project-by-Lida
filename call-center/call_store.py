@@ -4,8 +4,10 @@ from __future__ import annotations
 
 import hashlib
 import json
+import shutil
 import sqlite3
 import sys
+import uuid
 from collections import Counter
 from contextlib import closing
 from datetime import datetime, timezone
@@ -17,6 +19,15 @@ PROJECT_ROOT = CALL_CENTER_DIR.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 sys.path.insert(0, str(CALL_CENTER_DIR))
 
+from app.audio import (  # noqa: E402
+    STTClient,
+    STTError,
+    STTResult,
+    STTSegment,
+    speaker_label,
+    transcript_text,
+    validate_audio_file,
+)
 from app.config import Settings  # noqa: E402
 from app.db import Database  # noqa: E402
 from app.llm import AITunnelClient  # noqa: E402
@@ -24,7 +35,7 @@ from app.scenarios.call_qa import call_qa_qc  # noqa: E402
 from app.scenarios.registry import SCENARIOS  # noqa: E402
 from app.schemas import CallResult, ScenarioKey  # noqa: E402
 from app.service import ProcessService  # noqa: E402
-from demo_data import DEMO_CALLS, transcript_text  # noqa: E402
+from demo_data import DEMO_CALLS, transcript_text as demo_transcript_text  # noqa: E402
 
 CALL_SCHEMA = """
 CREATE TABLE IF NOT EXISTS demo_calls (
@@ -34,7 +45,10 @@ CREATE TABLE IF NOT EXISTS demo_calls (
     operator TEXT NOT NULL,
     transcript_json TEXT NOT NULL,
     audio_file TEXT,
-    created_at TEXT NOT NULL
+    created_at TEXT NOT NULL,
+    source TEXT NOT NULL DEFAULT 'demo',
+    external_id TEXT,
+    duration_ms INTEGER NOT NULL DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS call_reviews (
@@ -87,9 +101,18 @@ def diff_results(before: dict[str, Any], after: dict[str, Any]) -> dict[str, Any
 
 
 class CallStore:
-    def __init__(self, settings: Settings, db_path: Path) -> None:
+    def __init__(
+        self,
+        settings: Settings,
+        db_path: Path,
+        stt_client: STTClient | None = None,
+        audio_dir: Path | None = None,
+    ) -> None:
         self.settings = settings
         self.db_path = Path(db_path)
+        self.audio_dir = Path(audio_dir) if audio_dir else (
+            CALL_CENTER_DIR / "static" / "audio"
+        )
         self.core_db = Database(self.db_path)
         self.core_db.init()
         self._init_call_tables()
@@ -100,6 +123,16 @@ class CallStore:
             db=self.core_db,
             llm=AITunnelClient(settings),
             scenarios=SCENARIOS,
+        )
+        self.stt_client = stt_client or (
+            STTClient(
+                settings.stt_api_url,
+                api_key=settings.stt_api_key,
+                model=settings.stt_model,
+                timeout=settings.stt_timeout,
+            )
+            if settings.stt_configured
+            else None
         )
 
     def _connect(self) -> sqlite3.Connection:
@@ -112,6 +145,24 @@ class CallStore:
     def _init_call_tables(self) -> None:
         with closing(self._connect()) as connection, connection:
             connection.executescript(CALL_SCHEMA)
+            self._ensure_columns(connection)
+
+    @staticmethod
+    def _ensure_columns(connection: sqlite3.Connection) -> None:
+        existing = {
+            row["name"]
+            for row in connection.execute("PRAGMA table_info(demo_calls)")
+        }
+        columns = {
+            "source": "TEXT NOT NULL DEFAULT 'demo'",
+            "external_id": "TEXT",
+            "duration_ms": "INTEGER NOT NULL DEFAULT 0",
+        }
+        for name, definition in columns.items():
+            if name not in existing:
+                connection.execute(
+                    f"ALTER TABLE demo_calls ADD COLUMN {name} {definition}"
+                )
 
     def _seed_calls(self) -> None:
         with closing(self._connect()) as connection, connection:
@@ -139,7 +190,12 @@ class CallStore:
             return
         with closing(self._connect()) as connection:
             existing = connection.execute(
-                "SELECT COUNT(*) AS count FROM call_reviews"
+                """
+                SELECT COUNT(*) AS count
+                FROM call_reviews r
+                JOIN demo_calls c ON c.id = r.call_id
+                WHERE c.source = 'demo'
+                """
             ).fetchone()["count"]
         if existing:
             return
@@ -199,8 +255,12 @@ class CallStore:
             segments.append(
                 {
                     **segment,
-                    "start_ms": timing.get("start_ms", 0),
-                    "end_ms": timing.get("end_ms", 0),
+                    "start_ms": segment.get(
+                        "start_ms", timing.get("start_ms", 0)
+                    ),
+                    "end_ms": segment.get(
+                        "end_ms", timing.get("end_ms", 0)
+                    ),
                 }
             )
 
@@ -209,21 +269,23 @@ class CallStore:
         display = final or draft
         review_status = row["review_status"] or "new"
         audio_file = row["audio_file"]
-        audio_path = CALL_CENTER_DIR / "static" / "audio" / (audio_file or "")
+        audio_path = self.audio_dir / (audio_file or "")
         return {
             "id": row["id"],
             "title": row["title"],
             "client": row["client"],
             "operator": row["operator"],
+            "source": row["source"] or "demo",
+            "external_id": row["external_id"],
             "segments": segments,
-            "transcript": transcript_text(
+            "transcript": demo_transcript_text(
                 {"segments": transcript}
             ) if transcript else "",
             "audio_file": audio_file,
             "audio_url": f"/static/audio/{audio_file}"
             if audio_file and audio_path.exists()
             else None,
-            "duration_ms": audio_meta.get("duration_ms", 0),
+            "duration_ms": row["duration_ms"] or audio_meta.get("duration_ms", 0),
             "review_status": review_status,
             "reviewer": row["reviewer"],
             "review_reason": row["reason"],
@@ -250,6 +312,7 @@ class CallStore:
 
     _SELECT = """
         SELECT c.id, c.title, c.client, c.operator, c.transcript_json, c.audio_file,
+               c.source, c.external_id, c.duration_ms,
                r.request_id, r.status AS review_status, r.reviewer, r.final_json,
                r.changes_json, r.reason, r.updated_at,
                b.result_json, b.status AS processing_status,
@@ -261,12 +324,16 @@ class CallStore:
         LEFT JOIN processing_log l ON l.id = r.request_id
     """
 
-    def list_calls(self) -> list[dict[str, Any]]:
+    def list_calls(self, source: str | None = None) -> list[dict[str, Any]]:
         manifest = self._audio_manifest()
+        query = self._SELECT
+        params: tuple[Any, ...] = ()
+        if source and source != "all":
+            query += " WHERE c.source = ?"
+            params = (source,)
+        query += " ORDER BY c.created_at DESC, c.id"
         with closing(self._connect()) as connection:
-            rows = connection.execute(
-                self._SELECT + " ORDER BY c.id"
-            ).fetchall()
+            rows = connection.execute(query, params).fetchall()
         return [self._row_to_call(row, manifest) for row in rows]
 
     def get_call(self, call_id: str) -> dict[str, Any] | None:
@@ -286,7 +353,121 @@ class CallStore:
         if not row:
             raise KeyError(call_id)
         segments = _json_loads(row["transcript_json"], [])
-        return transcript_text({"segments": segments})
+        return demo_transcript_text({"segments": segments})
+
+    def ingest_audio(
+        self,
+        audio_path: Path,
+        filename: str,
+        title: str = "",
+        external_id: str | None = None,
+    ) -> str:
+        """Transcribe a real recording, run QA and add it to the review queue."""
+
+        if self.stt_client is None:
+            raise RuntimeError("STT не настроен: укажите STT_API_URL")
+
+        info = validate_audio_file(
+            audio_path,
+            filename=filename,
+            max_bytes=self.settings.audio_max_bytes,
+        )
+        stt_result = self.stt_client.transcribe(audio_path, filename)
+        segments = stt_result.segments
+        if not segments:
+            segments = [
+                STTSegment(
+                    speaker=None,
+                    start=0.0,
+                    end=info.duration_ms / 1000,
+                    text=stt_result.text,
+                )
+            ]
+
+        session = self.service.anonymizer.session()
+        masked_segments: list[dict[str, Any]] = []
+        stt_segments: list[STTSegment] = []
+        for index, segment in enumerate(segments, start=1):
+            masked_text = session.anonymize(segment.text).text
+            start_ms = int((segment.start or 0) * 1000)
+            end_ms = int((segment.end or 0) * 1000)
+            masked_segments.append(
+                {
+                    "id": f"s{index}",
+                    "speaker": speaker_label(segment.speaker),
+                    "text": masked_text,
+                    "start_ms": start_ms,
+                    "end_ms": end_ms,
+                }
+            )
+            stt_segments.append(
+                STTSegment(
+                    speaker=segment.speaker,
+                    start=segment.start,
+                    end=segment.end,
+                    text=masked_text,
+                )
+            )
+
+        transcript = transcript_text(
+            STTResult(text=stt_result.text, segments=stt_segments)
+        )
+        response = self.service.process(
+            scenario_key=ScenarioKey.CALL_QA,
+            text=transcript,
+            source="audio",
+            metadata={
+                "call_source": "real",
+                "audio_filename": filename,
+                "external_id": external_id or "",
+            },
+            masking_session=session,
+        )
+
+        stored = self.service.get_result(response.request_id)
+        stored_result = (stored or {}).get("result") or {}
+        fields = stored_result.get("fields") or {}
+        client = str(
+            fields.get("client_name")
+            or fields.get("contact_name")
+            or "—"
+        )
+        call_id = f"real_{uuid.uuid4().hex[:10]}"
+        audio_dir = self.audio_dir / "real"
+        audio_dir.mkdir(parents=True, exist_ok=True)
+        audio_file = f"real/{call_id}{info.extension}"
+        shutil.copyfile(audio_path, self.audio_dir / audio_file)
+
+        with closing(self._connect()) as connection, connection:
+            connection.execute(
+                """
+                INSERT INTO demo_calls (
+                    id, title, client, operator, transcript_json, audio_file,
+                    created_at, source, external_id, duration_ms
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, 'real', ?, ?)
+                """,
+                (
+                    call_id,
+                    title or f"Звонок {external_id or call_id[-6:]}",
+                    client,
+                    "Оператор",
+                    json.dumps(masked_segments, ensure_ascii=False),
+                    audio_file,
+                    utc_now(),
+                    external_id,
+                    info.duration_ms,
+                ),
+            )
+            connection.execute(
+                """
+                INSERT INTO call_reviews
+                (call_id, request_id, status, reviewer, final_json,
+                 changes_json, reason, updated_at)
+                VALUES (?, ?, 'pending', NULL, NULL, NULL, NULL, ?)
+                """,
+                (call_id, response.request_id, utc_now()),
+            )
+        return call_id
 
     def process_call(self, call_id: str, source: str = "call_center"):
         call = self.get_call(call_id)
@@ -331,6 +512,7 @@ class CallStore:
             raise KeyError(call_id)
         if not call.get("draft_result"):
             raise ValueError("Сначала обработайте звонок моделью")
+        already_confirmed = call.get("review_status") == "confirmed"
         validated = CallResult.model_validate(final_result)
         call_qa_qc(validated)
         final_json = validated.model_dump(mode="json")
@@ -351,6 +533,16 @@ class CallStore:
                     utc_now(),
                     call_id,
                 ),
+            )
+        if (
+            not already_confirmed
+            and call.get("source") == "real"
+            and call.get("request_id")
+            and call.get("draft_result")
+        ):
+            self.service.enqueue_crm(
+                str(call["request_id"]),
+                call["draft_result"],
             )
         return self.get_call(call_id) or call
 
@@ -376,10 +568,35 @@ class CallStore:
 
     def reset_demo(self) -> None:
         with closing(self._connect()) as connection, connection:
-            connection.execute("DELETE FROM call_reviews")
-            connection.execute("DELETE FROM business_results")
-            connection.execute("DELETE FROM processing_log")
-            connection.execute("DELETE FROM demo_calls")
+            connection.execute(
+                """
+                DELETE FROM business_results
+                WHERE id IN (
+                    SELECT r.request_id FROM call_reviews r
+                    JOIN demo_calls c ON c.id = r.call_id
+                    WHERE c.source = 'demo'
+                )
+                """
+            )
+            connection.execute(
+                """
+                DELETE FROM processing_log
+                WHERE id IN (
+                    SELECT r.request_id FROM call_reviews r
+                    JOIN demo_calls c ON c.id = r.call_id
+                    WHERE c.source = 'demo'
+                )
+                """
+            )
+            connection.execute(
+                """
+                DELETE FROM call_reviews
+                WHERE call_id IN (
+                    SELECT id FROM demo_calls WHERE source = 'demo'
+                )
+                """
+            )
+            connection.execute("DELETE FROM demo_calls WHERE source = 'demo'")
         self._seed_calls()
         self._seed_cached_results()
 
@@ -431,6 +648,8 @@ class CallStore:
             "confirmed": statuses.get("confirmed", 0),
             "rejected": statuses.get("rejected", 0),
             "new": statuses.get("new", 0),
+            "real": sum(1 for call in calls if call.get("source") == "real"),
+            "demo": sum(1 for call in calls if call.get("source") != "real"),
             "auto_pass": auto_pass,
             "manual_review": manual,
             "qa_coverage": round(len(processed) / total * 100, 1) if total else 0,

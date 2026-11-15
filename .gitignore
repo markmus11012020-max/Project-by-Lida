@@ -30,6 +30,7 @@ call-center/data/*.db-*
 call-center/demo/raw/
 call-center/demo/tts/
 call-center/demo/*.mp4
+call-center/static/audio/real/
 
 # IDE and OS
 .idea/

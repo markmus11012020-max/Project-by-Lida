@@ -161,6 +161,13 @@ def test_crm_outbox_gets_masked_payload(tmp_path: Path) -> None:
 
     outbox = WebhookOutbox(settings.crm_outbox_path)
     item = outbox.get(response.request_id)
+    assert item is None
+
+    stored = service.get_result(response.request_id)
+    assert stored is not None
+    assert service.enqueue_crm(response.request_id, stored["result"]) is True
+
+    item = outbox.get(response.request_id)
     assert item is not None
     payload = item["payload"]
     assert payload["client_fields"]["client_name"] == "[PERSON_1]"
