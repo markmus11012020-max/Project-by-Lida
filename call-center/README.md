@@ -88,6 +88,26 @@ STT_MODEL=whisper-1
 
 Для production включите `PII_VAULT_KEY`, `CRM_WEBHOOK_ENABLED` и `CRM_WEBHOOK_URL`.
 
+## Синхронизация с Oktell
+
+В `.env`:
+
+```text
+OKTELL_BASE_URL=https://pbx.example
+OKTELL_API_KEY=...
+OKTELL_CALLS_PATH=/api/v1/calls
+OKTELL_SINCE_PARAM=from
+OKTELL_RECORDING_ALLOWLIST=pbx.example
+```
+
+Запуск:
+
+```text
+python call-center/scripts/sync_oktell.py --since-days 1 --limit 100
+```
+
+Скрипт забирает новые звонки, проверяет `external_id`, скачивает записи и складывает их в ту же очередь ревью. Пути и поля Oktell вынесены в конфиг: перед подключением проверьте их по документации вашей версии PBX.
+
 ## QA-правила
 
 Каждый звонок оценивается по 10 критериям:

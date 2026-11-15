@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import sys
+import sqlite3
 import wave
 from pathlib import Path
 
@@ -79,6 +80,14 @@ def test_ingest_real_audio_adds_call_to_review_queue(tmp_path: Path) -> None:
         title="Тестовый звонок",
         external_id="ext-1",
     )
+
+    duplicate = store.ingest_audio(
+        audio,
+        filename="call.wav",
+        title="Тестовый звонок",
+        external_id="ext-1",
+    )
+    assert duplicate == call_id
 
     call = store.get_call(call_id)
     assert call is not None
@@ -172,3 +181,51 @@ def test_upload_route_adds_real_call(tmp_path: Path, monkeypatch) -> None:
     assert call["source"] == "real"
     assert call["title"] == "Звонок с линии"
     assert call["external_id"] == "ext-route"
+
+
+def test_old_demo_calls_table_is_migrated(tmp_path: Path) -> None:
+    path = tmp_path / "legacy.db"
+    with sqlite3.connect(path) as connection:
+        connection.execute(
+            """
+            CREATE TABLE demo_calls (
+                id TEXT PRIMARY KEY,
+                title TEXT NOT NULL,
+                client TEXT NOT NULL,
+                operator TEXT NOT NULL,
+                transcript_json TEXT NOT NULL,
+                audio_file TEXT,
+                created_at TEXT NOT NULL
+            )
+            """
+        )
+        connection.execute(
+            """
+            INSERT INTO demo_calls
+            (id, title, client, operator, transcript_json, audio_file, created_at)
+            VALUES ('legacy', 'Старый звонок', 'Клиент', 'Оператор', '[]', NULL, '2026-01-01')
+            """
+        )
+
+    settings = Settings(
+        _env_file=None,
+        aitunnel_api_key="sk-test",
+        database_path=path,
+    )
+    store = CallStore(
+        settings,
+        path,
+        stt_client=FakeSTT(),
+        audio_dir=tmp_path / "audio",
+    )
+
+    call = store.get_call("legacy")
+    assert call is not None
+    assert call["source"] == "demo"
+    assert call["duration_ms"] == 0
+
+    with sqlite3.connect(path) as connection:
+        columns = {
+            row[1] for row in connection.execute("PRAGMA table_info(demo_calls)")
+        }
+    assert {"source", "external_id", "duration_ms"} <= columns

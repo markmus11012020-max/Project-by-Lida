@@ -163,6 +163,12 @@ class CallStore:
                 connection.execute(
                     f"ALTER TABLE demo_calls ADD COLUMN {name} {definition}"
                 )
+        connection.execute(
+            """
+            CREATE INDEX IF NOT EXISTS idx_demo_calls_external
+            ON demo_calls(source, external_id)
+            """
+        )
 
     def _seed_calls(self) -> None:
         with closing(self._connect()) as connection, connection:
@@ -344,6 +350,19 @@ class CallStore:
             ).fetchone()
         return self._row_to_call(row, manifest) if row else None
 
+    def find_by_external_id(self, external_id: str) -> dict[str, Any] | None:
+        if not external_id:
+            return None
+        manifest = self._audio_manifest()
+        with closing(self._connect()) as connection:
+            row = connection.execute(
+                self._SELECT
+                + " WHERE c.source = 'real' AND c.external_id = ?"
+                + " ORDER BY c.created_at ASC LIMIT 1",
+                (external_id,),
+            ).fetchone()
+        return self._row_to_call(row, manifest) if row else None
+
     def _demo_transcript(self, call_id: str) -> str:
         with closing(self._connect()) as connection:
             row = connection.execute(
@@ -366,6 +385,10 @@ class CallStore:
 
         if self.stt_client is None:
             raise RuntimeError("STT не настроен: укажите STT_API_URL")
+        if external_id:
+            existing = self.find_by_external_id(external_id)
+            if existing is not None:
+                return existing["id"]
 
         info = validate_audio_file(
             audio_path,

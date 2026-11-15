@@ -13,11 +13,23 @@ from app.integrations.dispatcher import (
     OutboxDispatcher,
     restore_client_fields,
 )
+from app.integrations.oktell import (
+    OktellCall,
+    OktellClient,
+    OktellError,
+    OktellSync,
+    OktellSyncReport,
+)
 
 __all__ = [
     "CRMWebhookClient",
     "DEFAULT_ALLOWED_KINDS",
     "DispatchReport",
+    "OktellCall",
+    "OktellClient",
+    "OktellError",
+    "OktellSync",
+    "OktellSyncReport",
     "OutboxDispatcher",
     "WebhookDelivery",
     "WebhookOutbox",

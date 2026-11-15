@@ -54,6 +54,18 @@ class Settings(BaseSettings):
     crm_webhook_secret: str = Field(default="")
     crm_outbox_path: Path = Field(default=BASE_DIR / "data" / "crm_outbox.db")
 
+    oktell_enabled: bool = Field(default=False)
+    oktell_base_url: str = Field(default="")
+    oktell_api_key: str = Field(default="")
+    oktell_username: str = Field(default="")
+    oktell_password: str = Field(default="")
+    oktell_calls_path: str = Field(default="/api/v1/calls")
+    oktell_page_size: int = Field(default=100, ge=1, le=1000)
+    oktell_timeout: float = Field(default=30.0, gt=0)
+    oktell_recording_allowlist: str = Field(default="")
+    oktell_since_param: str = Field(default="from")
+    oktell_verify_ssl: bool = Field(default=True)
+
     @field_validator("database_path", "pii_vault_path", "crm_outbox_path", mode="after")
     @classmethod
     def resolve_path(cls, value: Path) -> Path:
@@ -70,6 +82,10 @@ class Settings(BaseSettings):
     @property
     def stt_configured(self) -> bool:
         return bool(self.stt_api_url.strip())
+
+    @property
+    def oktell_configured(self) -> bool:
+        return bool(self.oktell_base_url.strip())
 
 
 @lru_cache
