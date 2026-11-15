@@ -4,7 +4,9 @@ from __future__ import annotations
 
 import json
 import os
+import shutil
 import sys
+import uuid
 from datetime import datetime
 from pathlib import Path
 from typing import Any
@@ -34,6 +36,7 @@ from app.audio import (  # noqa: E402
     STTError,
     save_upload_to_temp,
 )
+from app.queue import create_queue  # noqa: E402
 from app.scenarios.call_qa import AUTO_PASS_SCORE, QA_CRITERIA  # noqa: E402
 from call_store import CallStore  # noqa: E402
 
@@ -48,6 +51,17 @@ TEMPLATES_DIR = CALL_CENTER_DIR / "templates"
 
 settings = get_settings().model_copy(update={"database_path": DB_PATH})
 store = CallStore(settings, DB_PATH)
+QUEUE_DIR = CALL_CENTER_DIR / "data" / "queue" / "audio"
+_queue = None
+
+
+def get_queue():
+    global _queue
+    if _queue is None:
+        _queue = create_queue(
+            os.getenv("CALLPILOT_QUEUE_URL", settings.callpilot_queue_url)
+        )
+    return _queue
 
 app = FastAPI(
     title="CallPilot",
@@ -250,6 +264,25 @@ async def upload_real_call(
     path = None
     try:
         path = await save_upload_to_temp(file, settings.audio_max_bytes)
+        if settings.callpilot_async_upload:
+            QUEUE_DIR.mkdir(parents=True, exist_ok=True)
+            target = QUEUE_DIR / f"{uuid.uuid4().hex}{path.suffix}"
+            shutil.move(str(path), target)
+            path = target
+            get_queue().enqueue(
+                "audio_ingest",
+                {
+                    "path": str(target),
+                    "filename": file.filename or target.name,
+                    "title": title,
+                    "external_id": external_id.strip() or None,
+                },
+            )
+            path = None
+            return RedirectResponse(
+                url="/dashboard?queued=1",
+                status_code=303,
+            )
         call_id = store.ingest_audio(
             path,
             filename=file.filename or path.name,

@@ -66,6 +66,11 @@ class Settings(BaseSettings):
     oktell_since_param: str = Field(default="from")
     oktell_verify_ssl: bool = Field(default=True)
 
+    callpilot_async_upload: bool = Field(default=False)
+    callpilot_queue_url: str = Field(
+        default="sqlite:///call-center/data/queue.db"
+    )
+
     @field_validator("database_path", "pii_vault_path", "crm_outbox_path", mode="after")
     @classmethod
     def resolve_path(cls, value: Path) -> Path:

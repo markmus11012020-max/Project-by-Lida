@@ -108,6 +108,41 @@ python call-center/scripts/sync_oktell.py --since-days 1 --limit 100
 
 Скрипт забирает новые звонки, проверяет `external_id`, скачивает записи и складывает их в ту же очередь ревью. Пути и поля Oktell вынесены в конфиг: перед подключением проверьте их по документации вашей версии PBX.
 
+## Очередь и фоновый worker
+
+По умолчанию загрузка обрабатывается синхронно. Для очереди включите:
+
+```text
+CALLPILOT_QUEUE_URL=sqlite:///call-center/data/queue.db
+CALLPILOT_ASYNC_UPLOAD=true
+```
+
+Для PostgreSQL:
+
+```text
+CALLPILOT_QUEUE_URL=postgresql://user:password@host:5432/callpilot
+```
+
+Запуск worker:
+
+```text
+python call-center/scripts/worker.py
+```
+
+Один прогон:
+
+```text
+python call-center/scripts/worker.py --once
+```
+
+Worker обрабатывает:
+
+- `audio_ingest` — распознавание и QA загруженного аудио;
+- `oktell_sync` — импорт новых звонков;
+- `crm_dispatch` — отправка подтверждённых результатов в CRM.
+
+При `CALLPILOT_ASYNC_UPLOAD=true` upload возвращает управление сразу, а звонок появляется в очереди после обработки worker-ом.
+
 ## QA-правила
 
 Каждый звонок оценивается по 10 критериям:

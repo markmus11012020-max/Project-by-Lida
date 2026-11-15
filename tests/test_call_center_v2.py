@@ -10,6 +10,7 @@ from fastapi.testclient import TestClient
 from app.audio import STTResult, STTSegment
 from app.config import Settings
 from app.integrations import WebhookOutbox
+from app.queue import create_queue
 from app.scenarios.registry import SCENARIOS
 from app.service import ProcessService
 from tests.conftest import FakeLLMClient
@@ -229,3 +230,75 @@ def test_old_demo_calls_table_is_migrated(tmp_path: Path) -> None:
             row[1] for row in connection.execute("PRAGMA table_info(demo_calls)")
         }
     assert {"source", "external_id", "duration_ms"} <= columns
+
+
+def test_upload_route_enqueues_when_async_enabled(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    store, settings, _payload_data = _store(tmp_path)
+    settings = settings.model_copy(
+        update={
+            "callpilot_async_upload": True,
+            "callpilot_queue_url": f"sqlite:///{tmp_path / 'queue.db'}",
+        }
+    )
+    queue = create_queue(settings.callpilot_queue_url)
+    queue_dir = tmp_path / "queue" / "audio"
+
+    import call_center_app
+
+    monkeypatch.setattr(call_center_app, "store", store)
+    monkeypatch.setattr(call_center_app, "settings", settings)
+    monkeypatch.setattr(call_center_app, "QUEUE_DIR", queue_dir)
+    monkeypatch.setattr(call_center_app, "_queue", queue)
+    client = TestClient(call_center_app.app)
+
+    response = client.post(
+        "/review/upload",
+        files={
+            "file": (
+                "call.wav",
+                _wav(tmp_path / "call.wav").read_bytes(),
+                "audio/wav",
+            )
+        },
+        data={"title": "Асинхронный звонок", "external_id": "ext-async"},
+        follow_redirects=False,
+    )
+
+    assert response.status_code == 303
+    assert response.headers["location"] == "/dashboard?queued=1"
+    assert queue.stats() == {"pending": 1}
+    job = queue.dequeue("test")
+    assert job is not None
+    assert job.kind == "audio_ingest"
+    assert job.payload["title"] == "Асинхронный звонок"
+    assert job.payload["external_id"] == "ext-async"
+    queued_path = Path(job.payload["path"])
+    assert queued_path.exists()
+    queued_path.unlink()
+
+
+def test_worker_audio_handler_ingests_call(tmp_path: Path) -> None:
+    store, settings, _payload_data = _store(tmp_path)
+    scripts_dir = CALL_CENTER_DIR / "scripts"
+    if str(scripts_dir) not in sys.path:
+        sys.path.insert(0, str(scripts_dir))
+    import worker as callpilot_worker
+
+    handlers = callpilot_worker.build_handlers(store, settings)
+    audio = _wav(tmp_path / "worker.wav")
+    handlers["audio_ingest"](
+        {
+            "path": str(audio),
+            "filename": "worker.wav",
+            "title": "Из очереди",
+            "external_id": "ext-worker",
+        }
+    )
+
+    assert not audio.exists()
+    call = store.find_by_external_id("ext-worker")
+    assert call is not None
+    assert call["title"] == "Из очереди"

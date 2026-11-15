@@ -15,6 +15,9 @@
 {% endblock %}
 
 {% block content %}
+{% if request.query_params.get('queued') %}
+<div class="alert alert-blue">Звонок поставлен в очередь. Он появится в списке после распознавания и QA-разбора.</div>
+{% endif %}
 <section class="kpi-grid">
   <article class="kpi-card">
     <div class="kpi-label">Всего звонков</div>
