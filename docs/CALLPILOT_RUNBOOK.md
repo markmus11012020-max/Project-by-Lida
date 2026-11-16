@@ -67,7 +67,7 @@ ssh -i ~/.ssh/id_ed25519 root@89.104.70.185 \
 | `.env` | `/opt/callpilot/.env`, не в Git |
 | База | SQLite `/opt/callpilot/call-center/data/call_center.db` |
 | Демо-видео | `/opt/callpilot/call-center/demo/callpilot-demo.mp4` |
-| Защита | `/opt/callpilot/call-center/demo/callpilot-defense.mp4`, 6:34 |
+| Защита | `/opt/callpilot/call-center/demo/callpilot-defense.mp4`, 5:34 |
 | OG-превью | `/opt/callpilot/call-center/static/og-cover.png` |
 | Тестовые данные | `/opt/callpilot/tests_data/inputs.jsonl` |
 | Текущий commit | `git log -1 --oneline` |

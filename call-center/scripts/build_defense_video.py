@@ -24,10 +24,12 @@ DEMO_DIR = CALL_CENTER_DIR / "demo"
 TTS_DIR = DEMO_DIR / "tts"
 RAW_DIR = DEMO_DIR / "raw" / "defense"
 FINAL_VIDEO = DEMO_DIR / "callpilot-defense.mp4"
+RAW_VIDEO = DEMO_DIR / "callpilot-defense-raw.mp4"
 BASE_URL = "http://127.0.0.1:8030"
 DECK_URL = f"{BASE_URL}/demo/defense_slides.html"
 SCENE_COUNT = 10
 PAUSE_MS = 450
+TARGET_SECONDS = 335.0  # 5:35, 15% faster than the original 6:34
 
 
 def _wait_for_deck(timeout: int = 30) -> bool:
@@ -147,13 +149,79 @@ def main() -> int:
             "-shortest",
             "-movflags",
             "+faststart",
-            str(FINAL_VIDEO),
+            str(RAW_VIDEO),
         ],
         check=True,
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL,
     )
-    print(f"Готово: {FINAL_VIDEO}")
+
+    raw_seconds = (
+        sum(durations) / 1000
+        + PAUSE_MS * (SCENE_COUNT - 1) / 1000
+    )
+    tempo = raw_seconds / TARGET_SECONDS
+    if abs(tempo - 1.0) < 0.01:
+        RAW_VIDEO.replace(FINAL_VIDEO)
+    else:
+        print(f"Калибрую темп: {tempo:.3f} → {TARGET_SECONDS / 60:.2f} мин")
+        subprocess.run(
+            [
+                ffmpeg,
+                "-y",
+                "-i",
+                str(RAW_VIDEO),
+                "-vf",
+                f"setpts=PTS/{tempo:.6f}",
+                "-af",
+                f"atempo={tempo:.6f}",
+                "-c:v",
+                "libx264",
+                "-preset",
+                "veryfast",
+                "-crf",
+                "20",
+                "-pix_fmt",
+                "yuv420p",
+                "-c:a",
+                "aac",
+                "-b:a",
+                "160k",
+                "-movflags",
+                "+faststart",
+                str(FINAL_VIDEO),
+            ],
+            check=True,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+        RAW_VIDEO.unlink(missing_ok=True)
+
+    normalized = DEMO_DIR / "callpilot-defense-normalized.mp4"
+    subprocess.run(
+        [
+            ffmpeg,
+            "-y",
+            "-i",
+            str(FINAL_VIDEO),
+            "-c:v",
+            "copy",
+            "-af",
+            "loudnorm=I=-16:TP=-1.5:LRA=11",
+            "-c:a",
+            "aac",
+            "-b:a",
+            "160k",
+            "-movflags",
+            "+faststart",
+            str(normalized),
+        ],
+        check=True,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
+    normalized.replace(FINAL_VIDEO)
+    print(f"Готово: {FINAL_VIDEO} ({TARGET_SECONDS / 60:.2f} мин)")
     return 0
 
 

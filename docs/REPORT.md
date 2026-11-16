@@ -330,7 +330,7 @@ cd call-center
 ## 15. Демонстрация
 
 Демо-видео: `call-center/demo/callpilot-demo.mp4`, 2:25.
-Защита: `call-center/demo/callpilot-defense.mp4`, 6:34.
+Защита: `call-center/demo/callpilot-defense.mp4`, 5:34 (темп +15%).
 Сценарий защиты: `docs/DEFENSE.md`.
 Результаты тестового прогона: `docs/test_run_summary.md`.
 

@@ -66,4 +66,4 @@ QA-чек-лист. Покажите critical-находки: ложное об�
 ## Отдельное демо для колл-центров
 
 Основное демо: `call-center/demo/callpilot-demo.mp4`, 2:25.
-Защита: `call-center/demo/callpilot-defense.mp4`, 6:34.
+Защита: `call-center/demo/callpilot-defense.mp4`, 5:34 (темп +15%).

@@ -1,8 +1,10 @@
 # Защита Call-Pilot, 5–7 минут
 
-Видео: `call-center/demo/callpilot-defense.mp4`, 6:34.
+Видео: `call-center/demo/callpilot-defense.mp4`, 5:34 (темп +15%).
+Таймкоды ниже указаны для исходного темпа; в видео речь на 15% быстрее.
 Слайды: `call-center/demo/defense_slides.html`.
-Озвучка: `call-center/scripts/record_defense.py`.
+Озвучка: `call-center/scripts/generate_defense_tts.py` —
+один голос AITUNNEL `tts-1-hd`, `nova`, скорость +15%.
 Сборка видео из слайдов: `call-center/scripts/build_defense_video.py`.
 
 ## 0:00–0:25. Открытие

@@ -161,7 +161,7 @@ call-center/data/audio в зашифрованном виде.
 9. Демо и защита
 
 Демо-видео: call-center/demo/callpilot-demo.mp4, 2 минуты 25 секунд.
-Защита: call-center/demo/callpilot-defense.mp4, 6 минут 34 секунды.
+Защита: call-center/demo/callpilot-defense.mp4, 5 минут 34 секунды (темп +15%).
 Видео не коммитятся в Git; приложите файлы к сдаче отдельно.
 Сценарий защиты: docs/DEFENSE.md.
 Отчёт по шаблону: docs/REPORT.md.
