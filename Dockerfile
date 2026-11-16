@@ -2,10 +2,12 @@ FROM python:3.12-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    PIP_DEFAULT_TIMEOUT=1000 \
-    PIP_RETRIES=10
+    PIP_DEFAULT_TIMEOUT=120 \
+    PIP_RETRIES=5
 
 WORKDIR /app
+
+RUN echo "precedence ::ffff:0:0/96  100" > /etc/gai.conf
 
 COPY call-center/requirements-runtime.txt ./call-center-requirements.txt
 RUN pip install --no-cache-dir -r call-center-requirements.txt
