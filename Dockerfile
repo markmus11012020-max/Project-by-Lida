@@ -7,7 +7,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
-COPY call-center/requirements.txt ./call-center-requirements.txt
+COPY call-center/requirements-runtime.txt ./call-center-requirements.txt
 RUN pip install --no-cache-dir -r call-center-requirements.txt
 
 COPY app ./app
