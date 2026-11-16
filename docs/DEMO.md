@@ -12,9 +12,9 @@
 
 4. Открыты вкладки:
 
-- http://127.0.0.1:8010/docs
-- http://127.0.0.1:8010/stats
-- http://127.0.0.1:8010/health
+- http://127.0.0.1:8030/docs
+- http://127.0.0.1:8030/stats
+- http://127.0.0.1:8030/health
 
 5. Для live-прогона заранее выполнен batch:
 
@@ -85,14 +85,14 @@
 Затем откройте:
 
 ```powershell
-Invoke-RestMethod "http://127.0.0.1:8010/audit/ВАШ_REQUEST_ID?include_raw=true" | ConvertTo-Json -Depth 10
+Invoke-RestMethod "http://127.0.0.1:8030/audit/ВАШ_REQUEST_ID?include_raw=true" | ConvertTo-Json -Depth 10
 ```
 
 Покажите, что в журнале есть вход, сырой ответ, статус и ошибка.
 
 ## 2:40-3:00. Результаты и экономика
 
-Откройте http://127.0.0.1:8010/stats и покажите:
+Откройте http://127.0.0.1:8030/stats и покажите:
 
 - total_requests;
 - by_status;

@@ -6,7 +6,7 @@ rem Always run from the project root.
 cd /d "%~dp0"
 
 title LLM Process Automation MVP
-set "PORT=8010"
+set "PORT=8030"
 set "VENV_PY=%~dp0.venv\Scripts\python.exe"
 set "PYTHON=python"
 

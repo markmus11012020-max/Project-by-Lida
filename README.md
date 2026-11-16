@@ -113,21 +113,21 @@ gpt-4o-mini.
 
 start.bat
 
-Скрипт останавливает старый uvicorn на порту 8010, очищает кэш Python,
+Скрипт останавливает старый uvicorn на порту 8030, очищает кэш Python,
 создаёт .venv при необходимости, ставит зависимости, создаёт .env из
 .env.example, если файла нет, и запускает новый сервер.
 База данных и результаты не удаляются.
 
 Ручной запуск, Windows PowerShell:
-.venv\Scripts\python.exe -m uvicorn app.main:app --host 127.0.0.1 --port 8010 --reload
+.venv\Scripts\python.exe -m uvicorn app.main:app --host 127.0.0.1 --port 8030 --reload
 
 Linux или macOS:
-.venv/bin/python -m uvicorn app.main:app --host 127.0.0.1 --port 8010 --reload
+.venv/bin/python -m uvicorn app.main:app --host 127.0.0.1 --port 8030 --reload
 
 После запуска откройте:
 
-http://127.0.0.1:8010/docs
-http://127.0.0.1:8010/health
+http://127.0.0.1:8030/docs
+http://127.0.0.1:8030/health
 
 9. API
 
@@ -143,11 +143,11 @@ GET /export/audit.jsonl — экспорт журнала.
 
 Пример запроса через PowerShell:
 
-Invoke-RestMethod -Method Post -Uri http://127.0.0.1:8010/ingest -ContentType "application/json" -Body '{"scenario":"support","text":"Оплатил заказ №12345, доставки нет. Анна, +7 900 123-45-67."}'
+Invoke-RestMethod -Method Post -Uri http://127.0.0.1:8030/ingest -ContentType "application/json" -Body '{"scenario":"support","text":"Оплатил заказ №12345, доставки нет. Анна, +7 900 123-45-67."}'
 
 Пример запроса через curl:
 
-curl -X POST http://127.0.0.1:8010/ingest -H "Content-Type: application/json" -d "{\"scenario\":\"support\",\"text\":\"Оплатил заказ №12345, доставки нет. Анна, +7 900 123-45-67.\"}"
+curl -X POST http://127.0.0.1:8030/ingest -H "Content-Type: application/json" -d "{\"scenario\":\"support\",\"text\":\"Оплатил заказ №12345, доставки нет. Анна, +7 900 123-45-67.\"}"
 
 Ответ содержит request_id, scenario, status, result, meta и error.
 HTTP 200 означает, что запрос обработан; итог смотрите в поле status.
