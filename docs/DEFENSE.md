@@ -4,7 +4,8 @@
 Таймкоды ниже указаны для исходного темпа; в видео речь на 15% быстрее.
 Слайды: `call-center/demo/defense_slides.html`.
 Озвучка: `call-center/scripts/generate_defense_tts.py` —
-один голос AITUNNEL `tts-1-hd`, `nova`, скорость +15%.
+AITUNNEL `mai-voice-2`, голос `ru-RU-SvetlanaNeural` (как в demo),
+финальный темп +15%.
 Сборка видео из слайдов: `call-center/scripts/build_defense_video.py`.
 
 ## 0:00–0:25. Открытие

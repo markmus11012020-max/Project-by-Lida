@@ -1,6 +1,7 @@
-"""Generate one consistent Russian voice for the defense video.
+"""Generate the defense narration with the same voice as the product demo.
 
-Uses AITUNNEL TTS (OpenAI-compatible /audio/speech) with one voice.
+Uses AITUNNEL `mai-voice-2` with Microsoft `ru-RU-SvetlanaNeural` —
+the same voice family as edge-tts in `callpilot-demo.mp4`.
 The text is split into phrases with the same punctuation pauses as the
 original recorder. The final video builder calibrates the overall tempo
 to 5:35 — 15% faster than the original 6:34 defense.
@@ -10,6 +11,7 @@ from __future__ import annotations
 
 import subprocess
 import sys
+import time
 from pathlib import Path
 
 import httpx
@@ -31,7 +33,8 @@ from record_demo import (  # noqa: E402
 TTS_DIR = CALL_CENTER_DIR / "demo" / "tts"
 VOICEOVER = TTS_DIR / "defense_voiceover.mp3"
 PAUSE_MS = 450
-SPEED = 0.92  # AITUNNEL pace; the final tempo is calibrated in the builder
+MODEL = "mai-voice-2"
+VOICE = "ru-RU-SvetlanaNeural"
 
 
 def _speech_text(text: str) -> str:
@@ -66,23 +69,35 @@ def _tts(
     target: Path,
 ) -> None:
     target.parent.mkdir(parents=True, exist_ok=True)
+    if target.exists() and target.stat().st_size > 1000:
+        return
     last_error = ""
-    for _ in range(3):
-        response = client.post(
-            "https://api.aitunnel.ru/v1/audio/speech",
-            headers=headers,
-            json={
-                "model": "tts-1-hd",
-                "voice": "nova",
-                "input": text,
-                "response_format": "mp3",
-                "speed": SPEED,
-            },
-        )
+    for attempt in range(1, 6):
+        try:
+            response = client.post(
+                "https://api.aitunnel.ru/v1/audio/speech",
+                headers=headers,
+                json={
+                    "model": MODEL,
+                    "voice": VOICE,
+                    "input": text,
+                    "response_format": "mp3",
+                },
+                timeout=60,
+            )
+        except Exception as exc:  # noqa: BLE001
+            last_error = f"{type(exc).__name__}: {exc}"
+            time.sleep(2 * attempt)
+            continue
         if response.status_code == 200 and response.content:
             target.write_bytes(response.content)
+            time.sleep(0.6)
             return
         last_error = f"{response.status_code}: {response.text[:200]}"
+        if response.status_code in {429, 500, 502, 503, 504}:
+            time.sleep(2 * attempt)
+        else:
+            time.sleep(1)
     raise RuntimeError(last_error)
 
 
