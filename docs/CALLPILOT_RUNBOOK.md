@@ -11,8 +11,37 @@
 - Оффер: https://call-pilot.ru/offer
 - Группа: Aillix, контакт: `aillix@mail.ru`, ИНН 631306493907.
 - Репозиторий: https://github.com/markmus11012020-max/Project-by-Lida
+- Репозиторий **приватный**.
 - Локальная папка: `D:\PROJECT`
 - Ветка: `main`.
+- На сервере remote: `git@github.com:markmus11012020-max/Project-by-Lida.git`.
+
+## 1.1. GitHub: приватный репозиторий и deploy key
+
+- Видимость: **private**.
+- Deploy key на сервере: `/root/.ssh/callpilot_deploy`, **read-only**, без права push.
+- Публичный ключ добавлен в GitHub → Settings → Deploy keys.
+- SSH config для GitHub:
+
+```text
+Host github.com
+  HostName github.com
+  User git
+  IdentityFile /root/.ssh/callpilot_deploy
+  IdentitiesOnly yes
+```
+
+Ключ не даёт доступ к другим репозиториям и не может пушить.
+
+Локальный clone может оставаться на HTTPS: у текущей машины есть сохранённый GitHub credential. Если клонировать репозиторий на новой машине — нужен доступ к приватному репозиторию или новый deploy key.
+
+Проверка доступа с сервера:
+
+```bash
+ssh -i ~/.ssh/id_ed25519 root@89.104.70.185 \
+  "cd /opt/callpilot && git fetch origin && git log -1 --oneline"
+```
+
 
 ## 2. Что развёрнуто на сервере
 
