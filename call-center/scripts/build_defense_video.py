@@ -112,7 +112,6 @@ def main() -> int:
         lines.append(f"file '{image.as_posix()}'")
         hold = duration_ms + (PAUSE_MS if index < SCENE_COUNT else 0)
         lines.append(f"duration {hold / 1000:.3f}")
-    lines.append(f"file '{(RAW_DIR / f'slide_{SCENE_COUNT:02d}.png').as_posix()}'")
     concat.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
     ffmpeg = imageio_ffmpeg.get_ffmpeg_exe()
@@ -135,6 +134,10 @@ def main() -> int:
             "25",
             "-c:v",
             "libx264",
+            "-preset",
+            "veryfast",
+            "-tune",
+            "stillimage",
             "-pix_fmt",
             "yuv420p",
             "-c:a",
