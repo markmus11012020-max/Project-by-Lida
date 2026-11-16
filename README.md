@@ -68,6 +68,9 @@ Dockerfile запускает именно веб-панель Call-Pilot на �
 
 4. Три точки API
 
+Примеры ниже для Windows cmd. В Linux и macOS замените символ ^
+на обратный слэш.
+
 4.1. Создать звонок.
 
     curl -X POST http://127.0.0.1:8020/api/v1/calls ^
