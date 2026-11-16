@@ -233,6 +233,49 @@ curl -fsS https://call-pilot.ru/health
 
 Если менялись только шаблоны/CSS/статика, `pip install` можно пропустить, но `systemctl restart callpilot` всё равно нужен.
 
+## 7.1. Docker на сервере
+
+На сервере установлен Docker, добавлен swap 1 ГБ. Образ собирается
+из runtime-зависимостей без Playwright, pytest и TTS.
+
+```bash
+cd /opt/callpilot
+docker build --network=host -t callpilot:graduation .
+```
+
+`--network=host` нужен на этом сервере: Docker-сеть отдаёт для PyPI
+только IPv6, а IPv6-маршрута нет. С host-сетью pip идёт по IPv4.
+
+Собранный образ:
+
+```text
+callpilot:graduation  321 MB
+callpilot:latest      тот же image ID
+```
+
+Проверка 16.11.2026: контейнер на 8031 отдал `/health`, `/`, `/audit`
+и `/api/v1/calls` с кодом 200. Тестовый контейнер удалён, образ оставлен.
+Production продолжает работать через systemd на 8030.
+
+Тестовый контейнер на отдельном порту:
+
+```bash
+docker run -d --name callpilot-docker-test \
+  -p 127.0.0.1:8031:8020 \
+  --env-file /opt/callpilot/.env \
+  -e CALLPILOT_DB_PATH=/app/call-center/data/call_center.db \
+  -e CALLPILOT_DB_URL= \
+  -e DATABASE_URL= \
+  -e PII_VAULT_PATH=/app/call-center/data/pii_vault.db \
+  -e AUDIO_KEY_PATH=/app/call-center/data/audio.key \
+  -e CRM_OUTBOX_PATH=/app/call-center/data/crm_outbox.db \
+  callpilot:graduation
+curl -fsS http://127.0.0.1:8031/health
+```
+
+Production сейчас работает через systemd на 8030. Контейнер на 8031 —
+только проверка образа; не заменять production без отдельного решения.
+
 ## 8. Локальный запуск
 
 CallPilot:
