@@ -34,6 +34,7 @@ class WebhookDelivery:
     attempts: int
     status_code: int | None = None
     error: str | None = None
+    external_id: str | None = None
 
 
 class CRMWebhookClient:

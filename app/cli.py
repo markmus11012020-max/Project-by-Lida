@@ -11,7 +11,7 @@ from typing import Any
 
 from app.config import BASE_DIR, Settings, get_settings
 from app.db import Database
-from app.integrations import CRMWebhookClient, OutboxDispatcher
+from app.integrations import OutboxDispatcher, build_crm_client
 from app.llm import AITunnelClient
 from app.pricing import cost_from_usage
 from app.scenarios.registry import SCENARIOS
@@ -227,18 +227,16 @@ def cmd_stats(args: argparse.Namespace) -> int:
 
 def cmd_outbox(args: argparse.Namespace) -> int:
     settings = get_settings()
-    if not settings.crm_webhook_enabled:
-        raise SystemExit("CRM_WEBHOOK_ENABLED=false")
-    if not settings.crm_webhook_url or not settings.crm_webhook_secret:
-        raise SystemExit("Укажите CRM_WEBHOOK_URL и CRM_WEBHOOK_SECRET")
+    if not settings.crm_outbox_enabled:
+        raise SystemExit("CRM_ENABLED=false и CRM_WEBHOOK_ENABLED=false")
+    try:
+        client = build_crm_client(settings)
+    except ValueError as exc:
+        raise SystemExit(str(exc)) from exc
 
     service = build_service(settings=settings)
     if service.outbox is None:
         raise SystemExit("Outbox не инициализирован")
-    client = CRMWebhookClient(
-        settings.crm_webhook_url,
-        settings.crm_webhook_secret,
-    )
     report = OutboxDispatcher(
         service.outbox,
         client,

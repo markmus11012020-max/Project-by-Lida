@@ -279,6 +279,24 @@ DEMO_MODE=true
 
 Социальное превью: `static/og-cover.png` (1200×630), генерируется `scripts/make_og.py`.
 
+## Интеграции CRM
+
+Поддерживаются три провайдера:
+
+- `webhook` — универсальный подписанный webhook;
+- `bitrix24` — inbound webhook, создание лида или сделки;
+- `amo` — API v4, сделка + контакт + примечание.
+
+Включаются через `CRM_ENABLED=true` и `CRM_PROVIDER`. Карточка уходит в CRM только после HITL-подтверждения, через durable-outbox.
+
+Подробная настройка, field mapping и частые ошибки: `../docs/CRM_INTEGRATIONS.md`.
+
+Отправка outbox:
+
+```bash
+python -m app.cli outbox
+```
+
 ## Уведомления о заявках
 
 ```text

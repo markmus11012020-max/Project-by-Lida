@@ -150,6 +150,27 @@ for row in c.execute('select id,name,contact,created_at from leads order by crea
 PY"
 ```
 
+## 6.1. CRM-интеграции
+
+Поддерживаются `webhook`, `bitrix24` и `amo`:
+
+```text
+CRM_ENABLED=false
+CRM_PROVIDER=webhook
+CRM_OUTBOX_PATH=data/crm_outbox.db
+```
+
+Карточка уходит в CRM только после HITL-подтверждения через outbox. Отправка:
+
+```bash
+cd /opt/callpilot
+.venv/bin/python -m app.cli outbox
+```
+
+Для Bitrix24 нужен inbound webhook со scope `crm`, для amoCRM — долгоживущий токен API v4. Полная инструкция: `docs/CRM_INTEGRATIONS.md`.
+
+На публичном демо CRM выключена. Не включать реальную CRM без согласования.
+
 ## 7. Деплой
 
 Локально:
@@ -248,6 +269,8 @@ free -m
 - Нет мониторинга uptime, кроме systemd.
 - Политика ПДн обещает хранение заявок до 12 месяцев; автоматическое удаление старых заявок пока не реализовано. Добавить cron-задачу перед реальным потоком лидов.
 - Цены на лендинге: аудит 20 000 ₽, пилот от 120 000 ₽, внедрение от 300 000 ₽. Менять только по согласованию.
+- CRM-адаптеры Bitrix24/amoCRM написаны и покрыты тестами, но реальные порталы ещё не подключены.
+- Обработчик `crm_dispatch` в worker не подключён; для доставки использовать `python -m app.cli outbox` по cron/systemd timer.
 
 ## 12. Если что-то сломалось
 

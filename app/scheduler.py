@@ -35,7 +35,7 @@ class Scheduler:
                     next_run=now,
                 )
             )
-        if settings.crm_webhook_enabled:
+        if settings.crm_outbox_enabled:
             schedules.append(
                 Schedule(
                     kind="crm_dispatch",

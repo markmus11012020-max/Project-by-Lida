@@ -66,7 +66,7 @@ class ProcessService:
             else:
                 vault = InMemoryPIIVault()
         self.vault = vault
-        if outbox is None and settings.crm_webhook_enabled:
+        if outbox is None and settings.crm_outbox_enabled:
             outbox = WebhookOutbox(settings.crm_outbox_path)
         self.outbox = outbox
 
@@ -243,6 +243,10 @@ class ProcessService:
             "checklist_results": result.get("qa_findings") or [],
             "summary": result.get("summary"),
             "next_action": result.get("next_action"),
+            "resolution": result.get("resolution"),
+            "intent": result.get("intent"),
+            "call_type": result.get("call_type"),
+            "priority": result.get("priority"),
             "escalation_flag": bool(result.get("escalate")),
             "client_fields": client_fields,
         }

@@ -58,10 +58,27 @@ class Settings(BaseSettings):
     pii_vault_path: Path = Field(default=BASE_DIR / "data" / "pii_vault.db")
     pii_vault_ttl_seconds: int = Field(default=86400, ge=60)
 
+    crm_enabled: bool = Field(default=False)
+    crm_provider: str = Field(default="webhook")
+    crm_timeout: float = Field(default=10.0, gt=0)
+    crm_max_attempts: int = Field(default=3, ge=1, le=10)
+    crm_field_map: str = Field(default="")
+
     crm_webhook_enabled: bool = Field(default=False)
     crm_webhook_url: str = Field(default="")
     crm_webhook_secret: str = Field(default="")
     crm_outbox_path: Path = Field(default=BASE_DIR / "data" / "crm_outbox.db")
+
+    crm_bitrix24_webhook_url: str = Field(default="")
+    crm_bitrix24_entity: str = Field(default="lead")
+    crm_bitrix24_source_id: str = Field(default="")
+    crm_bitrix24_assigned_by_id: int = Field(default=0, ge=0)
+
+    crm_amo_base_url: str = Field(default="")
+    crm_amo_token: str = Field(default="")
+    crm_amo_pipeline_id: int = Field(default=0, ge=0)
+    crm_amo_status_id: int = Field(default=0, ge=0)
+    crm_amo_responsible_user_id: int = Field(default=0, ge=0)
 
     oktell_enabled: bool = Field(default=False)
     oktell_base_url: str = Field(default="")
@@ -115,6 +132,16 @@ class Settings(BaseSettings):
     @property
     def oktell_configured(self) -> bool:
         return bool(self.oktell_base_url.strip())
+
+    @property
+    def crm_outbox_enabled(self) -> bool:
+        """True when any CRM provider is enabled.
+
+        ``crm_webhook_enabled`` is kept for backward compatibility with
+        the original webhook-only configuration.
+        """
+
+        return bool(self.crm_enabled or self.crm_webhook_enabled)
 
 
 @lru_cache
