@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}{{ call.title }} · CallPilot{% endblock %}
+{% block title %}{{ call.title }} · Call-Pilot{% endblock %}
 {% block eyebrow %}Карточка звонка{% endblock %}
 {% block page_title %}{{ call.title }}{% endblock %}
 {% block page_subtitle %}{{ call.id }} · клиент: {{ call.client }} · оператор: {{ call.operator }}{% endblock %}
@@ -71,7 +71,7 @@
           <input id="audio-progress" type="range" min="0" max="100" value="0" step="0.1" aria-label="Позиция аудио">
           <div class="audio-meta">
             <span id="audio-time">0:00 / 0:00</span>
-            <span class="muted small">Демо-аудио · CallPilot</span>
+            <span class="muted small">Демо-аудио · Call-Pilot</span>
           </div>
         </div>
       </div>

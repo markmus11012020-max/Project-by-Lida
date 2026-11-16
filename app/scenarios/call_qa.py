@@ -274,7 +274,7 @@ def call_qa_qc(result: CallResult) -> list[str]:
 
 SCENARIO = ScenarioConfig(
     key=ScenarioKey.CALL_QA,
-    title="CallPilot: QA звонков",
+    title="Call-Pilot: QA звонков",
     description=(
         "Разбор транскрипта звонка: карточка, QA-чек-лист, оценка, "
         "авто-пропуск или ручная проверка."

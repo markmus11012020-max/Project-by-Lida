@@ -46,6 +46,7 @@ def test_sqlite_upgrade_creates_core_tables(
         "jobs",
         "pii_vault",
         "crm_webhook_outbox",
+        "leads",
     } <= tables
     assert {"source", "audio_mime", "audio_deleted_at"} <= columns
 

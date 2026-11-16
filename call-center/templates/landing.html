@@ -3,26 +3,28 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>CallPilot — 100% контроль качества звонков</title>
+  <title>Call-Pilot — AI-карточка в CRM и 100% QA звонков</title>
+  <meta name="description" content="Call-Pilot: AI заполняет карточку звонка, оператор подтверждает, CRM получает готовый результат. 100% контроль качества звонков, HITL и пилот за 2 недели.">
   <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/static/style.css">
 </head>
 <body class="marketing-body">
 <header class="marketing-nav">
   <a class="brand brand-dark" href="/">
-    <img src="/static/logo.svg" alt="CallPilot" width="48" height="48">
-    <span>CallPilot</span>
+    <img src="/static/logo.svg" alt="Call-Pilot" width="48" height="48">
+    <span>Call-Pilot</span>
   </a>
   <nav class="marketing-links">
-    <a href="#before-after">Было / Стало</a>
+    <a href="#services">Услуги</a>
     <a href="#how">Как работает</a>
-    <a href="#why">Почему выгодно</a>
-    <a href="#pilot">Пилот</a>
-    <a href="/qa">QA-аналитика</a>
-    <a href="/offer">Оффер</a>
+    <a href="#hitl">HITL</a>
+    <a href="#demo">Демо</a>
+    <a href="#pricing">Тарифы</a>
+    <a href="#faq">Вопросы</a>
   </nav>
   <div class="marketing-actions">
-    <a class="btn btn-primary btn-large" href="/dashboard">Открыть демо <span>→</span></a>
+    <a class="btn btn-ghost" href="/dashboard">Открыть демо</a>
+    <a class="btn btn-primary btn-large" href="#lead">Обсудить внедрение</a>
   </div>
 </header>
 
@@ -31,21 +33,21 @@
     <div class="hero-glow hero-glow-a"></div>
     <div class="hero-glow hero-glow-b"></div>
     <div class="hero-heading">
-      <div class="eyebrow light">CallPilot · AI-контроль качества звонков</div>
-      <h1>100% звонков под контролем.<br><span>Менеджер смотрит только исключения.</span></h1>
+      <div class="eyebrow light">Call-Pilot · AI-постобработка и QA звонков</div>
+      <h1>AI заполняет карточку.<br><span>Оператор подтверждает.</span><br>QA проверяет каждый звонок.</h1>
     </div>
 
     <div class="hero-body">
       <div class="hero-copy">
-        <p class="hero-lead">CallPilot расшифровывает звонки, собирает карточку в CRM, проверяет каждый звонок по чек-листу и отправляет человеку только нарушения и спорные случаи. Операторы работают как раньше — меняется только контроль качества.</p>
+        <p class="hero-lead">Call-Pilot — сервис автоматизации постобработки и контроля качества звонков. От записи в CRM до HITL-подтверждения и QA-отчёта. Без замены операторов.</p>
         <div class="hero-cta">
-          <a class="btn btn-primary btn-large" href="/dashboard">Открыть демо <span>→</span></a>
-          <a class="btn btn-ghost-light btn-large" href="/offer">Смотреть оффер</a>
+          <a class="btn btn-primary btn-large" href="#demo">Смотреть демо <span>→</span></a>
+          <a class="btn btn-ghost-light btn-large" href="#lead">Обсудить внедрение</a>
         </div>
         <div class="hero-trust">
-          <span>✓ пилот 100–300 звонков</span>
-          <span>✓ 2 недели до первых цифр</span>
-          <span>✓ без замены операторов</span>
+          <span>✓ AI пишет — человек подтверждает</span>
+          <span>✓ 100% QA вместо 2–5%</span>
+          <span>✓ пилот за 2 недели</span>
         </div>
       </div>
 
@@ -53,7 +55,7 @@
         <div class="mock-window">
           <div class="mock-topbar">
             <div class="mock-dots"><span></span><span></span><span></span></div>
-            <span class="mock-title">Карточка звонка</span>
+            <span class="mock-title">Карточка звонка · HITL</span>
           </div>
           <div class="mock-body">
             <div class="mock-call-head">
@@ -75,56 +77,73 @@
               <strong>Ложное обещание возврата</strong>
               <p>«Я гарантирую, что деньги вернутся сегодня»</p>
             </div>
+            <div class="mock-hitl">
+              <div class="mock-hitl-step">
+                <span class="mock-hitl-icon">AI</span>
+                <div><strong>Карточка заполнена</strong><small>поля CRM готовы</small></div>
+              </div>
+              <span class="mock-hitl-arrow">→</span>
+              <div class="mock-hitl-step">
+                <span class="mock-hitl-icon mock-hitl-icon-green">✓</span>
+                <div><strong>Оператор подтвердил</strong><small>финальная версия</small></div>
+              </div>
+              <span class="mock-hitl-arrow">→</span>
+              <div class="mock-hitl-step mock-hitl-crm">
+                <span class="mock-hitl-icon">CRM</span>
+                <div><strong>Сделка обновлена</strong><small>audit + HITL</small></div>
+              </div>
+            </div>
           </div>
         </div>
+        <div class="mock-callout"><span>✓</span> HITL: AI не пишет в CRM без человека</div>
       </div>
     </div>
 
     <div class="hero-metrics">
       <div><strong>100%</strong><span>звонков проходят разбор</span></div>
-      <div><strong>−40%</strong><span>цель по постобработке</span></div>
-      <div><strong>{{ metrics.avg_qa_score }}</strong><span>средний QA-score</span></div>
-      <div><strong>{{ metrics.cost_per_call_rub }} ₽</strong><span>LLM-разбор звонка</span></div>
+      <div><strong>10</strong><span>критериев QA в каждом звонке</span></div>
+      <div><strong>2 недели</strong><span>до первых цифр на пилоте</span></div>
+      <div><strong>0</strong><span>карточек в CRM без подтверждения</span></div>
     </div>
   </section>
 
-  <section class="section" id="before-after">
-    <div class="section-head">
-      <div class="eyebrow">Было / Стало</div>
-      <h2>Менеджер не читает транскрипт заново. Он подтверждает готовое.</h2>
-      <p class="muted">CallPilot превращает разговор в карточку, QA-чек-лист и следующее действие. Всё, что не прошло по метрикам, уходит человеку с цитатой и таймкодом.</p>
+  <section class="section">
+    <div class="urgency-band">
+      <div>
+        <div class="eyebrow light">Пока конкуренты выбирают</div>
+        <h2>2–5% звонков — это не контроль качества. Это лотерея.</h2>
+        <p>Каждый день без QA — это жалобы, возвраты и потерянные клиенты, о которых вы узнаёте последними. Call-Pilot проверяет 100% звонков и показывает, где именно теряются деньги.</p>
+      </div>
+      <a class="btn btn-primary btn-large" href="#lead">Проверить на своих звонках</a>
     </div>
-    <div class="ba-grid">
-      <article class="ba-card ba-before">
-        <div class="ba-header">
-          <span class="badge badge-gray">Было</span>
-          <h3>Сырой транскрипт</h3>
-        </div>
-        <div class="ba-transcript">
-          <p><span>Клиент:</span> Мне пришёл бракованный товар. Хочу вернуть деньги сегодня.</p>
-          <p><span>Оператор:</span> Да, конечно, я гарантирую, что деньги вернутся сегодня. Никаких проблем.</p>
-          <p><span>Клиент:</span> Точно сегодня? Мне нужно оплатить лечение.</p>
-          <p><span>Оператор:</span> Да, я обещаю. Ждите смс.</p>
-        </div>
-        <div class="ba-note">Менеджер читает всё вручную и заполняет CRM</div>
+  </section>
+
+  <section class="section" id="problem">
+    <div class="section-head">
+      <div class="eyebrow">Знакомая проблема</div>
+      <h2>Рутина съедает время, а качество остаётся слепой зоной</h2>
+      <p class="muted">Операторы работают, CRM заполняется, но руководитель не видит полной картины. Call-Pilot закрывает разрыв между звонком, карточкой и контролем.</p>
+    </div>
+    <div class="problem-grid">
+      <article class="problem-card">
+        <div class="problem-number">2–5%</div>
+        <h3>QA слушает выборочно</h3>
+        <p>Остальные звонки никто не проверяет. Нарушения и жалобы всплывают постфактум.</p>
       </article>
-      <article class="ba-card ba-after">
-        <div class="ba-header">
-          <span class="badge badge-green">Стало</span>
-          <h3>Готовая карточка</h3>
-        </div>
-        <div class="ba-fields">
-          <div><span>Интент</span><strong>Возврат</strong></div>
-          <div><span>Приоритет</span><strong>Высокий</strong></div>
-          <div><span>QA-score</span><strong class="text-red">0 / 100</strong></div>
-          <div><span>Следующий шаг</span><strong>Передать руководителю</strong></div>
-        </div>
-        <div class="ba-finding">
-          <span class="badge badge-red">critical</span>
-          <strong>Ложное обещание возврата</strong>
-          <p>«Я гарантирую, что деньги вернутся сегодня»</p>
-        </div>
-        <div class="ba-note ba-note-green">Менеджер только подтверждает и отправляет в CRM</div>
+      <article class="problem-card">
+        <div class="problem-number">2–5 мин</div>
+        <h3>Постобработка вручную</h3>
+        <p>Оператор печатает карточку, резюме и следующий шаг. Это часы рутины в день.</p>
+      </article>
+      <article class="problem-card">
+        <div class="problem-number">0</div>
+        <h3>Единой картины</h3>
+        <p>Нет понимания, какие темы, ошибки и пробелы в обучении повторяются из звонка в звонок.</p>
+      </article>
+      <article class="problem-card">
+        <div class="problem-number">∞</div>
+        <h3>Потерянных сигналов</h3>
+        <p>Жалоба, возврат или недовольство остаются в записи, но не становятся действием.</p>
       </article>
     </div>
   </section>
@@ -132,143 +151,342 @@
   <section class="section" id="how">
     <div class="section-head">
       <div class="eyebrow">Как это работает</div>
-      <h2>От звонка до решения — четыре шага</h2>
-      <p class="muted">Решение всегда принимает человек: ИИ готовит черновик, менеджер только подтверждает.</p>
+      <h2>Один звонок — шесть шагов от записи до QA-отчёта</h2>
+      <p class="muted">AI делает черновик. Оператор принимает решение. CRM получает финальную версию. QA видит только исключения.</p>
     </div>
-    <div class="steps">
-      <article class="step-card">
-        <div class="step-number">01</div>
-        <h3>Звонок</h3>
-        <p>Запись из телефонии или демо-аудио. Никаких изменений в работе оператора.</p>
+    <div class="timeline">
+      <article class="timeline-step"><span>01</span><h3>Запись</h3><p>Звонок появился в телефонии или CRM.</p></article>
+      <article class="timeline-step"><span>02</span><h3>Транскрипт</h3><p>Речь превращается в диалог с таймкодами.</p></article>
+      <article class="timeline-step"><span>03</span><h3>AI-карточка</h3><p>Поля CRM, резюме, решение и следующий шаг.</p></article>
+      <article class="timeline-step"><span>04</span><h3>HITL</h3><p>Оператор проверяет и подтверждает карточку.</p></article>
+      <article class="timeline-step"><span>05</span><h3>CRM</h3><p>Финальная версия автоматически уходит в CRM.</p></article>
+      <article class="timeline-step"><span>06</span><h3>QA</h3><p>100% проверка, исключения — человеку.</p></article>
+    </div>
+  </section>
+
+  <section class="section" id="hitl">
+    <div class="section-head">
+      <div class="eyebrow">Human-in-the-loop</div>
+      <h2>AI пишет. Человек подтверждает. CRM получает финальную версию.</h2>
+      <p class="muted">Ни одна карточка не уходит в CRM без подтверждения оператора. Это не ограничение — это способ внедрить AI без риска для клиентской базы.</p>
+    </div>
+    <div class="hitl-grid">
+      <article class="hitl-card">
+        <div class="hitl-label">01 · AI</div>
+        <h3>Готовит черновик</h3>
+        <p>Расшифровывает звонок, заполняет поля, находит нарушения и предлагает следующий шаг.</p>
       </article>
-      <article class="step-card">
-        <div class="step-number">02</div>
-        <h3>Транскрипт</h3>
-        <p>Речь превращается в диалог с репликами и таймкодами для быстрой проверки.</p>
+      <div class="hitl-arrow">→</div>
+      <article class="hitl-card hitl-card-human">
+        <div class="hitl-label">02 · Оператор</div>
+        <h3>Проверяет и подтверждает</h3>
+        <p>Исправляет поля, отменяет ложное срабатывание, оставляет комментарий. Решение — за человеком.</p>
       </article>
-      <article class="step-card">
-        <div class="step-number">03</div>
-        <h3>Карточка и QA</h3>
-        <p>Модель собирает поля для CRM и проверяет звонок по 10 критериям качества.</p>
-      </article>
-      <article class="step-card">
-        <div class="step-number">04</div>
-        <h3>Подтверждение</h3>
-        <p>Менеджер видит только нарушения. Остальные звонки проходят автоматически.</p>
+      <div class="hitl-arrow">→</div>
+      <article class="hitl-card hitl-card-crm">
+        <div class="hitl-label">03 · CRM</div>
+        <h3>Получает готовый результат</h3>
+        <p>Финальная карточка, QA-score, подтверждающий сотрудник и время. Всё — в аудите.</p>
       </article>
     </div>
     <div class="mid-cta">
       <div>
-        <strong>Хотите увидеть это на своих звонках?</strong>
-        <span>Пилот 100–300 звонков за 2 недели, без замены операторов.</span>
+        <strong>Хотите увидеть HITL на своём звонке?</strong>
+        <span>Пришлите 5–10 обезличенных записей — покажем карточку, подтверждение и CRM payload.</span>
       </div>
-      <a class="btn btn-primary btn-large" href="/offer">Обсудить пилот</a>
+      <a class="btn btn-primary btn-large" href="#lead">Получить разбор</a>
     </div>
   </section>
 
-  <section class="section section-split" id="why">
+  <section class="section" id="services">
     <div class="section-head">
-      <div class="eyebrow">Почему это выгодно</div>
-      <h2>Не «ещё один бот», а контроль качества и постобработка</h2>
-      <p class="muted">CallPilot не заменяет операторов. Он снимает рутину и делает качество прозрачным.</p>
+      <div class="eyebrow">Услуги</div>
+      <h2>Не просто доступ к AI, а услуга под ключ</h2>
+      <p class="muted">Берём на себя подключение, настройку, регламент и поддержку. Вы получаете работающий процесс, а не ещё один инструмент.</p>
     </div>
-    <div class="feature-grid">
-      <article class="feature-card">
-        <div class="feature-icon">◈</div>
-        <h3>100% покрытие QA</h3>
-        <p>Вместо выборочного прослушивания 2–5% звонков — проверка каждого звонка по единому чек-листу.</p>
+    <div class="service-grid">
+      <article class="service-card">
+        <div class="service-tag">01 · Аудит</div>
+        <h3>Экспресс-аудит QA и CRM</h3>
+        <p>Разбираем текущий процесс, скрипты, чек-лист и поток звонков.</p>
+        <div class="service-result">Результат: карта процесса и план внедрения</div>
       </article>
-      <article class="feature-card">
-        <div class="feature-icon">↯</div>
-        <h3>Меньше постобработки</h3>
-        <p>Карточка, резюме и следующий шаг уже готовы. Оператор не печатает вручную после звонка.</p>
+      <article class="service-card">
+        <div class="service-tag">02 · Интеграция</div>
+        <h3>Подключение записей</h3>
+        <p>Oktell, API, выгрузка файлов, хранение и маскирование персональных данных.</p>
+        <div class="service-result">Результат: звонки автоматически попадают в систему</div>
       </article>
-      <article class="feature-card">
-        <div class="feature-icon">◉</div>
-        <h3>Прозрачный аудит</h3>
-        <p>Видно, что нашла модель, что подтвердил человек и какие поля изменились. Это важно для руководителя и QA.</p>
+      <article class="service-card">
+        <div class="service-tag">03 · AI</div>
+        <h3>Транскрипция и карточка</h3>
+        <p>Диаризация, таймкоды, поля CRM, резюме, решение и следующий шаг.</p>
+        <div class="service-result">Результат: черновик карточки без ручного ввода</div>
+      </article>
+      <article class="service-card service-card-accent">
+        <div class="service-tag">04 · HITL</div>
+        <h3>Подтверждение оператором</h3>
+        <p>Интерфейс проверки, правки, комментарии и аудит решений.</p>
+        <div class="service-result">Результат: в CRM уходит только финальная версия</div>
+      </article>
+      <article class="service-card">
+        <div class="service-tag">05 · QA</div>
+        <h3>Контроль 100% звонков</h3>
+        <p>10 критериев, critical/high, auto-pass и очередь исключений.</p>
+        <div class="service-result">Результат: QA видит только то, что требует человека</div>
+      </article>
+      <article class="service-card">
+        <div class="service-tag">06 · Аналитика</div>
+        <h3>Отчёты и обучение</h3>
+        <p>Топ нарушений, динамика, scorecards операторов и рекомендации.</p>
+        <div class="service-result">Результат: руководитель видит причины потерь</div>
+      </article>
+      <article class="service-card">
+        <div class="service-tag">07 · Сопровождение</div>
+        <h3>Поддержка после запуска</h3>
+        <p>Мониторинг, донастройка чек-листа, обновления и разбор инцидентов.</p>
+        <div class="service-result">Результат: процесс не деградирует через месяц</div>
+      </article>
+      <article class="service-card">
+        <div class="service-tag">08 · On-prem</div>
+        <h3>Контур клиента</h3>
+        <p>Docker, база и аудио на стороне клиента, локальный STT.</p>
+        <div class="service-result">Результат: данные не выходят за периметр</div>
       </article>
     </div>
   </section>
 
-  <section class="section section-split">
+  <section class="section" id="demo">
     <div class="section-head">
-      <div class="eyebrow">Что видит менеджер</div>
-      <h2>Не сырой транскрипт, а готовое решение</h2>
+      <div class="eyebrow">Демо</div>
+      <h2>Посмотрите, как AI заполняет карточку — и что получает CRM</h2>
+      <p class="muted">6 синтетических звонков, реальные аудиозаписи, транскрипты, QA-чек-лист и HITL-подтверждение.</p>
     </div>
-    <div class="feature-grid">
-      <article class="feature-card">
-        <div class="feature-icon">♪</div>
-        <h3>Аудио с таймкодами</h3>
-        <p>Клик по цитате — и плеер перематывается на момент нарушения. Проверка занимает секунды.</p>
-      </article>
-      <article class="feature-card">
-        <div class="feature-icon">✓</div>
-        <h3>QA-чек-лист</h3>
-        <p>Приветствие, идентификация, скрипт, комплаенс, эмпатия, решение, завершение — всё в одном экране.</p>
-      </article>
-      <article class="feature-card">
-        <div class="feature-icon">⚑</div>
-        <h3>Решение человека</h3>
-        <p>Подтвердить, отменить ложное срабатывание или отклонить звонок. Каждое действие — в аудите.</p>
-      </article>
-    </div>
-  </section>
-
-  <section class="section section-split">
-    <div class="section-head">
-      <div class="eyebrow">Для кого</div>
-      <h2>Там, где много звонков и мало рук</h2>
-    </div>
-    <div class="audience-grid">
-      <article class="audience-card">
-        <span class="audience-icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h4l2 5-2 1a11 11 0 0 0 5 5l1-2 5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/></svg>
-        </span>
-        <h3>Колл-центры</h3>
-        <p>100% QA, меньше постобработки, прозрачная очередь менеджера.</p>
-      </article>
-      <article class="audience-card">
-        <span class="audience-icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="20" r="1"/><circle cx="18" cy="20" r="1"/><path d="M3 4h2l2.4 10.4A2 2 0 0 0 9.4 16H18l2-8H6"/></svg>
-        </span>
-        <h3>E-commerce</h3>
-        <p>Статусы заказов, возвраты, жалобы на доставку — без ручной карточки после каждого звонка.</p>
-      </article>
-      <article class="audience-card">
-        <span class="audience-icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10l9-5 9 5-9 5-9-5z"/><path d="M7 12v4c2 2 8 2 10 0v-4"/></svg>
-        </span>
-        <h3>Онлайн-школы</h3>
-        <p>Заявки, доступы, оплаты и повторные обращения — в одном структурированном потоке.</p>
-      </article>
-      <article class="audience-card">
-        <span class="audience-icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3v5M15 3v5M6 8h12v3a6 6 0 0 1-12 0V8zM12 17v4"/></svg>
-        </span>
-        <h3>Интеграторы</h3>
-        <p>White-label QA-модуль для вашей телефонии или CRM. Пилот и API.</p>
-      </article>
-    </div>
-  </section>
-
-  <section class="section pilot-section" id="pilot">
-    <div class="pilot-card">
-      <div>
-        <div class="eyebrow">Пилот</div>
-        <h2>100–300 звонков за 2 недели</h2>
-        <p>Подключаем записи, прогоняем через CallPilot и показываем цифры: покрытие QA, auto-pass, найденные нарушения, долю правок, экономию постобработки и стоимость разбора.</p>
-        <div class="hero-cta">
-          <a class="btn btn-primary btn-large" href="/offer">Получить оффер</a>
-          <a class="btn btn-ghost btn-large" href="/dashboard">Посмотреть демо</a>
+    <div class="demo-grid">
+      <div class="demo-video">
+        <video controls preload="metadata" playsinline poster="/media/product-demo-poster.png">
+          <source src="/media/product-demo.mp4" type="video/mp4">
+          Ваш браузер не поддерживает видео.
+        </video>
+        <div class="demo-video-note">2 минуты: звонок → карточка → QA → подтверждение</div>
+      </div>
+      <div class="demo-side">
+        <div class="demo-audio-card">
+          <div class="eyebrow">Пример звонка</div>
+          <h3>Возврат: critical-нарушение</h3>
+          <p class="muted small">Послушайте фрагмент и откройте карточку в демо.</p>
+          <audio controls preload="none" src="/static/audio/call_02.mp3"></audio>
+          <div class="scenario-chips">
+            <a href="/calls/call_02">Critical</a>
+            <a href="/calls/call_05">Auto-pass</a>
+            <a href="/calls/call_03">Manual review</a>
+          </div>
+        </div>
+        <div class="crm-panel">
+          <div class="crm-panel-head">
+            <span class="eyebrow">CRM payload после HITL</span>
+            <span class="badge badge-green">подтверждено</span>
+          </div>
+          <div class="crm-row"><span>Клиент</span><strong>Анна</strong></div>
+          <div class="crm-row"><span>Интент</span><strong>Возврат</strong></div>
+          <div class="crm-row"><span>QA-score</span><strong class="text-red">0 / 100</strong></div>
+          <div class="crm-row"><span>Следующий шаг</span><strong>Передать руководителю</strong></div>
+          <div class="crm-row"><span>Подтвердил</span><strong>Оператор · 14:32</strong></div>
+          <a class="btn btn-ghost" href="/dashboard">Открыть демо целиком →</a>
         </div>
       </div>
-      <div class="pilot-list">
-        <div><span>01</span> Собираем 100–300 звонков</div>
-        <div><span>02</span> Настраиваем чек-лист под ваш QA</div>
-        <div><span>03</span> Замеряем до/после</div>
-        <div><span>04</span> Показываем цифры и план v2</div>
+    </div>
+  </section>
+
+  <section class="section" id="qa">
+    <div class="section-head">
+      <div class="eyebrow">Контроль качества</div>
+      <h2>100% звонков, а не выборочное прослушивание</h2>
+      <p class="muted">Суть остаётся прежней: единый чек-лист, цитаты, таймкоды и понятное решение. Меняется масштаб — проверяется каждый звонок.</p>
+    </div>
+    <div class="qa-cards">
+      <article class="qa-card">
+        <div class="qa-icon">10</div>
+        <h3>Критериев в каждом звонке</h3>
+        <p>Приветствие, идентификация, потребность, скрипт, точность, эмпатия, решение, завершение, комплаенс, перебивания.</p>
+      </article>
+      <article class="qa-card">
+        <div class="qa-icon">✓</div>
+        <h3>Auto-pass для чистых кейсов</h3>
+        <p>Если нет critical/high, оценка выше порога и уверенность высокая — звонок проходит без менеджера.</p>
+      </article>
+      <article class="qa-card">
+        <div class="qa-icon">!</div>
+        <h3>Исключения — человеку</h3>
+        <p>Спорные, критичные и низкоуверенные кейсы попадают в очередь с приоритетом и SLA.</p>
+      </article>
+    </div>
+    <div class="qa-criteria">
+      {% for criterion in qa_criteria %}
+      <span>{{ criterion.name }}</span>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="section" id="security">
+    <div class="section-head">
+      <div class="eyebrow">Данные и безопасность</div>
+      <h2>AI не получает лишнего. Клиент не получает риск.</h2>
+      <p class="muted">Архитектура учитывает требования 152-ФЗ: маскирование, разграничение доступа, аудит и возможность on-prem.</p>
+    </div>
+    <div class="security-grid">
+      <article class="security-card"><div class="security-icon">◈</div><h3>PII-маскирование</h3><p>Имена, телефоны, email, адреса и карты заменяются токенами до отправки в LLM.</p></article>
+      <article class="security-card"><div class="security-icon">▣</div><h3>Шифрование аудио</h3><p>Реальные записи хранятся зашифрованными и отдаются только через защищённый маршрут.</p></article>
+      <article class="security-card"><div class="security-icon">◎</div><h3>Аудит и роли</h3><p>Видно, что предложила модель, что изменил человек и кто подтвердил карточку.</p></article>
+      <article class="security-card"><div class="security-icon">⌂</div><h3>On-prem</h3><p>Для крупных клиентов — контур на своей инфраструктуре и локальный STT.</p></article>
+    </div>
+  </section>
+
+  <section class="section" id="pricing">
+    <div class="section-head">
+      <div class="eyebrow">Форматы работы</div>
+      <h2>От аудита до сопровождения</h2>
+      <p class="muted">Фиксированная стоимость этапа. Точная цена — после аудита объёма и процесса.</p>
+    </div>
+    <div class="package-grid">
+      <article class="package-card">
+        <div class="package-tag">Старт</div>
+        <h3>Аудит</h3>
+        <p class="package-time">1 неделя</p>
+        <ul class="check-list">
+          <li>Разбор QA и CRM</li>
+          <li>Чек-лист под ваш процесс</li>
+          <li>План внедрения и метрики</li>
+        </ul>
+        <a class="btn btn-ghost" href="#lead">Обсудить</a>
+      </article>
+      <article class="package-card package-featured">
+        <div class="package-tag">Рекомендуем</div>
+        <h3>Пилот</h3>
+        <p class="package-time">2 недели · 100–300 звонков</p>
+        <ul class="check-list">
+          <li>Подключение записей</li>
+          <li>Карточка + HITL</li>
+          <li>QA 100% и отчёт</li>
+        </ul>
+        <a class="btn btn-primary" href="#lead">Запустить пилот</a>
+      </article>
+      <article class="package-card">
+        <div class="package-tag">Production</div>
+        <h3>Внедрение</h3>
+        <p class="package-time">4–6 недель</p>
+        <ul class="check-list">
+          <li>Oktell и CRM</li>
+          <li>Регламент и обучение</li>
+          <li>SLA и поддержка</li>
+        </ul>
+        <a class="btn btn-ghost" href="#lead">Обсудить</a>
+      </article>
+      <article class="package-card">
+        <div class="package-tag">Enterprise</div>
+        <h3>On-prem</h3>
+        <p class="package-time">по проекту</p>
+        <ul class="check-list">
+          <li>Контур клиента</li>
+          <li>Локальный STT</li>
+          <li>Обновления и поддержка</li>
+        </ul>
+        <a class="btn btn-ghost" href="#lead">Запросить</a>
+      </article>
+    </div>
+  </section>
+
+  <section class="section" id="faq">
+    <div class="section-head">
+      <div class="eyebrow">Вопросы</div>
+      <h2>Что важно знать до пилота</h2>
+    </div>
+    <div class="faq-list">
+      <details>
+        <summary>AI сам пишет в CRM?</summary>
+        <p>Нет. AI готовит черновик карточки. Оператор проверяет и подтверждает. Только после этого финальная версия уходит в CRM.</p>
+      </details>
+      <details>
+        <summary>Вы заменяете операторов?</summary>
+        <p>Нет. Call-Pilot снимает рутину с операторов и QA. Решение остаётся за человеком.</p>
+      </details>
+      <details>
+        <summary>Что если модель ошиблась?</summary>
+        <p>Ошибка видна в аудите. Спорный звонок уходит в ручную проверку, critical-нарушения не могут быть занижены моделью.</p>
+      </details>
+      <details>
+        <summary>Где хранятся данные?</summary>
+        <p>В российском контуре или on-prem. PII маскируются до LLM, аудио шифруется, доступ разграничен.</p>
+      </details>
+      <details>
+        <summary>Сколько стоит пилот?</summary>
+        <p>Стоимость зависит от объёма и интеграции. После короткого аудита фиксируем цену этапа.</p>
+      </details>
+      <details>
+        <summary>Работаете с Oktell?</summary>
+        <p>Да, адаптер Oktell уже есть. Также поддерживаются загрузка файлов, API и универсальный CRM-webhook.</p>
+      </details>
+      <details>
+        <summary>Можно ли on-prem?</summary>
+        <p>Да, для крупных клиентов и требований ИБ. Разворачиваем контур на инфраструктуре клиента.</p>
+      </details>
+    </div>
+  </section>
+
+  <section class="section lead-section" id="lead">
+    {% if request.query_params.get('sent') %}
+    <div class="alert alert-green">Заявка отправлена. Свяжемся с вами и предложим короткий разбор.</div>
+    {% endif %}
+    <div class="lead-card">
+      <div class="lead-copy">
+        <div class="eyebrow">Следующий шаг</div>
+        <h2>Покажем HITL и QA на ваших звонках</h2>
+        <p>Оставьте контакт — обсудим объём, телефонию и CRM. Если есть 5–10 обезличенных записей, покажем карточку и отчёт на них.</p>
+        <div class="lead-contacts">
+          <a href="mailto:aillix@mail.ru">aillix@mail.ru</a>
+          <span>Группа Aillix · ИНН 631306493907</span>
+        </div>
       </div>
+      <form class="lead-form" method="post" action="/lead">
+        <div class="lead-form-grid">
+          <label class="field">
+            <span class="field-label">Имя</span>
+            <input name="name" required placeholder="Как к вам обращаться">
+          </label>
+          <label class="field">
+            <span class="field-label">Компания</span>
+            <input name="company" placeholder="Название компании">
+          </label>
+          <label class="field">
+            <span class="field-label">Телефон или email</span>
+            <input name="contact" required placeholder="+7 ... или email">
+          </label>
+          <label class="field">
+            <span class="field-label">Звонков в день</span>
+            <select name="volume">
+              <option value="">Выберите</option>
+              <option>до 100</option>
+              <option>100–500</option>
+              <option>500–2000</option>
+              <option>2000+</option>
+            </select>
+          </label>
+          <label class="field">
+            <span class="field-label">Телефония / CRM</span>
+            <input name="phone_system" placeholder="Oktell, Bitrix24, AmoCRM...">
+          </label>
+          <label class="field">
+            <span class="field-label">Комментарий</span>
+            <input name="comment" placeholder="Что хотите проверить">
+          </label>
+        </div>
+        <label class="consent">
+          <input type="checkbox" name="consent" value="yes" required>
+          <span>Согласен с обработкой персональных данных и <a href="https://aillix.ru/privacy" target="_blank" rel="noopener">политикой</a>.</span>
+        </label>
+        <button class="btn btn-primary btn-large" type="submit">Отправить заявку</button>
+        <p class="small muted">Не передавайте паспортные данные, номера карт и другие лишние сведения.</p>
+      </form>
     </div>
   </section>
 </main>
@@ -276,16 +494,21 @@
 <footer class="marketing-footer">
   <div class="footer-brand">
     <div class="brand brand-dark">
-      <img src="/static/logo.svg" alt="CallPilot" width="40" height="40">
-      <span>CallPilot</span>
+      <img src="/static/logo.svg" alt="Call-Pilot" width="40" height="40">
+      <span>Call-Pilot</span>
     </div>
-    <p>Демо на синтетических звонках. Для пилота подключаем реальную телефонию и CRM.</p>
+    <p>AI-постобработка и контроль качества звонков. AI пишет — оператор подтверждает — QA проверяет.</p>
   </div>
   <div class="footer-actions">
     <a class="btn btn-primary" href="/dashboard">Открыть демо</a>
     <a class="btn btn-ghost" href="/offer">Смотреть оффер</a>
-    <a class="footer-contact" href="mailto:hello@callpilot.demo">hello@callpilot.demo</a>
+    <a class="footer-contact" href="mailto:aillix@mail.ru">aillix@mail.ru</a>
   </div>
 </footer>
+<div class="marketing-legal">
+  <span>© 2026 Группа Aillix · Call-Pilot</span>
+  <span>ИНН 631306493907 · Самозанятый (НПД, ФЗ-422) · Сделано в РФ</span>
+  <span><a href="https://aillix.ru/" target="_blank" rel="noopener">aillix.ru</a> · <a href="https://aillix.ru/privacy" target="_blank" rel="noopener">Политика обработки ПДн</a></span>
+</div>
 </body>
 </html>

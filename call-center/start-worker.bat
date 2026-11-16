@@ -13,7 +13,7 @@ if not exist "%VENV_PY%" (
     exit /b 1
 )
 
-echo Starting CallPilot worker...
+echo Starting Call-Pilot worker...
 "%VENV_PY%" "%~dp0scripts\worker.py" %*
 echo.
 if /I not "%START_NO_PAUSE%"=="1" pause

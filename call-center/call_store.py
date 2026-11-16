@@ -64,6 +64,18 @@ CREATE TABLE IF NOT EXISTS call_reviews (
     reason TEXT,
     updated_at TEXT NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS leads (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    company TEXT,
+    contact TEXT NOT NULL,
+    volume TEXT,
+    phone_system TEXT,
+    comment TEXT,
+    consent INTEGER NOT NULL,
+    created_at TEXT NOT NULL
+);
 """
 
 
@@ -771,6 +783,39 @@ class CallStore:
                 (reviewer or "Менеджер", reason.strip(), utc_now(), call_id),
             )
         return self.get_call(call_id) or call
+
+    def save_lead(
+        self,
+        name: str,
+        company: str,
+        contact: str,
+        volume: str,
+        phone_system: str,
+        comment: str,
+        consent: bool,
+    ) -> str:
+        lead_id = f"lead_{uuid.uuid4().hex[:12]}"
+        with closing(self._connect()) as connection, connection:
+            connection.execute(
+                """
+                INSERT INTO leads (
+                    id, name, company, contact, volume, phone_system,
+                    comment, consent, created_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    lead_id,
+                    name.strip(),
+                    company.strip(),
+                    contact.strip(),
+                    volume.strip(),
+                    phone_system.strip(),
+                    comment.strip(),
+                    1 if consent else 0,
+                    utc_now(),
+                ),
+            )
+        return lead_id
 
     def reset_demo(self) -> None:
         with closing(self._connect()) as connection, connection:

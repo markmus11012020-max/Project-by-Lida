@@ -19,7 +19,13 @@ from fastapi import (
     Request,
     UploadFile,
 )
-from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, Response
+from fastapi.responses import (
+    FileResponse,
+    HTMLResponse,
+    JSONResponse,
+    RedirectResponse,
+    Response,
+)
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel, ValidationError
@@ -64,7 +70,7 @@ def get_queue():
     return _queue
 
 app = FastAPI(
-    title="CallPilot",
+    title="Call-Pilot",
     version="1.0.0",
     description="AI-контроль качества и постобработка звонков для колл-центров.",
 )
@@ -162,7 +168,7 @@ templates.env.filters["display_status"] = _display_status
 templates.env.filters["duration"] = _duration
 templates.env.filters["datetime"] = _datetime
 templates.env.globals.update(
-    app_name="CallPilot",
+    app_name="Call-Pilot",
     intent_labels=INTENT_LABELS,
     status_labels=STATUS_LABELS,
     finding_labels=FINDING_LABELS,
@@ -196,6 +202,51 @@ def landing(request: Request):
         name="landing.html",
         context={"metrics": metrics},
     )
+
+
+@app.get("/media/product-demo.mp4")
+def product_demo():
+    path = CALL_CENTER_DIR / "demo" / "callpilot-demo.mp4"
+    if not path.exists():
+        raise HTTPException(status_code=404, detail="Видео не найдено")
+    return FileResponse(path, media_type="video/mp4", filename=path.name)
+
+
+@app.get("/media/product-demo-poster.png")
+def product_demo_poster():
+    path = CALL_CENTER_DIR / "screenshots" / "dashboard.png"
+    if not path.exists():
+        raise HTTPException(status_code=404, detail="Постер не найден")
+    return FileResponse(path, media_type="image/png")
+
+
+@app.post("/lead")
+def lead_form(
+    name: str = Form(..., max_length=120),
+    company: str = Form("", max_length=160),
+    contact: str = Form(..., max_length=160),
+    volume: str = Form("", max_length=40),
+    phone_system: str = Form("", max_length=120),
+    comment: str = Form("", max_length=600),
+    consent: str = Form(""),
+):
+    if not name.strip() or not contact.strip():
+        raise HTTPException(status_code=422, detail="Укажите имя и контакт")
+    if consent.lower() not in {"yes", "on", "true", "1"}:
+        raise HTTPException(
+            status_code=422,
+            detail="Нужно согласие на обработку персональных данных",
+        )
+    store.save_lead(
+        name=name,
+        company=company,
+        contact=contact,
+        volume=volume,
+        phone_system=phone_system,
+        comment=comment,
+        consent=True,
+    )
+    return RedirectResponse(url="/?sent=1#lead", status_code=303)
 
 
 @app.get("/dashboard", response_class=HTMLResponse)
@@ -412,7 +463,7 @@ def health():
     metrics = store.metrics()
     return {
         "status": "ok",
-        "app": "CallPilot",
+        "app": "Call-Pilot",
         "llm_configured": settings.llm_configured,
         "model": settings.aitunnel_model,
         "calls": metrics["total"],

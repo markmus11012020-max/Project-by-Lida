@@ -5,12 +5,12 @@ setlocal EnableExtensions
 rem Always run from the call-center folder.
 cd /d "%~dp0"
 
-title CallPilot - Call Center QA
+title Call-Pilot - Call Center QA
 set "PORT=8020"
 set "VENV_PY=%~dp0..\.venv\Scripts\python.exe"
 
 echo ============================================================
-echo  CallPilot - AI QA for call centers
+echo  Call-Pilot - AI QA for call centers
 echo ============================================================
 echo.
 
@@ -21,7 +21,7 @@ if not exist "%VENV_PY%" (
     exit /b 1
 )
 
-echo [1/4] Stopping the old CallPilot server...
+echo [1/4] Stopping the old Call-Pilot server...
 powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0scripts\stop_callpilot.ps1" -Port %PORT%
 if errorlevel 1 goto :port_busy
 echo.
@@ -48,7 +48,7 @@ if not exist "%~dp0data\call_center.db" (
 )
 echo.
 
-echo [4/4] Starting CallPilot on http://127.0.0.1:%PORT%
+echo [4/4] Starting Call-Pilot on http://127.0.0.1:%PORT%
 echo.
 echo Press Ctrl+C to stop the server.
 echo.
@@ -57,7 +57,7 @@ if /I not "%START_NO_BROWSER%"=="1" (
 )
 "%VENV_PY%" -m uvicorn call_center_app:app --host 127.0.0.1 --port %PORT% --reload
 echo.
-echo CallPilot stopped.
+echo Call-Pilot stopped.
 if /I not "%START_NO_PAUSE%"=="1" pause
 exit /b 0
 

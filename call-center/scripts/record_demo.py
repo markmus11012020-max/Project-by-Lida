@@ -57,11 +57,12 @@ def _configure_stdout() -> None:
 def _tts_text(text: str) -> str:
     """Text for the voice, not for the screen.
 
-    The brand must sound like «КоллПайлот», not like an English word.
+    The brand must sound like «Колл-Пайлот», not like English words.
     """
 
     return (
-        text.replace("CallPilot", "КоллПайлот")
+        text.replace("Call-Pilot", "Колл-Пайлот")
+        .replace("CallPilot", "Колл-Пайлот")
         .replace("AI-контроль", "ИИ-контроль")
     )
 
