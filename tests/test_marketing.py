@@ -22,6 +22,7 @@ def test_case_page_shows_before_after() -> None:
     assert "2 critical" in response.text
     assert "/static/audio/call_02.mp3" in response.text
     assert "HITL" in response.text
+    assert "og:image" in response.text
 
 
 def test_privacy_page_has_operator_and_legal_basis() -> None:
@@ -33,6 +34,7 @@ def test_privacy_page_has_operator_and_legal_basis() -> None:
     assert "631306493907" in response.text
     assert "152-ФЗ" in response.text
     assert "aillix@mail.ru" in response.text
+    assert "og:image" in response.text
 
 
 def test_landing_has_sales_blocks_and_contacts() -> None:
@@ -61,3 +63,4 @@ def test_offer_has_price_range_and_phone() -> None:
     assert "от 120 000 ₽" in response.text
     assert "+7 962 609-00-01" in response.text
     assert "Bitrix24" in response.text
+    assert "og:image" in response.text
