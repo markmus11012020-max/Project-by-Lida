@@ -258,6 +258,28 @@ def test_factory_builds_native_clients() -> None:
     assert isinstance(amo, AmoCRMClient)
 
 
+def test_crm_outbox_enabled_keeps_backward_compatibility() -> None:
+    assert Settings(
+        _env_file=None, crm_enabled=True
+    ).crm_outbox_enabled is True
+    assert Settings(
+        _env_file=None, crm_webhook_enabled=True
+    ).crm_outbox_enabled is True
+    assert Settings(_env_file=None).crm_outbox_enabled is False
+
+
+def test_native_clients_validate_input() -> None:
+    with pytest.raises(ValueError, match="HTTPS"):
+        Bitrix24Client("http://example.bitrix24.ru/rest/1/token/")
+    with pytest.raises(ValueError, match="ENTITY"):
+        Bitrix24Client(
+            "https://example.bitrix24.ru/rest/1/token/",
+            entity="contact",
+        )
+    with pytest.raises(ValueError, match="CRM_AMO_TOKEN"):
+        AmoCRMClient("https://example.amocrm.ru", " ")
+
+
 def test_factory_requires_credentials() -> None:
     with pytest.raises(ValueError, match="CRM_BITRIX24_WEBHOOK_URL"):
         build_crm_client(
