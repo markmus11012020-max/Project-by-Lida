@@ -564,7 +564,7 @@
         </label>
         <label class="roi-field">
           <span>Стоимость часа оператора, ₽</span>
-          <input id="roi-rate" type="number" min="100" max="5000" step="50" value="450" inputmode="numeric">
+          <input id="roi-rate" type="number" min="100" max="5000" step="50" value="215" inputmode="numeric">
         </label>
         <p class="roi-note">22 рабочих дня · 80% автоматизации · оценка</p>
       </div>
@@ -660,7 +660,7 @@
   function calc() {
     var callsPerDay = value(calls, 200);
     var cardMinutes = value(minutes, 3);
-    var hourRate = value(rate, 450);
+    var hourRate = value(rate, 215);
     var monthlyCalls = callsPerDay * 22;
     var routineHours = monthlyCalls * cardMinutes / 60;
     var savedHours = routineHours * 0.8;
