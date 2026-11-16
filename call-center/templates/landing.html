@@ -7,27 +7,15 @@
   <meta name="description" content="Call-Pilot: AI заполняет карточку звонка, оператор подтверждает, CRM получает готовый результат. 100% контроль качества звонков, HITL и пилот за 2 недели.">
   <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/static/style.css">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Call-Pilot — AI-карточка в CRM и 100% QA звонков">
+  <meta property="og:description" content="AI заполняет карточку, оператор подтверждает, CRM получает финальную версию. HITL, 100% QA и пилот за 2 недели.">
+  <meta property="og:url" content="https://call-pilot.ru/">
+  <meta property="og:image" content="https://call-pilot.ru/static/og-cover.png">
+  <meta name="twitter:card" content="summary_large_image">
 </head>
 <body class="marketing-body">
-<header class="marketing-nav">
-  <a class="brand brand-dark" href="/">
-    <img src="/static/logo.svg" alt="Call-Pilot" width="48" height="48">
-    <span>Call-Pilot</span>
-  </a>
-  <nav class="marketing-links">
-    <a href="#services">Услуги</a>
-    <a href="#how">Как работает</a>
-    <a href="#hitl">HITL</a>
-    <a href="#demo">Демо</a>
-    <a href="#deploy">Запуск</a>
-    <a href="#pricing">Тарифы</a>
-    <a href="#faq">Вопросы</a>
-  </nav>
-  <div class="marketing-actions">
-    <a class="btn btn-ghost" href="/dashboard">Открыть демо</a>
-    <a class="btn btn-primary btn-large" href="#lead">Обсудить внедрение</a>
-  </div>
-</header>
+{% include "_marketing_nav.html" %}
 
 <main>
   <section class="hero">
@@ -50,6 +38,7 @@
           <span>✓ 100% QA вместо 2–5%</span>
           <span>✓ пилот за 2 недели</span>
         </div>
+        <a class="hero-phone" href="tel:+79626090001">Позвонить: +7 962 609-00-01</a>
       </div>
 
       <div class="hero-visual">
@@ -215,7 +204,7 @@
       <article class="service-card">
         <div class="service-tag">02 · Интеграция</div>
         <h3>Подключение записей</h3>
-        <p>Oktell, API, выгрузка файлов, хранение и маскирование персональных данных.</p>
+        <p>Oktell, Bitrix24, amoCRM, API, выгрузка файлов, хранение и маскирование персональных данных.</p>
         <div class="service-result">Результат: звонки автоматически попадают в систему</div>
       </article>
       <article class="service-card">
@@ -305,6 +294,46 @@
     </div>
   </section>
 
+  <section class="section" id="case">
+    <div class="section-head">
+      <div class="eyebrow">Кейс до/после</div>
+      <h2>Один звонок: 3–4 минуты рутины против 50 секунд с Call-Pilot</h2>
+      <p class="muted">Возврат бракованного товара. Слева — типовой ручной процесс, справа — тот же звонок после подключения. Демонстрационные данные.</p>
+    </div>
+    <div class="ba-grid">
+      <article class="ba-card ba-before">
+        <div class="ba-header">
+          <span class="badge badge-gray">Было</span>
+          <h3>Ручная постобработка</h3>
+        </div>
+        <ul class="case-list">
+          <li>3–4 минуты оператор печатает резюме и следующий шаг.</li>
+          <li>QA слушает 2–5% звонков — этот мог не попасть в выборку.</li>
+          <li>Ложное обещание возврата остаётся в записи, но не в отчёте.</li>
+        </ul>
+      </article>
+      <article class="ba-card ba-after">
+        <div class="ba-header">
+          <span class="badge badge-green">Стало</span>
+          <h3>AI + HITL + QA</h3>
+        </div>
+        <ul class="case-list">
+          <li>Карточка готова через ~20 секунд после звонка.</li>
+          <li>Оператор подтверждает её за ~30 секунд.</li>
+          <li>QA находит 2 critical с цитатой и таймкодом.</li>
+        </ul>
+      </article>
+    </div>
+    <div class="case-teaser">
+      <div class="case-teaser-metrics">
+        <div><strong>2 critical</strong><span>нашла модель</span></div>
+        <div><strong>0 / 100</strong><span>QA-score</span></div>
+        <div><strong>0,27 ₽</strong><span>стоимость разбора</span></div>
+      </div>
+      <a class="btn btn-primary btn-large" href="/case">Открыть полный разбор →</a>
+    </div>
+  </section>
+
   <section class="section" id="qa">
     <div class="section-head">
       <div class="eyebrow">Контроль качества</div>
@@ -347,6 +376,31 @@
       <article class="security-card"><div class="security-icon">◎</div><h3>Аудит и роли</h3><p>Видно, что предложила модель, что изменил человек и кто подтвердил карточку.</p></article>
       <article class="security-card"><div class="security-icon">⌂</div><h3>On-prem</h3><p>Для крупных клиентов — контур на своей инфраструктуре и локальный STT.</p></article>
     </div>
+
+    <div class="data-flow">
+      <div class="data-flow-head">
+        <div class="eyebrow">Где обрабатываются данные</div>
+        <h3>Демо — на синтетике. Пилот и production — в вашем контуре.</h3>
+        <p>Демо работает на синтетических звонках. Расшифровка и разбор идут через российский шлюз AITUNNEL (<code>api.aitunnel.ru</code>), модель — DeepSeek V4.1; имена, телефоны, email и адреса маскируются до отправки в модель. Для пилота на реальных звонках мы по умолчанию разворачиваем контур на инфраструктуре клиента: локальный STT, PostgreSQL, аудио и CRM остаются в периметре. Для production подбираем российскую LLM или разворачиваем полностью on-prem — без передачи данных за пределы РФ.</p>
+      </div>
+      <div class="data-flow-grid">
+        <article>
+          <span class="badge badge-gray">Демо</span>
+          <h4>Синтетика, без ПДн</h4>
+          <p>Наш сервер в РФ + шлюз AITUNNEL. Реальные записи не принимаются.</p>
+        </article>
+        <article>
+          <span class="badge badge-amber">Пилот</span>
+          <h4>Обезличенные звонки</h4>
+          <p>Инфраструктура клиента или выделенный сервер в РФ. PII маскируются.</p>
+        </article>
+        <article>
+          <span class="badge badge-green">Production</span>
+          <h4>Реальные звонки</h4>
+          <p>Облако РФ или on-prem. Локальный STT, шифрование и аудит.</p>
+        </article>
+      </div>
+    </div>
   </section>
 
   <section class="section" id="deploy">
@@ -375,19 +429,33 @@
         <span class="deploy-tag">по проекту</span>
       </article>
     </div>
+
+    <div class="executor-card">
+      <div>
+        <div class="eyebrow">Кто выполняет работу</div>
+        <h3>Исполнитель — самозанятая Мусина Гульназ Мягазовна</h3>
+        <p>Договор, акты и поручение на обработку персональных данных оформляются на исполнителя. Aillix — партнёрский бренд и площадка проекта.</p>
+      </div>
+      <div class="executor-facts">
+        <span>ИНН 631306493907</span>
+        <span>НПД · ФЗ-422</span>
+        <span>Самозанятая</span>
+      </div>
+    </div>
   </section>
 
   <section class="section" id="pricing">
     <div class="section-head">
       <div class="eyebrow">Форматы работы</div>
       <h2>От аудита до сопровождения</h2>
-      <p class="muted">Фиксированная стоимость этапа. Точная цена — после аудита объёма и процесса.</p>
+      <p class="muted">Аудит — 20 000 ₽, пилот — от 120 000 ₽, внедрение — от 300 000 ₽. Точная цена фиксируется после аудита объёма и интеграции.</p>
     </div>
     <div class="package-grid">
       <article class="package-card">
         <div class="package-tag">Старт</div>
         <h3>Аудит</h3>
-        <p class="package-time">1 неделя</p>
+        <p class="package-price">20 000 ₽</p>
+        <p class="package-time">1 неделя · зачитывается в пилот</p>
         <ul class="check-list">
           <li>Разбор QA и CRM</li>
           <li>Чек-лист под ваш процесс</li>
@@ -398,6 +466,7 @@
       <article class="package-card package-featured">
         <div class="package-tag">Рекомендуем</div>
         <h3>Пилот</h3>
+        <p class="package-price">от 120 000 ₽</p>
         <p class="package-time">2 недели · 100–300 звонков</p>
         <ul class="check-list">
           <li>Подключение записей</li>
@@ -409,6 +478,7 @@
       <article class="package-card">
         <div class="package-tag">Production</div>
         <h3>Внедрение</h3>
+        <p class="package-price">от 300 000 ₽</p>
         <p class="package-time">4–6 недель</p>
         <ul class="check-list">
           <li>Oktell и CRM</li>
@@ -420,7 +490,8 @@
       <article class="package-card">
         <div class="package-tag">Enterprise</div>
         <h3>On-prem</h3>
-        <p class="package-time">по проекту</p>
+        <p class="package-price">по проекту</p>
+        <p class="package-time">срок по проекту</p>
         <ul class="check-list">
           <li>Контур клиента</li>
           <li>Локальный STT</li>
@@ -458,13 +529,54 @@
         <p>Стоимость зависит от объёма и интеграции. После короткого аудита фиксируем цену этапа.</p>
       </details>
       <details>
-        <summary>Работаете с Oktell?</summary>
-        <p>Да, адаптер Oktell уже есть. Также поддерживаются загрузка файлов, API и универсальный CRM-webhook.</p>
+        <summary>Работаете с Oktell, Bitrix24 и amoCRM?</summary>
+        <p>Да. Адаптер Oktell уже есть, Bitrix24 и amoCRM внедряем прямо сейчас — подключение входит в пилот. Также поддерживаются загрузка файлов, API и универсальный CRM-webhook.</p>
       </details>
       <details>
         <summary>Можно ли on-prem?</summary>
         <p>Да, для крупных клиентов и требований ИБ. Разворачиваем контур на инфраструктуре клиента.</p>
       </details>
+      <details>
+        <summary>С кем заключается договор?</summary>
+        <p>Исполнитель — самозанятая Мусина Гульназ Мягазовна (НПД, ФЗ-422), ИНН 631306493907. Договор, акты и поручение на обработку ПДн оформляются на неё. Aillix — партнёрский бренд и площадка проекта.</p>
+      </details>
+    </div>
+  </section>
+
+  <section class="section" id="roi">
+    <div class="section-head">
+      <div class="eyebrow">Экономика</div>
+      <h2>Посчитайте, сколько стоит рутина</h2>
+      <p class="muted">Три цифры — и видно, сколько времени и денег забирает постобработка.</p>
+    </div>
+    <div class="roi-card" data-cost-per-call="{{ metrics.cost_per_call_rub }}">
+      <div class="roi-controls">
+        <label class="roi-field">
+          <span>Звонков в день</span>
+          <input id="roi-calls" type="number" min="1" max="10000" step="1" value="200" inputmode="numeric">
+        </label>
+        <label class="roi-field">
+          <span>Минут на карточку</span>
+          <input id="roi-minutes" type="number" min="0.5" max="60" step="0.5" value="3" inputmode="decimal">
+        </label>
+        <label class="roi-field">
+          <span>Стоимость часа оператора, ₽</span>
+          <input id="roi-rate" type="number" min="100" max="5000" step="50" value="450" inputmode="numeric">
+        </label>
+        <p class="roi-note">22 рабочих дня · 80% автоматизации · оценка</p>
+      </div>
+      <div class="roi-results" aria-live="polite">
+        <div class="roi-result-main">
+          <span>Экономия в месяц</span>
+          <strong id="roi-month">—</strong>
+        </div>
+        <div class="roi-result-row"><span>Часов рутины в месяц</span><strong id="roi-hours">—</strong></div>
+        <div class="roi-result-row"><span>Экономия времени</span><strong id="roi-saved-hours">—</strong></div>
+        <div class="roi-result-row"><span>Стоимость AI-разбора</span><strong id="roi-ai-cost">—</strong></div>
+        <div class="roi-result-row roi-result-net"><span>Чистая экономия в месяц</span><strong id="roi-net">—</strong></div>
+        <div class="roi-result-row"><span>Экономия в год</span><strong id="roi-year">—</strong></div>
+        <p class="roi-disclaimer">Оценка. Точные цифры — после аудита на ваших звонках.</p>
+      </div>
     </div>
   </section>
 
@@ -477,6 +589,7 @@
         <div class="eyebrow">Следующий шаг</div>
         <h2>Покажем HITL и QA на ваших звонках</h2>
         <p>Оставьте контакт — обсудим объём, телефонию и CRM. Если есть 5–10 обезличенных записей, покажем карточку и отчёт на них.</p>
+        <p class="lead-phone">Или позвоните: <a href="tel:+79626090001">+7 962 609-00-01</a></p>
       </div>
       <form class="lead-form" method="post" action="/lead">
         <div class="lead-form-grid">
@@ -513,7 +626,7 @@
         </div>
         <label class="consent">
           <input type="checkbox" name="consent" value="yes" required>
-          <span>Согласен с обработкой персональных данных и <a href="https://aillix.ru/privacy" target="_blank" rel="noopener">политикой</a>.</span>
+          <span>Согласен с обработкой персональных данных и <a href="/privacy">политикой обработки ПДн</a>.</span>
         </label>
         <button class="btn btn-primary btn-large" type="submit">Отправить заявку</button>
         <p class="small muted">Не передавайте паспортные данные, номера карт и другие лишние сведения.</p>
@@ -522,24 +635,50 @@
   </section>
 </main>
 
-<footer class="marketing-footer">
-  <div class="footer-brand">
-    <div class="brand brand-dark">
-      <img src="/static/logo.svg" alt="Call-Pilot" width="40" height="40">
-      <span>Call-Pilot</span>
-    </div>
-    <p>AI-постобработка и контроль качества звонков. AI пишет — оператор подтверждает — QA проверяет.</p>
-  </div>
-  <div class="footer-actions">
-    <a class="btn btn-primary" href="/dashboard">Открыть демо</a>
-    <a class="btn btn-ghost" href="/offer">Смотреть оффер</a>
-    <a class="footer-contact" href="mailto:aillix@mail.ru">aillix@mail.ru</a>
-  </div>
-</footer>
-<div class="marketing-legal">
-  <span>© 2026 Группа Aillix · Call-Pilot</span>
-  <span>ИНН 631306493907 · Самозанятый (НПД, ФЗ-422) · Сделано в РФ</span>
-  <span><a href="https://aillix.ru/" target="_blank" rel="noopener">aillix.ru</a> · <a href="https://aillix.ru/privacy" target="_blank" rel="noopener">Политика обработки ПДн</a></span>
-</div>
+{% include "_marketing_footer.html" %}
+<script>
+(function () {
+  var card = document.querySelector('.roi-card');
+  if (!card) return;
+  var costPerCall = parseFloat(card.dataset.costPerCall || '0.33') || 0;
+  var calls = document.getElementById('roi-calls');
+  var minutes = document.getElementById('roi-minutes');
+  var rate = document.getElementById('roi-rate');
+  if (!calls || !minutes || !rate) return;
+
+  var money = new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 0 });
+  var plain = new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 1 });
+
+  function value(input, fallback) {
+    var number = parseFloat(input.value);
+    return isNaN(number) || number <= 0 ? fallback : number;
+  }
+
+  function calc() {
+    var callsPerDay = value(calls, 200);
+    var cardMinutes = value(minutes, 3);
+    var hourRate = value(rate, 450);
+    var monthlyCalls = callsPerDay * 22;
+    var routineHours = monthlyCalls * cardMinutes / 60;
+    var savedHours = routineHours * 0.8;
+    var savedMoney = savedHours * hourRate;
+    var aiCost = monthlyCalls * costPerCall;
+    var net = savedMoney - aiCost;
+
+    document.getElementById('roi-month').textContent = money.format(savedMoney) + ' ₽';
+    document.getElementById('roi-hours').textContent = plain.format(routineHours) + ' ч';
+    document.getElementById('roi-saved-hours').textContent = plain.format(savedHours) + ' ч';
+    document.getElementById('roi-ai-cost').textContent = money.format(aiCost) + ' ₽';
+    document.getElementById('roi-net').textContent = money.format(net) + ' ₽';
+    document.getElementById('roi-year').textContent = money.format(net * 12) + ' ₽';
+  }
+
+  [calls, minutes, rate].forEach(function (input) {
+    input.addEventListener('input', calc);
+    input.addEventListener('change', calc);
+  });
+  calc();
+})();
+</script>
 </body>
 </html>

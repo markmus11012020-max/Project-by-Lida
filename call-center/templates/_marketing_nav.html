@@ -1,0 +1,21 @@
+{% set prefix = '' if request.url.path == '/' else '/' %}
+<header class="marketing-nav">
+  <a class="brand brand-dark" href="/">
+    <img src="/static/logo.svg" alt="Call-Pilot" width="48" height="48">
+    <span>Call-Pilot</span>
+  </a>
+  <nav class="marketing-links">
+    <a href="{{ prefix }}#services">Услуги</a>
+    <a href="{{ prefix }}#how">Как работает</a>
+    <a href="{{ prefix }}#hitl">HITL</a>
+    <a href="{{ prefix }}#demo">Демо</a>
+    <a href="/case">Кейс</a>
+    <a href="{{ prefix }}#deploy">Запуск</a>
+    <a href="{{ prefix }}#pricing">Тарифы</a>
+  </nav>
+  <div class="marketing-actions">
+    <a class="marketing-phone" href="tel:+79626090001">+7 962 609-00-01</a>
+    <a class="btn btn-ghost" href="/dashboard">Открыть демо</a>
+    <a class="btn btn-primary btn-large" href="{{ prefix }}#lead">Обсудить внедрение</a>
+  </div>
+</header>

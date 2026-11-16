@@ -9,7 +9,11 @@
 - Основной сайт: https://call-pilot.ru
 - Демо: https://call-pilot.ru/dashboard
 - Оффер: https://call-pilot.ru/offer
-- Группа: Aillix, контакт: `aillix@mail.ru`, ИНН 631306493907.
+- Кейс «до/после»: https://call-pilot.ru/case
+- Политика ПДн: https://call-pilot.ru/privacy
+- Проект: Aillix.
+- Исполнитель: самозанятая **Мусина Гульназ Мягазовна**, ИНН 631306493907, НПД (ФЗ-422).
+- Контакты: `aillix@mail.ru`, **+7 962 609-00-01**.
 - Репозиторий: https://github.com/markmus11012020-max/Project-by-Lida
 - Репозиторий **приватный**.
 - Локальная папка: `D:\PROJECT`
@@ -63,7 +67,8 @@ ssh -i ~/.ssh/id_ed25519 root@89.104.70.185 \
 | `.env` | `/opt/callpilot/.env`, не в Git |
 | База | SQLite `/opt/callpilot/call-center/data/call_center.db` |
 | Демо-видео | `/opt/callpilot/call-center/demo/callpilot-demo.mp4` |
-| Текущий commit | `0452d49` |
+| OG-превью | `/opt/callpilot/call-center/static/og-cover.png` |
+| Текущий commit | `git log -1 --oneline` |
 
 На сервере запущен **только CallPilot**. Основной generic API `app.main` на сервере не запущен. PostgreSQL, worker и scheduler на сервере не запущены.
 
@@ -106,6 +111,7 @@ DEMO_MODE=true
 - `POST /review/upload` → 403;
 - `POST /calls/{id}/process` → 403;
 - «Пересчитать» не показывается;
+- фильтр источника «Реальные / Демо» скрыт;
 - реальные звонки на публичном сервере не принимаются;
 - работают только 6 синтетических звонков, QA, HITL и подтверждение.
 
@@ -205,8 +211,12 @@ http://127.0.0.1:8030/docs
 | Что | Путь |
 |---|---|
 | Лендинг | `call-center/templates/landing.html` |
+| Кейс «до/после» | `call-center/templates/case.html`, `case_data.py` |
+| Политика ПДн | `call-center/templates/privacy.html` |
+| Общие блоки лендинга | `templates/_marketing_nav.html`, `_marketing_footer.html` |
 | Оффер | `call-center/templates/offer.html` |
 | Dashboard | `call-center/templates/dashboard.html` |
+| OG-превью | `call-center/static/og-cover.png`, скрипт `scripts/make_og.py` |
 | Карточка звонка | `call-center/templates/call_detail.html` |
 | CSS | `call-center/static/style.css` |
 | Скриншоты | `call-center/screenshots/` |
@@ -236,6 +246,8 @@ free -m
 - `AUDIO_ENCRYPTION_KEY` не задан; для демо используется development-ключ. Для реальных записей задать ключ.
 - Нет rate limit на форму заявки; при спаме добавить Nginx limit_req или captcha.
 - Нет мониторинга uptime, кроме systemd.
+- Политика ПДн обещает хранение заявок до 12 месяцев; автоматическое удаление старых заявок пока не реализовано. Добавить cron-задачу перед реальным потоком лидов.
+- Цены на лендинге: аудит 20 000 ₽, пилот от 120 000 ₽, внедрение от 300 000 ₽. Менять только по согласованию.
 
 ## 12. Если что-то сломалось
 
@@ -275,5 +287,7 @@ systemctl restart callpilot
 4. Не выключать `DEMO_MODE` без разрешения.
 5. Не запускать worker/scheduler на этом сервере без отдельного решения.
 6. Перед деплоем проверять `git status`, тесты и README.
-7. После деплоя проверять `/health` и главную страницу.
+7. После деплоя проверять `/health`, `/`, `/case`, `/privacy`, `/offer`.
 8. Для Aillix использовать `docs/AILLIX_CALLPILOT_CARD.md`.
+9. Не менять публичные цены, юридические формулировки и телефон без согласования с владельцем.
+10. Не добавлять Telegram/WhatsApp, пока не согласован ник или номер.

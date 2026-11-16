@@ -120,6 +120,15 @@ https://call-pilot.ru/?utm_source=aillix&utm_medium=product_card&utm_campaign=ca
 https://call-pilot.ru/?utm_source=aillix&utm_medium=product_card&utm_campaign=callpilot_landing
 ```
 
+Четвёртая ссылка — на разбор «до/после»:
+
+```text
+Кейс до/после →
+https://call-pilot.ru/case?utm_source=aillix&utm_medium=product_card&utm_campaign=callpilot_case
+```
+
+Контакт рядом с CTA: `+7 962 609-00-01`, `aillix@mail.ru`.
+
 ## Визуал
 
 Использовать один из файлов:
@@ -173,10 +182,12 @@ UTM уже указаны в ссылках. Не менять `utm_source=ailli
 На Call-Pilot в футере уже есть:
 
 ```text
-Группа Aillix · aillix.ru
+© 2026 Call-Pilot · Проект Aillix
+Исполнитель: самозанятая Мусина Гульназ Мягазовна · ИНН 631306493907 · НПД (ФЗ-422)
+aillix.ru · Политика обработки ПДн
 ```
 
-Проверить, что ссылка ведёт на `https://aillix.ru/` и открывается корректно.
+Проверить, что ссылки на `https://aillix.ru/` и `https://call-pilot.ru/privacy` открываются корректно.
 
 ## Что не делать
 

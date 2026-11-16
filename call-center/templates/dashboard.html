@@ -12,7 +12,7 @@
 </form>
 {% endif %}
 <form method="post" action="/demo/reset" class="inline-form">
-  <button class="btn btn-ghost" type="submit" title="Пересоздать демо-данные">↺ Сбросить демо</button>
+  <button class="btn btn-ghost" type="submit" title="Вернуть исходные данные">↺ Сбросить данные</button>
 </form>
 {% endblock %}
 
@@ -24,7 +24,7 @@
   <article class="kpi-card">
     <div class="kpi-label">Всего звонков</div>
     <div class="kpi-value">{{ metrics.total }}</div>
-    <div class="kpi-note">демо и реальные</div>
+    <div class="kpi-note">за период</div>
   </article>
   <article class="kpi-card">
     <div class="kpi-label">Покрытие QA</div>
@@ -49,7 +49,7 @@
   <article class="kpi-card">
     <div class="kpi-label">Разбор звонка</div>
     <div class="kpi-value">{{ metrics.cost_per_call_rub }} ₽</div>
-    <div class="kpi-note">LLM-разбор без TTS</div>
+    <div class="kpi-note">стоимость разбора</div>
   </article>
   <article class="kpi-card kpi-amber">
     <div class="kpi-label">SLA ревью</div>
@@ -84,15 +84,17 @@
   <div class="panel-head">
     <div>
       <h2>Очередь звонков</h2>
-      <p class="muted">Демо и реальные звонки. Откройте карточку, прослушайте аудио и проверьте QA.</p>
+      <p class="muted">Откройте карточку, прослушайте аудио и проверьте QA.</p>
     </div>
     <div class="filters">
+      {% if not demo_mode %}
       <div class="filter-group">
         <span class="filter-label">Источник</span>
         <a class="pill {% if source_filter == 'all' %}active{% endif %}" href="/dashboard?role={{ role }}&status={{ status_filter }}&qa={{ qa_filter }}&priority={{ priority_filter }}&source=all">Все</a>
         <a class="pill {% if source_filter == 'real' %}active{% endif %}" href="/dashboard?role={{ role }}&status={{ status_filter }}&qa={{ qa_filter }}&priority={{ priority_filter }}&source=real">Реальные</a>
         <a class="pill {% if source_filter == 'demo' %}active{% endif %}" href="/dashboard?role={{ role }}&status={{ status_filter }}&qa={{ qa_filter }}&priority={{ priority_filter }}&source=demo">Демо</a>
       </div>
+      {% endif %}
       <div class="filter-group">
         <span class="filter-label">Приоритет</span>
         <a class="pill {% if priority_filter == 'all' %}active{% endif %}" href="/dashboard?role={{ role }}&status={{ status_filter }}&qa={{ qa_filter }}&source={{ source_filter }}&priority=all">Все</a>

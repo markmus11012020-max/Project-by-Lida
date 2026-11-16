@@ -86,6 +86,7 @@ def test_demo_mode_hides_upload_and_blocks_recalculation(
     dashboard = client.get("/dashboard")
     assert dashboard.status_code == 200
     assert "Загрузить звонок" not in dashboard.text
+    assert "Источник" not in dashboard.text
 
     process = client.post("/calls/call_02/process", follow_redirects=False)
     assert process.status_code == 403

@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Кейс «до/после» — Call-Pilot</title>
+  <meta name="description" content="Разбор одного звонка: как Call-Pilot заполняет карточку, находит critical-нарушение и отдаёт финальную версию в CRM после подтверждения оператора.">
+  <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/static/style.css">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Кейс «до/после» — Call-Pilot">
+  <meta property="og:description" content="Один звонок: ручная постобработка и выборочный QA против AI-карточки, HITL и 100% контроля качества.">
+  <meta property="og:url" content="https://call-pilot.ru/case">
+  <meta property="og:image" content="https://call-pilot.ru/static/og-cover.png">
+  <meta name="twitter:card" content="summary_large_image">
+</head>
+<body class="marketing-body">
+{% include "_marketing_nav.html" %}
+
+<main>
+  <section class="case-hero">
+    <div class="case-hero-inner">
+      <div class="eyebrow light">Разбор до/после · демо</div>
+      <h1>Один звонок:<br><span>до и после Call-Pilot</span></h1>
+      <p class="case-lead">{{ case.summary }}</p>
+      <div class="case-meta">
+        <span>Звонок {{ case.duration }}</span>
+        <span>Возврат</span>
+        <span>2 critical</span>
+        <span>0,27 ₽ разбор</span>
+      </div>
+      <div class="case-audio">
+        <audio controls preload="none" src="{{ case.audio_url }}"></audio>
+        <span class="case-disclaimer">{{ case.disclaimer }}</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head">
+      <div class="eyebrow">Что изменилось</div>
+      <h2>Ручной процесс ловит жалобу. Call-Pilot ловит причину.</h2>
+      <p class="muted">Слева — типовой ручной процесс. Справа — тот же звонок после подключения Call-Pilot.</p>
+    </div>
+    <div class="ba-grid">
+      <article class="ba-card ba-before">
+        <div class="ba-header">
+          <span class="badge badge-gray">Было</span>
+          <h3>Ручная постобработка</h3>
+        </div>
+        <ul class="case-list">
+          {% for item in case.before %}
+          <li>{{ item }}</li>
+          {% endfor %}
+        </ul>
+      </article>
+      <article class="ba-card ba-after">
+        <div class="ba-header">
+          <span class="badge badge-green">Стало</span>
+          <h3>AI + HITL + QA</h3>
+        </div>
+        <ul class="case-list">
+          {% for item in case.after %}
+          <li>{{ item }}</li>
+          {% endfor %}
+        </ul>
+      </article>
+    </div>
+  </section>
+
+  <section class="section section-tight">
+    <div class="section-head">
+      <div class="eyebrow">Цифры</div>
+      <h2>Что видно руководителю</h2>
+    </div>
+    <div class="case-table-wrap">
+      <table class="case-metrics">
+        <thead>
+          <tr><th>Метрика</th><th>До</th><th>После</th></tr>
+        </thead>
+        <tbody>
+          {% for item in case.metrics %}
+          <tr>
+            <td>{{ item.label }}</td>
+            <td class="case-before-value">{{ item.before }}</td>
+            <td class="case-after-value">{{ item.after }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <p class="case-footnote">Время ручного процесса — оценка по типовому регламенту, а не замер конкретного клиента. Стоимость разбора — по данным демо-прогона.</p>
+  </section>
+
+  <section class="section section-tight">
+    <div class="section-head">
+      <div class="eyebrow">Транскрипт</div>
+      <h2>Где именно теряется деньги</h2>
+      <p class="muted">Красным — фразы, которые QA отмечает как critical. Их видно в карточке звонка через несколько секунд после разговора.</p>
+    </div>
+    <div class="case-transcript">
+      {% for line in case.transcript %}
+      <div class="case-line{% if line.tone %} case-line-{{ line.tone }}{% endif %}">
+        <span class="case-time">{{ line.time }}</span>
+        <div class="case-line-body">
+          <span class="case-speaker">{{ line.speaker }}</span>
+          <p>{{ line.text }}</p>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="section section-tight">
+    <div class="case-result-grid">
+      <div>
+        <div class="section-head">
+          <div class="eyebrow">Что нашла модель</div>
+          <h2>Нарушения с цитатами</h2>
+          <p class="muted">Не «оценка 0», а конкретные фразы, критерии и следующий шаг.</p>
+        </div>
+        <div class="case-findings">
+          {% for finding in case.findings %}
+          <article class="case-finding case-finding-{{ finding.severity }}">
+            <div class="case-finding-head">
+              <span class="badge {% if finding.severity in ('critical', 'high') %}badge-red{% elif finding.severity == 'medium' %}badge-amber{% else %}badge-gray{% endif %}">{{ severity_labels.get(finding.severity, finding.severity) }}</span>
+              <strong>{{ finding.criterion }}</strong>
+            </div>
+            <p class="case-quote">{{ finding.quote }}</p>
+            <p class="case-comment">{{ finding.comment }}</p>
+          </article>
+          {% endfor %}
+        </div>
+      </div>
+      <aside class="case-crm">
+        <div class="crm-panel">
+          <div class="crm-panel-head">
+            <span class="eyebrow">CRM после HITL</span>
+            <span class="badge badge-green">подтверждено</span>
+          </div>
+          {% for row in case.crm %}
+          <div class="crm-row">
+            <span>{{ row.label }}</span>
+            <strong{% if row.danger %} class="text-red"{% endif %}>{{ row.value }}</strong>
+          </div>
+          {% endfor %}
+          <a class="btn btn-ghost" href="/dashboard">Открыть демо целиком →</a>
+        </div>
+        <div class="case-crm-note">
+          <strong>AI не пишет в CRM сам.</strong>
+          <span>Сначала карточку подтверждает оператор. В CRM уходит финальная версия с аудитом.</span>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="case-cta">
+      <div>
+        <div class="eyebrow light">Следующий шаг</div>
+        <h2>Хотите такой разбор на своих звонках?</h2>
+        <p>Пришлите 5–10 обезличенных записей. Покажем карточку, HITL-подтверждение, QA-находки и CRM payload на вашем процессе.</p>
+      </div>
+      <div class="case-cta-actions">
+        <a class="btn btn-primary btn-large" href="/#lead">Получить разбор</a>
+        <a class="btn btn-ghost-light btn-large" href="tel:+79626090001">+7 962 609-00-01</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+{% include "_marketing_footer.html" %}
+</body>
+</html>

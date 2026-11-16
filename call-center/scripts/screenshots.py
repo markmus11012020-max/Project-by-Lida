@@ -79,10 +79,12 @@ def main() -> int:
 
             pages = [
                 ("landing.png", "/", True),
+                ("case.png", "/case", True),
                 ("dashboard.png", "/dashboard", True),
                 ("call_detail.png", "/calls/call_02", True),
                 ("qa.png", "/qa", True),
                 ("offer.png", "/offer", True),
+                ("privacy.png", "/privacy", True),
             ]
             for filename, path, full_page in pages:
                 print(f"Снимаю {path} -> {filename}")

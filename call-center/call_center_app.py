@@ -1,4 +1,4 @@
-"""CallPilot: a product-style demo for call-center QA automation."""
+"""Call-Pilot: a product-style demo for call-center QA automation."""
 
 from __future__ import annotations
 
@@ -47,6 +47,7 @@ from app.notifications import send_lead_notification  # noqa: E402
 from app.queue import create_queue  # noqa: E402
 from app.scenarios.call_qa import AUTO_PASS_SCORE, QA_CRITERIA  # noqa: E402
 from call_store import CallStore  # noqa: E402
+from case_data import CASE  # noqa: E402
 
 DB_PATH = Path(
     os.getenv(
@@ -203,6 +204,24 @@ def landing(request: Request):
         request=request,
         name="landing.html",
         context={"metrics": metrics},
+    )
+
+
+@app.get("/case", response_class=HTMLResponse)
+def case_page(request: Request):
+    return templates.TemplateResponse(
+        request=request,
+        name="case.html",
+        context={"case": CASE},
+    )
+
+
+@app.get("/privacy", response_class=HTMLResponse)
+def privacy_page(request: Request):
+    return templates.TemplateResponse(
+        request=request,
+        name="privacy.html",
+        context={},
     )
 
 
