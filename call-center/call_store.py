@@ -209,6 +209,7 @@ class CallStore:
             self._init_call_tables()
         self._seed_calls()
         self._seed_cached_results()
+        self._seed_audit()
         self.service = ProcessService(
             settings=settings,
             db=self.core_db,
@@ -365,6 +366,31 @@ class CallStore:
                         utc_now(),
                     ),
                 )
+
+    def _seed_audit(self) -> None:
+        """Populate the audit screen on a fresh demo database."""
+
+        with closing(self._connect()) as connection:
+            count = connection.execute(
+                "SELECT COUNT(*) AS count FROM audit_runs"
+            ).fetchone()["count"]
+        if count:
+            return
+        for call in self.list_calls():
+            if call.get("source") != "demo":
+                continue
+            self.log_audit(
+                "seed_demo",
+                call_id=call["id"],
+                input_data={"source": "demo", "call_id": call["id"]},
+                output_data={
+                    "status": call.get("review_status"),
+                    "need_review": bool(call.get("need_review")),
+                    "qa_score": call.get("qa_score"),
+                },
+                status="ok",
+                duration_ms=0,
+            )
 
     def _audio_manifest(self) -> dict[str, Any]:
         path = CALL_CENTER_DIR / "data" / "audio_manifest.json"
@@ -1179,6 +1205,7 @@ class CallStore:
             connection.execute("DELETE FROM demo_calls WHERE source = 'demo'")
         self._seed_calls()
         self._seed_cached_results()
+        self._seed_audit()
 
     def metrics(self) -> dict[str, Any]:
         calls = self.list_calls()
