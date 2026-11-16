@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block title %}Аудит · Call-Pilot{% endblock %}
+{% block eyebrow %}Прозрачность{% endblock %}
+{% block page_title %}Журнал аудита{% endblock %}
+{% block page_subtitle %}Каждое действие: создание, AI-обработка, подтверждение и отклонение.{% endblock %}
+
+{% block topbar_actions %}
+<a class="btn btn-ghost" href="/export/audit.jsonl">Скачать JSONL</a>
+<a class="btn btn-ghost" href="/export/results.csv">Скачать CSV</a>
+{% endblock %}
+
+{% block content %}
+{% set action_labels = {
+  "create_call": "Создание",
+  "process_call": "AI-обработка",
+  "confirm_call": "Подтверждение",
+  "reject_call": "Отклонение",
+  "ingest_audio": "Загрузка аудио"
+} %}
+<section class="panel">
+  <div class="panel-head">
+    <div>
+      <h2>Последние действия</h2>
+      <p class="muted">Вход, выход, статус, ошибка и длительность. Журнал не удаляется при подтверждении.</p>
+    </div>
+    <span class="badge badge-gray">{{ runs|length }} записей</span>
+  </div>
+  {% if runs %}
+  <div class="table-wrap">
+    <table class="data-table audit-table">
+      <thead>
+        <tr>
+          <th>Время</th>
+          <th>Действие</th>
+          <th>Звонок</th>
+          <th>Статус</th>
+          <th>Длительность</th>
+          <th>Вход</th>
+          <th>Выход / ошибка</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for run in runs %}
+        <tr>
+          <td class="muted small">{{ run.created_at|datetime }}</td>
+          <td><span class="badge badge-gray">{{ action_labels.get(run.action, run.action) }}</span></td>
+          <td>
+            {% if run.call_id %}
+            <a class="call-link" href="/calls/{{ run.call_id }}?role={{ role }}">{{ run.call_id }}</a>
+            {% else %}
+            <span class="muted">—</span>
+            {% endif %}
+          </td>
+          <td>
+            <span class="badge {% if run.status == 'ok' %}badge-green{% elif run.status == 'manual_review' %}badge-amber{% else %}badge-red{% endif %}">
+              {{ run.status }}
+            </span>
+          </td>
+          <td class="muted small">{{ run.duration_ms }} мс</td>
+          <td><span class="audit-preview">{{ run.input|string|truncate(110) }}</span></td>
+          <td>
+            {% if run.error %}
+            <span class="text-red">{{ run.error|truncate(140) }}</span>
+            {% else %}
+            <span class="audit-preview">{{ run.output|string|truncate(140) }}</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <div class="empty-icon">▥</div>
+    <h3>Пока нет действий</h3>
+    <p>Создайте звонок через API или откройте демо-звонок и запустите обработку.</p>
+    <a class="btn btn-primary" href="/dashboard?role={{ role }}">Перейти к звонкам</a>
+  </div>
+  {% endif %}
+</section>
+{% endblock %}

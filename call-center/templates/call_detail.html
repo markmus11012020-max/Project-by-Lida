@@ -150,7 +150,11 @@
         <span class="tag tag-soft">{{ result.get('sentiment')|label(sentiment_labels) }}</span>
         <span class="tag tag-soft">confidence: {{ result.get('confidence') or '—' }}</span>
         {% if result.get('escalate') %}<span class="badge badge-red">эскалация</span>{% endif %}
+        {% if call.need_review %}<span class="badge badge-amber">need_review</span>{% endif %}
       </div>
+      {% if call.review_reason %}
+      <p class="muted small">Причина проверки: {{ call.review_reason }}</p>
+      {% endif %}
 
       {% if read_only %}
       <div class="read-grid">

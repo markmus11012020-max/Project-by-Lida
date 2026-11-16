@@ -67,7 +67,9 @@ ssh -i ~/.ssh/id_ed25519 root@89.104.70.185 \
 | `.env` | `/opt/callpilot/.env`, не в Git |
 | База | SQLite `/opt/callpilot/call-center/data/call_center.db` |
 | Демо-видео | `/opt/callpilot/call-center/demo/callpilot-demo.mp4` |
+| Защита | `/opt/callpilot/call-center/demo/callpilot-defense.mp4`, 6:34 |
 | OG-превью | `/opt/callpilot/call-center/static/og-cover.png` |
+| Тестовые данные | `/opt/callpilot/tests_data/inputs.jsonl` |
 | Текущий commit | `git log -1 --oneline` |
 
 На сервере запущен **только CallPilot**. Основной generic API `app.main` на сервере не запущен. PostgreSQL, worker и scheduler на сервере не запущены.
@@ -116,6 +118,35 @@ DEMO_MODE=true
 - работают только 6 синтетических звонков, QA, HITL и подтверждение.
 
 **Не выключать `DEMO_MODE` без явного согласования.** Иначе публичные посетители смогут загружать реальные ПДн и тратить LLM-бюджет.
+
+## 5.1. JSON API и аудит
+
+Для выпускного проекта добавлены точки:
+
+```text
+POST /api/v1/calls
+GET  /api/v1/calls
+POST /api/v1/calls/{id}/process
+GET  /api/v1/calls/{id}
+GET  /api/v1/audit
+GET  /export/results.csv
+GET  /export/audit.jsonl
+```
+
+`need_review` и `review_reason` сохраняются в `call_reviews`.
+`audit_runs` хранит `action`, `input_json`, `output_json`, `status`,
+`error`, `duration_ms`, `created_at`.
+
+Тестовые данные: `tests_data/inputs.jsonl` (10 кейсов, 5 asserted
+с `need_review=true`, включая 2 critical). Прогон:
+
+```bash
+cd /opt/callpilot
+.venv/bin/python call-center/scripts/run_tests_data.py --strict
+```
+
+В публичном демо `DEMO_MODE=true` блокирует создание и AI-обработку
+через API; чтение и аудит остаются доступны.
 
 ## 6. Почта
 

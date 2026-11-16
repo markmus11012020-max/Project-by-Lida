@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
 <meta charset="utf-8">
-<title>CallPilot — защита проекта</title>
+<title>Call-Pilot — защита проекта</title>
 <style>
   :root {
     --navy: #0b1220;
@@ -109,29 +109,29 @@
 <!-- 1 -->
 <section class="slide active" data-slide="0">
   <div class="topbar">
-    <div class="brand"><img src="../static/logo.svg" alt="">CallPilot</div>
+    <div class="brand"><img src="../static/logo.svg" alt="">Call-Pilot</div>
     <div class="slide-no">ЗАЩИТА · 01 / 10</div>
   </div>
   <div class="grid-2">
     <div>
-      <div class="kicker">Учебный проект · URK071</div>
-      <h1>Автоматизация процесса с LLM от входа до действия</h1>
-      <p class="lead">CallPilot: контроль качества звонков, карточка в CRM и ручная проверка только исключений.</p>
+      <div class="kicker">Выпускной проект · Call-Pilot</div>
+      <h1>AI-постобработка и контроль качества звонков</h1>
+      <p class="lead">AI заполняет карточку. Оператор подтверждает. QA проверяет каждый звонок.</p>
       <div class="grid-3" style="margin-top:32px">
-        <div class="metric"><strong>3</strong><span>сценария</span></div>
-        <div class="metric"><strong>30</strong><span>тестовых кейсов</span></div>
-        <div class="metric"><strong>75</strong><span>автотестов</span></div>
+        <div class="metric"><strong>100%</strong><span>QA звонков</span></div>
+        <div class="metric"><strong>10</strong><span>тестовых кейсов</span></div>
+        <div class="metric"><strong>187</strong><span>автотестов</span></div>
       </div>
     </div>
     <div class="shot-frame"><img class="shot" src="../screenshots/landing_1920.png" alt=""></div>
   </div>
-  <div class="bottom-note">CallPilot · демо на синтетических данных · 2026</div>
+  <div class="bottom-note">Call-Pilot · демо на синтетических данных · 2026</div>
 </section>
 
 <!-- 2 -->
 <section class="slide light" data-slide="1">
   <div class="topbar">
-    <div class="brand"><img src="../static/logo.svg" alt="">CallPilot</div>
+    <div class="brand"><img src="../static/logo.svg" alt="">Call-Pilot</div>
     <div class="slide-no">ПРОБЛЕМА · 02 / 10</div>
   </div>
   <div class="kicker">Проблема</div>
@@ -149,24 +149,24 @@
 <!-- 3 -->
 <section class="slide" data-slide="2">
   <div class="topbar">
-    <div class="brand"><img src="../static/logo.svg" alt="">CallPilot</div>
+    <div class="brand"><img src="../static/logo.svg" alt="">Call-Pilot</div>
     <div class="slide-no">КОНТЕКСТ · 03 / 10</div>
   </div>
   <div class="grid-2">
     <div>
       <div class="kicker">Контекст и ограничения</div>
-      <h2>Один процесс, три конфигурации</h2>
+      <h2>Один продукт, один контур</h2>
       <ul class="list">
-        <li>Малый/средний бизнес, до 500 входящих в сутки</li>
-        <li>Один вход: API или файл</li>
-        <li>Одно действие: SQLite / CSV</li>
-        <li>Максимум две интеграции</li>
-        <li>A — основной кейс, B и C — конфигурации того же конвейера</li>
+        <li>Колл-центр: 1000+ звонков в месяц</li>
+        <li>Веб-панель + JSON API</li>
+        <li>SQLite: звонки, проверки, аудит</li>
+        <li>HITL: AI не пишет в CRM без человека</li>
+        <li>Синтетическое демо, без реальных ПДн</li>
       </ul>
     </div>
     <div class="card">
       <h3>Что не входит в MVP</h3>
-      <p>CRM, почта, авторизация, мультитенантность, production-деплой и замена операторов.</p>
+      <p>Реальная телефония, production-нагрузка, замена операторов и публичные ПДн.</p>
       <div style="height:18px"></div>
       <span class="badge badge-green">Фокус: завершённость и качество</span>
     </div>
@@ -177,28 +177,28 @@
 <!-- 4 -->
 <section class="slide" data-slide="3">
   <div class="topbar">
-    <div class="brand"><img src="../static/logo.svg" alt="">CallPilot</div>
+    <div class="brand"><img src="../static/logo.svg" alt="">Call-Pilot</div>
     <div class="slide-no">АРХИТЕКТУРА · 04 / 10</div>
   </div>
   <div class="kicker">Архитектура</div>
   <h2>От входа до действия</h2>
   <div class="flow">
-    <div class="flow-row"><div class="flow-box">Вход: API / файл</div><span class="arrow">→</span><div class="flow-box">Сценарий A / B / C</div><span class="arrow">→</span><div class="flow-box">System prompt + схема</div></div>
-    <div class="flow-row"><div class="flow-box hot">AITUNNEL LLM · JSON mode</div><span class="arrow">→</span><div class="flow-box">JSON parse</div><span class="arrow">→</span><div class="flow-box">Pydantic validation</div></div>
-    <div class="flow-row"><div class="flow-box">QC / эскалация</div><span class="arrow">→</span><div class="flow-box">SQLite: аудит + результат</div><span class="arrow">→</span><div class="flow-box hot">Действие</div></div>
+    <div class="flow-row"><div class="flow-box">Веб-панель</div><span class="arrow">→</span><div class="flow-box">JSON API</div><span class="arrow">→</span><div class="flow-box">SQLite: звонок</div></div>
+    <div class="flow-row"><div class="flow-box hot">AITUNNEL: DeepSeek, JSON</div><span class="arrow">→</span><div class="flow-box">Pydantic</div><span class="arrow">→</span><div class="flow-box">QC: need_review</div></div>
+    <div class="flow-row"><div class="flow-box">audit_runs</div><span class="arrow">→</span><div class="flow-box">call_reviews + audit</div><span class="arrow">→</span><div class="flow-box hot">CRM / HITL</div></div>
   </div>
   <div class="grid-3" style="margin-top:20px">
     <div class="card"><div class="metric metric-sm"><strong>0.2</strong><span>temperature</span></div></div>
-    <div class="card"><div class="metric metric-sm"><strong>2500</strong><span>max_tokens + retry при обрезке</span></div></div>
-    <div class="card"><div class="metric metric-sm"><strong>2</strong><span>попытки при сбое API</span></div></div>
+    <div class="card"><div class="metric metric-sm"><strong>10</strong><span>критериев QA</span></div></div>
+    <div class="card"><div class="metric metric-sm"><strong>4</strong><span>таблицы данных</span></div></div>
   </div>
-  <div class="bottom-note">Модель не доверяется: код проверяет схему, диапазоны, enum и бизнес-правила</div>
+  <div class="bottom-note">AI не пишет в CRM без подтверждения оператора</div>
 </section>
 
 <!-- 5 -->
 <section class="slide light" data-slide="4">
   <div class="topbar">
-    <div class="brand"><img src="../static/logo.svg" alt="">CallPilot</div>
+    <div class="brand"><img src="../static/logo.svg" alt="">Call-Pilot</div>
     <div class="slide-no">КАЧЕСТВО · 05 / 10</div>
   </div>
   <div class="grid-2">
@@ -209,7 +209,7 @@
         <li>10 критериев QA: скрипт, комплаенс, эмпатия, решение</li>
         <li>Severity берётся из чек-листа, а не из ответа модели</li>
         <li>Auto-pass при score ≥ 85 и без critical/high</li>
-        <li>Журнал: вход, сырой ответ, результат, статус</li>
+        <li>audit_runs: действие, вход, выход, статус, ошибка</li>
         <li>Подтверждение менеджером и diff правок</li>
       </ul>
     </div>
@@ -221,40 +221,40 @@
 <!-- 6 -->
 <section class="slide" data-slide="5">
   <div class="topbar">
-    <div class="brand"><img src="../static/logo.svg" alt="">CallPilot</div>
+    <div class="brand"><img src="../static/logo.svg" alt="">Call-Pilot</div>
     <div class="slide-no">РЕЗУЛЬТАТЫ · 06 / 10</div>
   </div>
   <div class="kicker">Результаты</div>
-  <h2>30 кейсов, 0 ошибок</h2>
+  <h2>10 кейсов, 0 ошибок</h2>
   <div class="grid-4">
-    <div class="card"><div class="metric"><strong>30/30</strong><span>валидных результатов</span></div></div>
-    <div class="card"><div class="metric"><strong>20 / 10</strong><span>auto / manual</span></div></div>
-    <div class="card"><div class="metric"><strong>66.7%</strong><span>автоматизации</span></div></div>
-    <div class="card"><div class="metric"><strong>2.04 ₽</strong><span>за 30 кейсов</span></div></div>
+    <div class="card"><div class="metric"><strong>10/10</strong><span>валидных результатов</span></div></div>
+    <div class="card"><div class="metric"><strong>5 / 5</strong><span>auto / manual</span></div></div>
+    <div class="card"><div class="metric"><strong>50%</strong><span>автоматизации</span></div></div>
+    <div class="card"><div class="metric"><strong>0.33 ₽</strong><span>за звонок</span></div></div>
   </div>
   <div class="grid-3" style="margin-top:18px">
-    <div class="card"><div class="metric metric-sm"><strong>3397 мс</strong><span>средняя задержка</span></div></div>
+    <div class="card"><div class="metric metric-sm"><strong>~11 с</strong><span>средняя задержка LLM</span></div></div>
     <div class="card"><div class="metric metric-sm"><strong>0</strong><span>invalid / error</span></div></div>
-    <div class="card"><div class="metric metric-sm"><strong>30/30</strong><span>совпадение с ожиданием</span></div></div>
+    <div class="card"><div class="metric metric-sm"><strong>5</strong><span>need_review, 2 critical</span></div></div>
   </div>
-  <div class="bottom-note">Live-прогон на deepseek-v4.1-flash; тест-кейсы: поддержка, продажи, документы</div>
+  <div class="bottom-note">10 тестовых кейсов: 5 auto-pass, 5 manual, 2 critical</div>
 </section>
 
 <!-- 7 -->
 <section class="slide" data-slide="6">
   <div class="topbar">
-    <div class="brand"><img src="../static/logo.svg" alt="">CallPilot</div>
+    <div class="brand"><img src="../static/logo.svg" alt="">Call-Pilot</div>
     <div class="slide-no">ПРОДУКТ · 07 / 10</div>
   </div>
   <div class="grid-2">
     <div>
-      <div class="kicker">CallPilot</div>
+      <div class="kicker">Call-Pilot</div>
       <h2>100% QA звонков</h2>
-      <p class="lead">Расшифровка, карточка, аудио с таймкодами и QA-чек-лист. Менеджер смотрит только нарушения.</p>
+      <p class="lead">AI заполняет карточку, оператор подтверждает, CRM получает финальную версию.</p>
       <div class="grid-3" style="margin-top:26px">
         <div class="metric"><strong>100%</strong><span>покрытие QA</span></div>
         <div class="metric"><strong>10</strong><span>критериев</span></div>
-        <div class="metric"><strong>2 сек</strong><span>до цитаты</span></div>
+        <div class="metric"><strong>6</strong><span>демо-звонков</span></div>
       </div>
     </div>
     <div class="shot-frame"><img class="shot" src="../screenshots/call_detail.png" alt=""></div>
@@ -265,16 +265,16 @@
 <!-- 8 -->
 <section class="slide light" data-slide="7">
   <div class="topbar">
-    <div class="brand"><img src="../static/logo.svg" alt="">CallPilot</div>
+    <div class="brand"><img src="../static/logo.svg" alt="">Call-Pilot</div>
     <div class="slide-no">ЭКОНОМИКА · 08 / 10</div>
   </div>
   <div class="kicker">Экономика</div>
-  <h2>Минус две трети ручного времени</h2>
+  <h2>1000 звонков — 8 600 ₽ экономии</h2>
   <div class="grid-4">
-    <div class="card"><div class="metric"><strong>180 мин</strong><span>вручную на 30 кейсов</span></div></div>
-    <div class="card"><div class="metric"><strong>60 мин</strong><span>с автоматизацией</span></div></div>
-    <div class="card"><div class="metric"><strong>120 мин</strong><span>экономии</span></div></div>
-    <div class="card"><div class="metric"><strong>66.7%</strong><span>сокращение времени</span></div></div>
+    <div class="card"><div class="metric"><strong>50 ч</strong><span>рутины в месяц</span></div></div>
+    <div class="card"><div class="metric"><strong>40 ч</strong><span>экономии времени</span></div></div>
+    <div class="card"><div class="metric"><strong>8 600 ₽</strong><span>экономии в месяц</span></div></div>
+    <div class="card"><div class="metric"><strong>8,6 ₽</strong><span>на один звонок</span></div></div>
   </div>
   <div class="grid-2" style="margin-top:26px; align-items:start">
     <div class="card">
@@ -283,16 +283,16 @@
     </div>
     <div class="card">
       <h3>Стоимость</h3>
-      <p>2.04 ₽ за 30 LLM-разборов. Основная ценность — время менеджера и прозрачность, а не токены.</p>
+      <p>330 ₽ за 1000 LLM-разборов. Чистая экономия — 8 270 ₽/мес.</p>
     </div>
   </div>
-  <div class="bottom-note">Допущения: 6 мин вручную, 0.5 мин проверки auto, 5 мин на эскалацию</div>
+  <div class="bottom-note">Допущения: 1000 звонков, 3 мин на карточку, 215 ₽/час, 80% автоматизации</div>
 </section>
 
 <!-- 9 -->
 <section class="slide" data-slide="8">
   <div class="topbar">
-    <div class="brand"><img src="../static/logo.svg" alt="">CallPilot</div>
+    <div class="brand"><img src="../static/logo.svg" alt="">Call-Pilot</div>
     <div class="slide-no">РИСКИ · 09 / 10</div>
   </div>
   <div class="kicker">Риски и защита</div>
@@ -300,10 +300,10 @@
   <div class="risk-table">
     <div class="risk-row"><strong>Модель выдумывает факты</strong><span>Запрет на добавление данных, missing_fields, low confidence, few-shot</span></div>
     <div class="risk-row"><strong>Невалидный JSON</strong><span>JSON mode, Pydantic, retry при обрезке, fallback + эскалация</span></div>
-    <div class="risk-row"><strong>Ошибка в оценке лида</strong><span>Score 0–100, проверка согласованности с категорией</span></div>
-    <div class="risk-row"><strong>Персональные данные</strong><span>Синтетические кейсы, .env вне Git, маскирование в v2</span></div>
-    <div class="risk-row"><strong>Стоимость и задержка</strong><span>Дешёвая модель, лимит токенов, аудит стоимости</span></div>
-    <div class="risk-row"><strong>Человек не смотрит</strong><span>Эскалация только по риску, выборочный аудит, метрики правок</span></div>
+    <div class="risk-row"><strong>Ошибка интеграции с CRM</strong><span>Durable-outbox, повторные попытки, ORIGIN_ID</span></div>
+    <div class="risk-row"><strong>Персональные данные</strong><span>Синтетика в демо, маскирование, PII-vault, шифрование</span></div>
+    <div class="risk-row"><strong>Плохое качество аудио</strong><span>Confidence, ручная проверка, локальный STT</span></div>
+    <div class="risk-row"><strong>Недоверие операторов</strong><span>HITL, прозрачные правки, пилот на выборке</span></div>
   </div>
   <div class="bottom-note">Ключевой принцип: LLM готовит черновик, решение принимает человек</div>
 </section>
@@ -311,14 +311,14 @@
 <!-- 10 -->
 <section class="slide" data-slide="9">
   <div class="topbar">
-    <div class="brand"><img src="../static/logo.svg" alt="">CallPilot</div>
+    <div class="brand"><img src="../static/logo.svg" alt="">Call-Pilot</div>
     <div class="slide-no">ИТОГ · 10 / 10</div>
   </div>
   <div class="final">
     <img src="../static/logo.svg" alt="">
-    <h1>CallPilot</h1>
-    <p>Работающий MVP: вход → LLM → JSON → контроль качества → действие. Пилот на 100–300 звонках за 2 недели.</p>
-    <p style="font-size:17px;color:#94a3b8;margin-top:16px">v2: PostgreSQL · очередь задач · CRM и телефония · маскирование ПДн · публичный демо-стенд</p>
+    <h1>Call-Pilot</h1>
+    <p>AI пишет — оператор подтверждает — QA проверяет каждый звонок. Пилот 100–300 звонков за 2 недели.</p>
+    <p style="font-size:17px;color:#94a3b8;margin-top:16px">Bitrix24 и amoCRM готовы · PostgreSQL · on-prem · публичный демо-стенд</p>
     <div class="cta">
       <span class="pill">100% QA</span>
       <span class="pill">только исключения менеджеру</span>

@@ -1,0 +1,131 @@
+{
+  "base_url": "http://127.0.0.1:8020",
+  "total": 10,
+  "asserted": 5,
+  "asserted_matched": 5,
+  "informational": 5,
+  "need_review_expected": 5,
+  "need_review_actual": 5,
+  "cases": [
+    {
+      "id": "case_01",
+      "call_id": "api_e306dcd391",
+      "title": "Задержка доставки",
+      "expected_need_review": null,
+      "asserted": false,
+      "actual_need_review": false,
+      "review_reason": "",
+      "qa_score": 100,
+      "auto_qa_status": "auto_pass",
+      "matched": true
+    },
+    {
+      "id": "case_02",
+      "call_id": "api_eb7bde4485",
+      "title": "Возврат: ложное обещание",
+      "expected_need_review": true,
+      "asserted": true,
+      "actual_need_review": true,
+      "review_reason": "Жалоба на бракованный товар и требование возврата денег; критичное нарушение — ложные гарантии возврата в тот же день.; qa_violation; qa_score_below_threshold; negative_customer_contact",
+      "qa_score": 0,
+      "auto_qa_status": "manual_review",
+      "matched": true
+    },
+    {
+      "id": "case_03",
+      "call_id": "api_057b6d8fd4",
+      "title": "Ошибка входа 403",
+      "expected_need_review": null,
+      "asserted": false,
+      "actual_need_review": false,
+      "review_reason": "",
+      "qa_score": 95,
+      "auto_qa_status": "auto_pass",
+      "matched": true
+    },
+    {
+      "id": "case_04",
+      "call_id": "api_661453e920",
+      "title": "Двойное списание",
+      "expected_need_review": true,
+      "asserted": true,
+      "actual_need_review": true,
+      "review_reason": "Обращение по возврату средств за двойное списание требует подтверждения операции человеком.; manual_qa_review",
+      "qa_score": 85,
+      "auto_qa_status": "manual_review",
+      "matched": true
+    },
+    {
+      "id": "case_05",
+      "call_id": "api_06916477a1",
+      "title": "Консультация по возврату",
+      "expected_need_review": true,
+      "asserted": true,
+      "actual_need_review": true,
+      "review_reason": "Обращение связано с возвратом товара — требуется контроль соблюдения процедуры возврата.; manual_qa_review",
+      "qa_score": 95,
+      "auto_qa_status": "manual_review",
+      "matched": true
+    },
+    {
+      "id": "case_06",
+      "call_id": "api_563298f0a6",
+      "title": "Положительный отзыв",
+      "expected_need_review": null,
+      "asserted": false,
+      "actual_need_review": false,
+      "review_reason": "",
+      "qa_score": 95,
+      "auto_qa_status": "auto_pass",
+      "matched": true
+    },
+    {
+      "id": "case_07",
+      "call_id": "api_941a37d6ab",
+      "title": "Угроза судом",
+      "expected_need_review": true,
+      "asserted": true,
+      "actual_need_review": true,
+      "review_reason": "Жалоба с требованием возврата денег и угрозой суда и Роспотребнадзора, третий звонок — требуется вмешательство руководителя.; qa_score_below_threshold; negative_customer_contact",
+      "qa_score": 75,
+      "auto_qa_status": "manual_review",
+      "matched": true
+    },
+    {
+      "id": "case_08",
+      "call_id": "api_57150272f7",
+      "title": "Отмена заказа",
+      "expected_need_review": true,
+      "asserted": true,
+      "actual_need_review": true,
+      "review_reason": "Оформлен возврат средств по заказу 777 — требуется контроль зачисления денег клиентке.; manual_qa_review",
+      "qa_score": 95,
+      "auto_qa_status": "manual_review",
+      "matched": true
+    },
+    {
+      "id": "case_09",
+      "call_id": "api_bdb72c1733",
+      "title": "Изменение адреса",
+      "expected_need_review": null,
+      "asserted": false,
+      "actual_need_review": false,
+      "review_reason": "",
+      "qa_score": 95,
+      "auto_qa_status": "auto_pass",
+      "matched": true
+    },
+    {
+      "id": "case_10",
+      "call_id": "api_c1cadabba5",
+      "title": "Ошиблись номером",
+      "expected_need_review": null,
+      "asserted": false,
+      "actual_need_review": false,
+      "review_reason": "",
+      "qa_score": 100,
+      "auto_qa_status": "auto_pass",
+      "matched": true
+    }
+  ]
+}

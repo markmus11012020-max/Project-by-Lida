@@ -1,55 +1,62 @@
-# Чек-лист приёмки
+# Чек-лист приёмки выпускного проекта
 
-## Статус на текущий момент
+## Статус
 
-- Mock-тесты: 75 passed.
-- README без markdown: проверка проходит.
-- Live-прогон: выполнен, 30/30 валидных, 0 invalid и 0 error.
-- Автоматизация: 20 кейсов, 10 эскалаций, 66.7 процента.
-- Мини-экономика: рассчитана, экономия 66.7 процента.
-- Демо и защита: сценарии готовы, записи выполняются отдельно.
-- 60 откликов: шаблоны и трекер готовы, отправка выполняется отдельно.
+- Автотесты: 187 passed, 4 skipped.
+- README: проверка plain-text проходит.
+- Тестовый прогон: 10 кейсов, 5 asserted с `need_review=true`,
+  включая 2 critical; 5/5 asserted совпало.
+- Демо-видео: 2:25.
+- Защита: 6:34.
+- Секреты: `.env` не в Git, в репозитории только `.env.example`.
 
-## Маппинг критериев задания
+## Маппинг требований
 
-| Критерий задания | Где доказательство | Статус |
+| Требование | Где доказательство | Статус |
 |---|---|---|
-| Процесс работает на 10 тестовых входах | data/test_cases.jsonl, 30 кейсов, tests/test_cases_mock.py | live 30/30, mock 68 passed |
-| LLM выдаёт структурированный JSON | app/scenarios, app/schemas.py | готово |
-| JSON валидируется, есть эскалация | app/qc.py, tests/test_qc.py | готово |
-| Журнал обработки: вход, выход, статус | app/db.py, processing_log, GET /audit/{id} | готово |
-| Действие на выходе: БД или файл | business_results, GET /export/results.csv | готово |
-| System prompt задаёт правила | app/scenarios/support.py, sales.py, documents.py | готово |
-| Temperature выбрана осознанно | .env.example, README, температура 0.2 | готово |
-| README воспроизводит результат | README.md, scripts/check_readme.py | готово |
-| Демо 2-3 минуты | docs/DEMO.md | сценарий готов |
-| Защита 5-7 минут | docs/DEFENSE.md | сценарий готов |
-| Отчёт по практике | docs/REPORT.md | черновик готов |
-| Мини-экономика | scripts/economics.py, docs/economics.txt | рассчитана, экономия 66.7 процента |
-| 60 откликов | docs/feedback_templates.txt, docs/feedback_log.csv | шаблоны и трекер готовы |
-| CallPilot для колл-центров | call-center/, screenshot, OFFER.md, OUTREACH.md | демо, 6 звонков, QA-чек-лист, оффер готовы |
+| Ссылка на репозиторий | https://github.com/markmus11012020-max/Project-by-Lida | готово |
+| README: запуск, окружение, 3 curl | `README.md` | готово |
+| `.env.example` без секретов | `.env.example` | готово |
+| Dockerfile | `Dockerfile` | готово |
+| 10 тестовых входов | `tests_data/inputs.jsonl` | готово |
+| 2+ кейса с ручной проверкой | 5 asserted с `need_review=true`, 5/5 совпало | готово |
+| Демо-видео 2–4 минуты | `call-center/demo/callpilot-demo.mp4` | готово |
+| Защита 5–7 минут | `call-center/demo/callpilot-defense.mp4`, `docs/DEFENSE.md` | готово |
+| Отчёт по шаблону | `docs/REPORT.md` | готово |
+| API: создание | `POST /api/v1/calls` | готово |
+| API: чтение | `GET /api/v1/calls` | готово |
+| API: AI-обработка | `POST /api/v1/calls/{id}/process` | готово |
+| БД: 2–4 таблицы | `demo_calls`, `call_reviews`, `audit_runs`, `leads` | готово |
+| `audit_runs` с полями | `action`, `input_json`, `output_json`, `status`, `error`, `duration_ms`, `created_at` | готово |
+| `need_review=true` + причина | `call_reviews.need_review`, `review_reason`, API и UI | готово |
+| Веб-панель: список | `/dashboard` | готово |
+| Веб-панель: карточка | `/calls/{id}` | готово |
+| Веб-панель: аудит | `/audit` | готово |
+| Мини-экономика | `docs/economics.txt`, ROI на лендинге | готово |
+| Экспорт CSV/JSONL | `/export/results.csv`, `/export/audit.jsonl` | готово |
+| Скриншоты ключевых действий | `call-center/screenshots/` | готово |
 
 ## Команды финальной проверки
 
 ```powershell
 .venv\Scripts\python.exe -m pytest -q
 .venv\Scripts\python.exe -m scripts.check_readme
-.venv\Scripts\python.exe -m app.cli batch --strict
-.venv\Scripts\python.exe -m scripts.summarize_run
-.venv\Scripts\python.exe -m scripts.economics
+.venv\Scripts\python.exe call-center\scripts\run_tests_data.py --strict
 ```
 
 ## Что проверить перед сдачей
 
-- [x] Реальный ключ AITUNNEL вставлен в .env.
-- [x] Live-прогон 30 кейсов прошёл без invalid и error.
-- [x] Число эскалаций и автоматизации совпадает с ожиданием или объяснено.
-- [x] docs/test_run_summary.md заполнен реальными цифрами.
-- [x] docs/REPORT.md обновлён реальными цифрами.
-- [x] docs/economics.txt сгенерирован.
-- [x] README проверен после последних изменений.
-- [x] В Git нет .env, базы и ключей.
-- [x] CallPilot собран, скриншоты и оффер готовы.
-- [ ] Демо-видео записано.
-- [ ] Защита записана.
-- [ ] 60 откликов отправлены и отмечены в трекере.
+- [x] Репозиторий приватный, доступ у проверяющего есть.
+- [x] `.env` и ключи не в Git.
+- [x] README запускает проект за 10 минут.
+- [x] API создаёт звонок и возвращает `call_id`.
+- [x] AI-обработка возвращает строгий JSON.
+- [x] `need_review=true` и `review_reason` видны в API и UI.
+- [x] `audit_runs` заполняется.
+- [x] Экспорт CSV и JSONL работает.
+- [x] 10 тестовых кейсов проходят.
+- [x] Демо-видео записано.
+- [x] Защита записана.
+- [x] Отчёт заполнен.
+- [ ] Проверить ссылку на видео у проверяющего.
+- [ ] Проверить доступ к приватному репозиторию.

@@ -11,7 +11,13 @@ data
 call-center/data/*.db
 call-center/data/*.db-*
 call-center/.cache
-call-center/demo/raw
-call-center/demo/*.mp4
+call-center/demo
+call-center/data/audio
+call-center/data/queue
 call-center/screenshots
+call-center/scripts
+docs
+tests
+tests_data
+migrations
 requirements.lock.txt

@@ -1,275 +1,188 @@
-ПРОЕКТ: АВТОМАТИЗАЦИЯ БИЗНЕС-ПРОЦЕССА С LLM ОТ ВХОДА ДО ДЕЙСТВИЯ
+Call-Pilot — выпускной проект
+AI-постобработка и контроль качества звонков для колл-центров
 
-1. ЧТО ЭТО
+1. Что это
 
-MVP автоматизирует обработку входящих данных: принимает текст, отправляет его
-в LLM, получает строгий JSON, проверяет качество, при необходимости эскалирует
-случай человеку и сохраняет бизнес-результат в SQLite.
+Call-Pilot принимает звонок, расшифровывает его, собирает карточку,
+проверяет качество по 10 критериям и отдаёт менеджеру только исключения.
+AI пишет черновик, оператор подтверждает, CRM получает финальную версию.
 
-Проект сделан как учебный кейс URK071 (Zerocoder), но оформлен как небольшой
-инженерный продукт: с API, CLI, тестами, аудитом, отчётом и планом развития.
+Проект решает понятную задачу: QA слушает 2–5% звонков, оператор тратит
+3–4 минуты на постобработку, а жалобы и нарушения всплывают постфактум.
+Call-Pilot проверяет 100% звонков и сохраняет прозрачный аудит.
 
-2. ВОЗМОЖНОСТИ
+2. Быстрый запуск за 10 минут
 
-• Три сценария обработки: поддержка, продажи, документы.
-• Строгий JSON от LLM и серверная валидация через Pydantic.
-• Эскалация при низкой уверенности, нехватке критичных полей и ошибке LLM.
-• Журнал аудита: вход, сырой ответ, результат, статус, ошибка, модель, latency.
-• Бизнес-результат в SQLite и экспорт в CSV/JSONL.
-• Статистика: количество, статусы, автоматизация, стоимость, задержка.
-• CLI для одиночной обработки и пакетного прогона 30 тестовых кейсов.
-• Детерминированный черновик КП для сценария документов без выдуманных цен.
-
-3. АРХИТЕКТУРА
-
-Клиент (Swagger, curl, CLI)
-  -> FastAPI POST /ingest
-  -> Реестр сценариев support / sales / documents
-  -> Системный промпт и вход в тегах input
-  -> AITUNNEL /chat/completions, JSON-режим, temperature 0.2
-  -> Разбор JSON и Pydantic-валидация
-  -> Контроль качества и эскалация
-  -> SQLite: processing_log и business_results
-  -> Ответ: статус, бизнес-результат, метаданные
-
-4. СЦЕНАРИИ
-
-A. Поддержка
-Вход: текст обращения клиента.
-Выход: категория, резюме, приоритет, следующее действие, извлечённые поля.
-
-B. Продажи
-Вход: текст лида или заявки.
-Выход: категория hot/warm/cold/spam, score 0-100, следующий шаг, поля.
-
-C. Документы
-Вход: текст ТЗ, брифа или договора.
-Выход: извлечённые поля и черновик КП по шаблону, без выдуманных цен.
-
-D. CallPilot: QA звонков
-Вход: транскрипт звонка.
-Выход: карточка, QA-чек-лист из 10 критериев, auto_pass или manual_review.
-Адресное приложение для колл-центров находится в папке call-center.
-Запуск: call-center\start.bat, интерфейс: http://127.0.0.1:8020
-
-5. ТРЕБОВАНИЯ
-
-• Python 3.10 или новее, проверено на Python 3.12.10.
-• Windows, Linux или macOS.
-• Ключ AITUNNEL и баланс для live-прогона.
-• SQLite входит в стандартную библиотеку Python.
-
-6. УСТАНОВКА
-
-Шаг 1. Создать виртуальное окружение.
-
-python -m venv .venv
-
-Шаг 2. Установить зависимости.
+2.1. Создайте окружение и установите зависимости.
 
 Windows PowerShell:
-.venv\Scripts\python.exe -m pip install -r requirements.txt
+
+    python -m venv .venv
+    .venv\Scripts\python.exe -m pip install -r requirements.txt
 
 Linux или macOS:
-.venv/bin/python -m pip install -r requirements.txt
 
-Полный набор зафиксированных версий находится в requirements.lock.txt.
+    python3 -m venv .venv
+    .venv/bin/python -m pip install -r requirements.txt
 
-Шаг 3. Создать локальный файл .env.
+2.2. Создайте .env из .env.example.
 
-Windows PowerShell:
-Copy-Item .env.example .env
+Windows:
 
-Linux или macOS:
-cp .env.example .env
-
-7. НАСТРОЙКА .ENV
-
-Файл .env создаётся как копия .env.example и не коммитится в Git.
-
-AITUNNEL_API_KEY=sk-your-key-here
-AITUNNEL_BASE_URL=https://api.aitunnel.ru/v1/
-AITUNNEL_MODEL=gpt-4o-mini
-AITUNNEL_TEMPERATURE=0.2
-AITUNNEL_MAX_TOKENS=2500
-AITUNNEL_TIMEOUT=60
-DATABASE_PATH=data/app.db
-LOG_LEVEL=INFO
-DEBUG=false
-
-Вставьте реальный ключ вместо sk-your-key-here. Модель можно заменить без
-изменения кода: gpt-4.1-mini даёт более сильное следование инструкциям,
-deepseek-v4-flash дешевле. В текущей локальной конфигурации используется
-deepseek/deepseek-v4.1-flash-1017; значение по умолчанию в .env.example —
-gpt-4o-mini.
-
-Проверить ключ и модель:
-
-.venv\Scripts\python.exe -m scripts.smoke_llm
-
-8. ЗАПУСК API
-
-Быстрый запуск на Windows: дважды щёлкните start.bat или выполните в консоли:
-
-start.bat
-
-Скрипт останавливает старый uvicorn на порту 8030, очищает кэш Python,
-создаёт .venv при необходимости, ставит зависимости, создаёт .env из
-.env.example, если файла нет, и запускает новый сервер.
-База данных и результаты не удаляются.
-
-Ручной запуск, Windows PowerShell:
-.venv\Scripts\python.exe -m uvicorn app.main:app --host 127.0.0.1 --port 8030 --reload
+    copy .env.example .env
 
 Linux или macOS:
-.venv/bin/python -m uvicorn app.main:app --host 127.0.0.1 --port 8030 --reload
 
-После запуска откройте:
+    cp .env.example .env
 
-http://127.0.0.1:8030/docs
-http://127.0.0.1:8030/health
+Укажите AITUNNEL_API_KEY. Остальные значения можно оставить по умолчанию.
+Для локального запуска DEMO_MODE=false, чтобы работали API-создание и обработка.
 
-9. API
+2.3. Запустите приложение из папки call-center.
 
-POST /ingest — обработка входа.
-GET /scenarios — список сценариев и схем.
-GET /results — список результатов, фильтры scenario, status, limit, offset.
-GET /results/{request_id} — результат по ID.
-GET /audit/{request_id} — журнал обработки, сырой ответ при include_raw=true.
-GET /stats — статистика.
-GET /health — статус приложения, БД и LLM-конфига.
-GET /export/results.csv — экспорт результатов.
-GET /export/audit.jsonl — экспорт журнала.
+Windows:
 
-Пример запроса через PowerShell:
+    cd call-center
+    ..\.venv\Scripts\python.exe -m uvicorn call_center_app:app --host 127.0.0.1 --port 8020
 
-Invoke-RestMethod -Method Post -Uri http://127.0.0.1:8030/ingest -ContentType "application/json" -Body '{"scenario":"support","text":"Оплатил заказ №12345, доставки нет. Анна, +7 900 123-45-67."}'
+Linux или macOS:
 
-Пример запроса через curl:
+    cd call-center
+    ../.venv/bin/python -m uvicorn call_center_app:app --host 127.0.0.1 --port 8020
 
-curl -X POST http://127.0.0.1:8030/ingest -H "Content-Type: application/json" -d "{\"scenario\":\"support\",\"text\":\"Оплатил заказ №12345, доставки нет. Анна, +7 900 123-45-67.\"}"
+Откройте:
 
-Ответ содержит request_id, scenario, status, result, meta и error.
-HTTP 200 означает, что запрос обработан; итог смотрите в поле status.
-HTTP 422 возвращается только при неверном теле запроса.
+    http://127.0.0.1:8020/            лендинг
+    http://127.0.0.1:8020/dashboard   обзор звонков
+    http://127.0.0.1:8020/qa          QA-аналитика
+    http://127.0.0.1:8020/audit       журнал аудита
 
-10. КОНТРОЛЬ КАЧЕСТВА
+3. Docker
 
-Правила применяются после Pydantic-валидации:
+    docker build -t callpilot .
+    docker run --rm -p 8020:8020 --env-file .env callpilot
 
-• confidence=low — принудительная эскалация.
-• Нет критичных полей — принудительная эскалация.
-• Модель сама поставила escalate=true — решение уважается.
-• Score не совпадает с категорией лида — эскалация.
-• Пустые summary или next_action — эскалация.
-• Невалидный JSON — статус invalid и fallback-результат.
-• Ответ обрезан по max_tokens — повтор с удвоенным лимитом; если снова обрезан — error.
-• Ошибка LLM или API — статус error и fallback-результат.
-• Чистый спам в продажах отклоняется без эскалации.
+Dockerfile запускает именно веб-панель Call-Pilot на порту 8020.
+Для сохранения SQLite между перезапусками подключите volume на
+/app/call-center/data.
 
-Статусы: processed, escalated, invalid, error.
-При любом статусе клиент получает бизнес-результат. Для invalid и error
-это fallback с действием Передать оператору для ручной обработки.
+4. Три точки API
 
-11. ЖУРНАЛ И ДЕЙСТВИЕ
+4.1. Создать звонок.
 
-Таблица processing_log хранит вход, хеш входа, сырой ответ LLM, результат,
-статус, ошибку, модель, температуру, latency, usage и metadata.
+    curl -X POST http://127.0.0.1:8020/api/v1/calls ^
+      -H "Content-Type: application/json" ^
+      -d "{\"title\":\"Тестовый звонок\",\"transcript\":\"Оператор: Здравствуйте, компания Ромашка. Клиент: Не пришла доставка заказа 12345. Оператор: Проверю статус и перезвоню.\",\"client\":\"Анна\",\"operator\":\"Дмитрий\"}"
 
-Таблица business_results хранит бизнес-результат: категорию, приоритет,
-резюме, следующее действие, поля, confidence и признак эскалации.
+Ответ содержит call_id. Это точка создания сущности в базе.
 
-Действие на выходе: запись в business_results и экспорт CSV/JSONL.
-Сырой ответ LLM доступен через /audit/{request_id} при include_raw=true
-или при DEBUG=true.
+4.2. Получить список звонков.
 
-12. ТЕСТЫ
+    curl "http://127.0.0.1:8020/api/v1/calls?source=api"
 
-Все тесты используют fake LLM и не тратят деньги:
+Каждый элемент содержит need_review, review_reason, qa_score и статус.
 
-.venv\Scripts\python.exe -m pytest -q
+4.3. Запустить AI-обработку.
 
-Проверяются схемы, контроль качества, эскалация, API, база, экспорт и формат
-README. Сейчас в наборе 75 тестов, все проходят. Live-прогон запускается
-отдельно через CLI и требует реального ключа AITUNNEL.
+    curl -X POST http://127.0.0.1:8020/api/v1/calls/api_XXXXXXXXXX/process
 
-13. ТЕСТОВЫЕ ВХОДЫ
+API предназначен для локального теста и пилота. Не отправляйте в него
+реальные персональные данные без согласия и настройки хранения.
 
-Файл data/test_cases.jsonl содержит 30 кейсов: по 10 на каждый сценарий.
-Среди них есть явные кейсы, нехватка данных, спам, длинная жалоба и попытки
-prompt injection.
+Вместо api_XXXXXXXXXX подставьте call_id из первого ответа.
+Ответ содержит строгий JSON карточки, qa_score, need_review и review_reason.
 
-Пакетный прогон с реальным LLM:
+Дополнительно:
 
-.venv\Scripts\python.exe -m app.cli batch --strict
+    curl "http://127.0.0.1:8020/api/v1/calls/api_XXXXXXXXXX"
+    curl "http://127.0.0.1:8020/api/v1/audit?limit=20"
+    curl -o results.csv http://127.0.0.1:8020/export/results.csv
+    curl -o audit.jsonl http://127.0.0.1:8020/export/audit.jsonl
 
-Результаты сохраняются в data/test_run.json и data/test_run.csv.
-Тестовая база: data/test_run.db.
+5. Ручная проверка
 
-Сводка по прогону в docs/test_run_summary.md:
+После AI-обработки сервис выставляет need_review=true, если:
 
-.venv\Scripts\python.exe -m scripts.summarize_run
+1. Есть critical или high нарушение.
+2. QA-score ниже 85.
+3. Клиент негативен, а тема — жалоба или возврат.
+4. Модель не уверена или просит эскалацию.
+5. В ответе нет критичных полей.
 
-14. РЕЗУЛЬТАТЫ
+В этом случае review_reason объясняет причину, а звонок попадает в
+очередь ручной проверки. Оператор открывает карточку, слушает аудио,
+исправляет поля и подтверждает финальную версию. Только после этого
+результат уходит в CRM.
 
-Live-прогон на AITUNNEL выполнен на модели deepseek/deepseek-v4.1-flash-1017.
-Результат: 30 валидных бизнес-результатов, 0 invalid и 0 error,
-20 обработано автоматически, 10 эскалировано, 66.7 процента автоматизации.
-Средняя задержка 3397 мс, стоимость 2.04 рубля. Подробная сводка:
-docs/test_run_summary.md.
+6. Данные и аудит
 
-15. ПРОВЕРКА README
+SQLite: call-center/data/call_center.db
 
-README намеренно написан без markdown-разметки. Проверка:
+Основные таблицы:
 
-.venv\Scripts\python.exe -m scripts.check_readme
+    demo_calls       звонки, транскрипт, источник, аудио
+    call_reviews     статус проверки, need_review, review_reason, правки
+    audit_runs       action, input, output, status, error, duration_ms, created_at
+    leads            заявки с лендинга
 
-Скрипт ищет заголовки, жирный текст, код, ссылки, таблицы и списки markdown.
-После каждого изменения проекта README проверяется заново.
+Дополнительно движок ведёт processing_log и business_results.
+Аудио демо лежит в call-center/static/audio. Реальные записи — в
+call-center/data/audio в зашифрованном виде.
 
-16. ОГРАНИЧЕНИЯ
+Журнал аудита доступен на /audit и через /api/v1/audit.
+Экспорт: /export/results.csv и /export/audit.jsonl.
 
-• Один вход и одно действие на выходе: API и SQLite.
-• Нет авторизации и мультитенантности.
-• Нет интеграций с CRM и почтой.
-• SQLite подходит для MVP, но не для высокой конкурентной нагрузки.
-• Вход и результат хранятся локально; для реальных персональных данных нужны
-  маскирование, шифрование, срок хранения и соблюдение 152-ФЗ.
-• Модель может ошибаться; поэтому есть валидация, эскалация и аудит.
+7. Тестовые данные
 
-17. ПЛАН V2
+Файл: tests_data/inputs.jsonl
 
-• PostgreSQL и очередь задач для горизонтального масштабирования.
-• JSON Schema в response_format для моделей, которые её поддерживают.
-• Repair-попытка при невалидном JSON перед эскалацией.
-• Маскирование персональных данных до отправки в LLM.
-• Интеграции с CRM и почтой.
-• Веб-интерфейс для оператора.
-• A/B-сравнение моделей и промптов на одном наборе кейсов.
+10 кейсов, из них 5 asserted с need_review=true, включая 2 critical;
+остальные 5 информационные. Результат последнего прогона: 5/5 asserted.
+Запуск при работающем приложении:
 
-18. ДОКУМЕНТАЦИЯ
+    .venv\Scripts\python.exe call-center\scripts\run_tests_data.py --strict
 
-docs/TZ.md — техническое задание по шаблону.
-docs/REPORT.md — отчёт по практике.
-docs/DEFENSE.md — сценарий защиты на 5-7 минут.
-docs/DEMO.md — сценарий демо на 2-3 минуты.
-docs/ACCEPTANCE.md — чек-лист приёмки.
-docs/test_run_summary.md — результаты live-прогона.
-docs/economics.txt — мини-экономика.
-docs/feedback_templates.txt — шаблоны откликов.
-docs/feedback_log.csv — трекер 60 откликов.
-docs/portfolio.txt — упаковка кейса в портфолио.
-docs/architecture.mmd — схема архитектуры.
-docs/reference/Тех Задание_Шаблон .txt — исходный шаблон технического задания.
-start.bat — быстрый запуск на Windows.
-scripts/stop_server.ps1 — остановка старого uvicorn перед запуском.
-call-center/README.md — приложение CallPilot для колл-центров.
-call-center/DESIGN_SYSTEM.md — дизайн-система и настройки CallPilot.
-call-center/OFFER.md — адресное коммерческое предложение.
-call-center/OUTREACH.md — шаблоны точечной рассылки.
-call-center/screenshots/ — скриншоты CallPilot.
+Скрипт создаёт звонки через API, запускает обработку, сравнивает
+ожидаемый и фактический need_review и пишет tests_data/last_run.json.
+Сводка последнего прогона: docs/test_run_summary.md.
 
-19. АВТОР И СРОКИ
+8. Веб-панель
 
-Учебный проект, день 8 из 14, 14-20 ноября 2026.
+Минимум три экрана:
+
+    /dashboard   список звонков, KPI, очередь ручной проверки
+    /calls/{id}  карточка: аудио, транскрипт, QA, HITL-подтверждение
+    /qa          QA-аналитика: покрытие, auto-pass, нарушения
+    /audit       журнал действий и ошибок
+
+9. Демо и защита
+
+Демо-видео: call-center/demo/callpilot-demo.mp4, 2 минуты 25 секунд.
+Защита: call-center/demo/callpilot-defense.mp4, 6 минут 34 секунды.
+Видео не коммитятся в Git; приложите файлы к сдаче отдельно.
+Сценарий защиты: docs/DEFENSE.md.
+Отчёт по шаблону: docs/REPORT.md.
+Экономика: docs/economics.txt и блок ROI на лендинге.
+
+10. Проверки
+
+    .venv\Scripts\python.exe -m pytest -q
+    .venv\Scripts\python.exe -m scripts.check_readme
+
+11. Ограничения
+
+Публичный демо-стенд работает на DEMO_MODE=true: создание звонков и
+AI-обработка через API отключены, чтобы не принимать реальные данные
+и не тратить LLM-бюджет. Локально DEMO_MODE=false.
+
+Проект не заменяет оператора: AI готовит черновик, решение принимает
+человек. Реальные записи требуют согласия, маскирования ПДн и настройки
+хранения по 152-ФЗ.
+
+12. Ссылки
+
 Репозиторий: https://github.com/markmus11012020-max/Project-by-Lida
+Публичный демо: https://call-pilot.ru
+Кейс «до/после»: https://call-pilot.ru/case
+Политика ПДн: https://call-pilot.ru/privacy
+Контакт: aillix@mail.ru, +7 962 609-00-01

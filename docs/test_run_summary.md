@@ -1,60 +1,25 @@
-# Результаты live-прогона
+# Результаты тестового прогона Call-Pilot
 
-Модель: deepseek/deepseek-v4.1-flash-1017
-Всего кейсов: 30
-Валидный бизнес-результат: 30
-Обработано автоматически: 20
-Эскалировано: 10
-Невалидный JSON: 0
-Ошибок LLM/API: 0
-Совпадение с ожидаемым статусом: 30/30
-Средняя задержка: 3397 мс
-Суммарная стоимость: 2.0400 ₽
-Уровень автоматизации: 66.7%
+Всего кейсов: 10
+Asserted: 5, совпало: 5
+Информационных: 5
+need_review ожидалось: 5, получено: 5
 
-## Разбивка по сценариям
+| ID | Кейс | QA | auto_qa_status | need_review | asserted | результат |
+|---|---|---:|---|---|---|---|
+| case_01 | Задержка доставки | 100 | auto_pass | нет | — | OK |
+| case_02 | Возврат: ложное обещание | 0 | manual_review | да | да | OK |
+| case_03 | Ошибка входа 403 | 95 | auto_pass | нет | — | OK |
+| case_04 | Двойное списание | 85 | manual_review | да | да | OK |
+| case_05 | Консультация по возврату | 95 | manual_review | да | да | OK |
+| case_06 | Положительный отзыв | 95 | auto_pass | нет | — | OK |
+| case_07 | Угроза судом | 75 | manual_review | да | да | OK |
+| case_08 | Отмена заказа | 95 | manual_review | да | да | OK |
+| case_09 | Изменение адреса | 95 | auto_pass | нет | — | OK |
+| case_10 | Ошиблись номером | 100 | auto_pass | нет | — | OK |
 
-| Сценарий | Кейсов | processed | escalated | invalid | error |
-|---|---|---|---|---|---|
-| support | 10 | 6 | 4 | 0 | 0 |
-| sales | 10 | 7 | 3 | 0 | 0 |
-| documents | 10 | 7 | 3 | 0 | 0 |
+Asserted-кейсы — это 5 сценариев, где ручная проверка обязательна:
+2 critical (ложное обещание возврата, угроза судом) и 3 возврата/списания.
+Остальные 5 кейсов информационные: модель может пройти их автоматически.
 
-## Кейсы
-
-| Кейс | Ожидание | Факт | OK | Confidence | Причина |
-|---|---|---|---|---|---|
-| support_01 | processed | processed | да | high | - |
-| support_02 | processed | processed | да | high | - |
-| support_03 | processed | processed | да | high | - |
-| support_04 | processed | processed | да | high | - |
-| support_05 | escalated | escalated | да | high | жалоба на курьера требует проверки человеком |
-| support_06 | processed | processed | да | high | - |
-| support_07 | escalated | escalated | да | medium | missing_contact; missing_critical_fields |
-| support_08 | escalated | escalated | да | low | insufficient_data; low_confidence; missing_critical_fields |
-| support_09 | escalated | escalated | да | low | prompt_injection_suspected; low_confidence |
-| support_10 | - | processed | да | high | - |
-| sales_01 | processed | processed | да | high | - |
-| sales_02 | processed | processed | да | medium | - |
-| sales_03 | processed | processed | да | medium | - |
-| sales_04 | processed | processed | да | high | - |
-| sales_05 | processed | processed | да | high | - |
-| sales_06 | processed | processed | да | high | - |
-| sales_07 | escalated | escalated | да | low | insufficient_data; low_confidence; missing_critical_fields |
-| sales_08 | escalated | escalated | да | low | insufficient_data; low_confidence; missing_critical_fields |
-| sales_09 | escalated | escalated | да | low | prompt_injection_suspected; low_confidence |
-| sales_10 | processed | processed | да | high | - |
-| documents_01 | processed | processed | да | high | - |
-| documents_02 | processed | processed | да | high | - |
-| documents_03 | processed | processed | да | high | - |
-| documents_04 | processed | processed | да | high | - |
-| documents_05 | processed | processed | да | high | - |
-| documents_06 | processed | processed | да | high | - |
-| documents_07 | escalated | escalated | да | low | insufficient_data; low_confidence; missing_critical_fields |
-| documents_08 | escalated | escalated | да | low | insufficient_data; low_confidence; missing_critical_fields |
-| documents_09 | escalated | escalated | да | low | prompt_injection_suspected; low_confidence |
-| documents_10 | processed | processed | да | high | - |
-
-## Выводы
-
-Все кейсы дали валидный бизнес-результат и совпали с ожидаемым статусом. Промпты и правила эскалации работают стабильно.
+Команда: `.venv\Scripts\python.exe call-center\scripts\run_tests_data.py --strict`

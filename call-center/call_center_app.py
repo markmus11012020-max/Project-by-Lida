@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import csv
+import io
 import json
 import os
 import shutil
@@ -29,7 +31,7 @@ from fastapi.responses import (
 )
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from pydantic import BaseModel, ValidationError
+from pydantic import BaseModel, Field, ValidationError
 
 CALL_CENTER_DIR = Path(__file__).resolve().parent
 PROJECT_ROOT = CALL_CENTER_DIR.parent
@@ -197,6 +199,31 @@ class RejectPayload(BaseModel):
     reason: str = ""
 
 
+class CreateCallPayload(BaseModel):
+    title: str = Field(default="Звонок из API", max_length=200)
+    transcript: str = Field(min_length=1, max_length=20000)
+    client: str = Field(default="Клиент", max_length=120)
+    operator: str = Field(default="Оператор", max_length=120)
+    external_id: str | None = Field(default=None, max_length=120)
+
+
+def _api_call_summary(call: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "call_id": call["id"],
+        "title": call["title"],
+        "client": call["client"],
+        "operator": call["operator"],
+        "source": call["source"],
+        "created_at": call.get("created_at"),
+        "status": call["review_status"],
+        "need_review": bool(call.get("need_review")),
+        "review_reason": call.get("review_reason") or "",
+        "qa_score": call.get("qa_score"),
+        "intent": call.get("intent"),
+        "auto_qa_status": call.get("auto_qa_status"),
+    }
+
+
 @app.get("/", response_class=HTMLResponse)
 def landing(request: Request):
     metrics = store.metrics()
@@ -222,6 +249,184 @@ def privacy_page(request: Request):
         request=request,
         name="privacy.html",
         context={},
+    )
+
+
+@app.post("/api/v1/calls", status_code=201)
+def api_create_call(payload: CreateCallPayload):
+    if settings.demo_mode:
+        raise HTTPException(
+            status_code=403,
+            detail="Создание звонков через API отключено в публичном демо",
+        )
+    try:
+        call_id = store.create_call(
+            title=payload.title,
+            transcript=payload.transcript,
+            client=payload.client,
+            operator=payload.operator,
+            external_id=payload.external_id,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    call = store.get_call(call_id)
+    if call is None:
+        raise HTTPException(status_code=500, detail="Звонок не создан")
+    return {"ok": True, **_api_call_summary(call)}
+
+
+@app.get("/api/v1/calls")
+def api_list_calls(
+    status: str = "all",
+    source: str = "all",
+    need_review: bool | None = None,
+    limit: int = 50,
+    offset: int = 0,
+):
+    calls = store.list_calls(source=source)
+    if status != "all":
+        calls = [call for call in calls if call["review_status"] == status]
+    if need_review is not None:
+        calls = [
+            call
+            for call in calls
+            if bool(call.get("need_review")) is need_review
+        ]
+    total = len(calls)
+    page = calls[max(0, offset): max(0, offset) + max(1, min(limit, 200))]
+    return {
+        "items": [_api_call_summary(call) for call in page],
+        "total": total,
+        "limit": limit,
+        "offset": offset,
+    }
+
+
+@app.get("/api/v1/calls/{call_id}")
+def api_get_call(call_id: str):
+    call = store.get_call(call_id)
+    if call is None:
+        raise HTTPException(status_code=404, detail="Звонок не найден")
+    return {
+        **_api_call_summary(call),
+        "transcript": call.get("transcript"),
+        "segments": call.get("segments", []),
+        "audio_url": call.get("audio_url"),
+        "result": call.get("result"),
+        "review": {
+            "status": call.get("review_status"),
+            "reviewer": call.get("reviewer"),
+            "reason": call.get("review_reason"),
+            "changes": call.get("changes"),
+        },
+    }
+
+
+@app.post("/api/v1/calls/{call_id}/process")
+def api_process_call(call_id: str):
+    if settings.demo_mode:
+        raise HTTPException(
+            status_code=403,
+            detail="AI-обработка через API отключена в публичном демо",
+        )
+    try:
+        response = store.process_call(call_id)
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="Звонок не найден") from exc
+    except Exception as exc:  # noqa: BLE001 - return a clear API error
+        raise HTTPException(
+            status_code=502,
+            detail=f"Ошибка AI-обработки: {exc}",
+        ) from exc
+    call = store.get_call(call_id) or {}
+    return {
+        "ok": True,
+        "call_id": call_id,
+        "request_id": response.request_id,
+        "status": response.status.value,
+        "need_review": bool(call.get("need_review")),
+        "review_reason": call.get("review_reason") or "",
+        "result": response.result,
+        "meta": response.meta.model_dump(mode="json"),
+    }
+
+
+@app.get("/api/v1/audit")
+def api_audit(limit: int = 100, call_id: str | None = None):
+    return {
+        "items": store.list_audit(
+            limit=max(1, min(limit, 500)),
+            call_id=call_id,
+        )
+    }
+
+
+@app.get("/audit", response_class=HTMLResponse)
+def audit_page(request: Request):
+    return templates.TemplateResponse(
+        request=request,
+        name="audit.html",
+        context={
+            "runs": store.list_audit(limit=200),
+            "role": request.query_params.get("role", "manager"),
+        },
+    )
+
+
+@app.get("/export/results.csv")
+def export_results_csv():
+    calls = store.list_calls()
+    buffer = io.StringIO()
+    buffer.write("\ufeff")
+    writer = csv.writer(buffer, lineterminator="\n")
+    writer.writerow(
+        [
+            "call_id",
+            "title",
+            "source",
+            "status",
+            "need_review",
+            "review_reason",
+            "qa_score",
+            "intent",
+            "created_at",
+        ]
+    )
+    for call in calls:
+        writer.writerow(
+            [
+                call.get("id"),
+                call.get("title"),
+                call.get("source"),
+                call.get("review_status"),
+                1 if call.get("need_review") else 0,
+                call.get("review_reason") or "",
+                call.get("qa_score"),
+                call.get("intent"),
+                call.get("created_at"),
+            ]
+        )
+    return Response(
+        content=buffer.getvalue(),
+        media_type="text/csv; charset=utf-8",
+        headers={
+            "Content-Disposition": 'attachment; filename="callpilot-results.csv"'
+        },
+    )
+
+
+@app.get("/export/audit.jsonl")
+def export_audit_jsonl():
+    lines = [
+        json.dumps(item, ensure_ascii=False)
+        for item in store.list_audit(limit=500)
+    ]
+    return Response(
+        content="\n".join(lines) + ("\n" if lines else ""),
+        media_type="application/x-ndjson; charset=utf-8",
+        headers={
+            "Content-Disposition": 'attachment; filename="callpilot-audit.jsonl"'
+        },
     )
 
 

@@ -39,7 +39,7 @@
   <article class="kpi-card kpi-amber">
     <div class="kpi-label">Ручная проверка</div>
     <div class="kpi-value">{{ metrics.manual_review }}</div>
-    <div class="kpi-note">{{ metrics.manual_review_rate|round(0)|int }}% у менеджера</div>
+    <div class="kpi-note">{{ metrics.need_review }} ждут проверки</div>
   </article>
   <article class="kpi-card">
     <div class="kpi-label">Средний QA-score</div>
@@ -181,6 +181,7 @@
             {% endif %}
           </td>
           <td>
+            {% if call.need_review %}<span class="badge badge-amber">need_review</span>{% endif %}
             {% if call.review_status == 'confirmed' %}
               <span class="muted small">{{ call.reviewer or 'Менеджер' }}</span>
             {% elif call.review_status == 'rejected' %}

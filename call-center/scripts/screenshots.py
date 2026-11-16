@@ -83,6 +83,7 @@ def main() -> int:
                 ("dashboard.png", "/dashboard", True),
                 ("call_detail.png", "/calls/call_02", True),
                 ("qa.png", "/qa", True),
+                ("audit.png", "/audit", True),
                 ("offer.png", "/offer", True),
                 ("privacy.png", "/privacy", True),
             ]

@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import json
 import sys
+import time
 import uuid
 from collections import Counter
 from contextlib import closing
@@ -62,8 +63,25 @@ CREATE TABLE IF NOT EXISTS call_reviews (
     final_json TEXT,
     changes_json TEXT,
     reason TEXT,
+    need_review INTEGER NOT NULL DEFAULT 0,
+    review_reason TEXT,
     updated_at TEXT NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS audit_runs (
+    id TEXT PRIMARY KEY,
+    call_id TEXT,
+    action TEXT NOT NULL,
+    input_json TEXT,
+    output_json TEXT,
+    status TEXT NOT NULL,
+    error TEXT,
+    duration_ms INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_audit_call ON audit_runs(call_id);
+CREATE INDEX IF NOT EXISTS idx_audit_created ON audit_runs(created_at);
 
 CREATE TABLE IF NOT EXISTS leads (
     id TEXT PRIMARY KEY,
@@ -234,6 +252,16 @@ class CallStore:
                 connection.execute(
                     f"ALTER TABLE demo_calls ADD COLUMN {name} {definition}"
                 )
+        review_columns = {
+            "need_review": "INTEGER NOT NULL DEFAULT 0",
+            "review_reason": "TEXT",
+        }
+        existing_review = connection.columns("call_reviews")
+        for name, definition in review_columns.items():
+            if name not in existing_review:
+                connection.execute(
+                    f"ALTER TABLE call_reviews ADD COLUMN {name} {definition}"
+                )
         connection.execute(
             """
             CREATE INDEX IF NOT EXISTS idx_demo_calls_external
@@ -303,13 +331,21 @@ class CallStore:
                 "created_at": meta.get("created_at", utc_now()),
             }
             self.core_db.save(log, result)
+            need_review = 1 if (
+                result.get("escalate")
+                or result.get("auto_qa_status") == "manual_review"
+            ) else 0
+            review_reason = result.get("escalate_reason") or (
+                "manual_review" if need_review else None
+            )
             with closing(self._connect()) as connection, connection:
                 connection.execute(
                     """
                     INSERT INTO call_reviews
                     (call_id, request_id, status, reviewer, final_json,
-                     changes_json, reason, updated_at)
-                    VALUES (?, ?, 'pending', NULL, NULL, NULL, NULL, ?)
+                     changes_json, reason, need_review, review_reason,
+                     updated_at)
+                    VALUES (?, ?, 'pending', NULL, NULL, NULL, NULL, ?, ?, ?)
                     ON CONFLICT(call_id) DO UPDATE SET
                         request_id = excluded.request_id,
                         status = 'pending',
@@ -317,9 +353,17 @@ class CallStore:
                         final_json = NULL,
                         changes_json = NULL,
                         reason = NULL,
+                        need_review = excluded.need_review,
+                        review_reason = excluded.review_reason,
                         updated_at = excluded.updated_at
                     """,
-                    (call_id, request_id, utc_now()),
+                    (
+                        call_id,
+                        request_id,
+                        need_review,
+                        review_reason,
+                        utc_now(),
+                    ),
                 )
 
     def _audio_manifest(self) -> dict[str, Any]:
@@ -380,8 +424,23 @@ class CallStore:
                 if audio_file and audio_path.exists()
                 else None
             )
+        result_data = display or {}
+        need_review = bool(row["need_review"])
+        if (
+            not need_review
+            and review_status == "pending"
+            and result_data.get("auto_qa_status") == "manual_review"
+        ):
+            need_review = True
+        review_reason = (
+            row["review_reason"]
+            or row["reason"]
+            or result_data.get("escalate_reason")
+            or ""
+        )
         return {
             "id": row["id"],
+            "created_at": row["call_created_at"],
             "title": row["title"],
             "client": row["client"],
             "operator": row["operator"],
@@ -403,7 +462,8 @@ class CallStore:
             "waiting_minutes": waiting_minutes,
             "review_status": review_status,
             "reviewer": row["reviewer"],
-            "review_reason": row["reason"],
+            "need_review": need_review,
+            "review_reason": review_reason,
             "review_updated_at": row["updated_at"],
             "request_id": row["request_id"],
             "draft_result": draft,
@@ -430,7 +490,8 @@ class CallStore:
                c.source, c.external_id, c.duration_ms, c.audio_mime,
                c.audio_deleted_at, c.created_at AS call_created_at,
                r.request_id, r.status AS review_status, r.reviewer, r.final_json,
-               r.changes_json, r.reason, r.updated_at,
+               r.changes_json, r.reason, r.need_review, r.review_reason,
+               r.updated_at,
                b.result_json, b.status AS processing_status,
                l.model, l.temperature, l.latency_ms, l.usage_json,
                l.created_at, l.error
@@ -556,6 +617,157 @@ class CallStore:
         segments = _json_loads(row["transcript_json"], [])
         return demo_transcript_text({"segments": segments})
 
+    def log_audit(
+        self,
+        action: str,
+        *,
+        call_id: str | None = None,
+        input_data: Any = None,
+        output_data: Any = None,
+        status: str = "ok",
+        error: str | None = None,
+        duration_ms: int = 0,
+    ) -> str:
+        def dump(value: Any) -> str | None:
+            if value is None:
+                return None
+            if isinstance(value, str):
+                return value[:8000]
+            try:
+                return json.dumps(value, ensure_ascii=False)[:8000]
+            except TypeError:
+                return str(value)[:8000]
+
+        audit_id = f"audit_{uuid.uuid4().hex[:12]}"
+        with closing(self._connect()) as connection, connection:
+            connection.execute(
+                """
+                INSERT INTO audit_runs (
+                    id, call_id, action, input_json, output_json, status,
+                    error, duration_ms, created_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    audit_id,
+                    call_id,
+                    action,
+                    dump(input_data),
+                    dump(output_data),
+                    status,
+                    (error or "")[:2000] or None,
+                    int(duration_ms),
+                    utc_now(),
+                ),
+            )
+        return audit_id
+
+    def list_audit(
+        self,
+        limit: int = 100,
+        call_id: str | None = None,
+    ) -> list[dict[str, Any]]:
+        query = "SELECT * FROM audit_runs"
+        params: list[Any] = []
+        if call_id:
+            query += " WHERE call_id = ?"
+            params.append(call_id)
+        query += " ORDER BY created_at DESC LIMIT ?"
+        params.append(max(1, min(limit, 500)))
+        with closing(self._connect()) as connection:
+            rows = connection.execute(query, params).fetchall()
+        return [
+            {
+                "id": row["id"],
+                "call_id": row["call_id"],
+                "action": row["action"],
+                "input": _json_loads(row["input_json"], row["input_json"]),
+                "output": _json_loads(row["output_json"], row["output_json"]),
+                "status": row["status"],
+                "error": row["error"],
+                "duration_ms": row["duration_ms"],
+                "created_at": row["created_at"],
+            }
+            for row in rows
+        ]
+
+    def create_call(
+        self,
+        *,
+        title: str,
+        transcript: str,
+        client: str = "Клиент",
+        operator: str = "Оператор",
+        source: str = "api",
+        external_id: str | None = None,
+    ) -> str:
+        """Create a call from a text transcript for the JSON API."""
+
+        started = time.perf_counter()
+        text = (transcript or "").strip()
+        if not text:
+            raise ValueError("transcript is required")
+        call_id = f"api_{uuid.uuid4().hex[:10]}"
+        lines = [line.strip() for line in text.splitlines() if line.strip()]
+        segments: list[dict[str, Any]] = []
+        for index, line in enumerate(lines, start=1):
+            speaker = "Оператор" if line.lower().startswith("оператор") else "Клиент"
+            if ":" in line:
+                prefix, rest = line.split(":", 1)
+                if prefix.strip().lower() in {"оператор", "клиент"}:
+                    line = rest.strip()
+            segments.append(
+                {
+                    "id": f"s{index}",
+                    "speaker": speaker,
+                    "text": line,
+                }
+            )
+        if not segments:
+            segments = [{"id": "s1", "speaker": "Клиент", "text": text}]
+        with closing(self._connect()) as connection, connection:
+            connection.execute(
+                """
+                INSERT INTO demo_calls (
+                    id, title, client, operator, transcript_json, audio_file,
+                    created_at, source, external_id, duration_ms
+                ) VALUES (?, ?, ?, ?, ?, NULL, ?, ?, ?, 0)
+                """,
+                (
+                    call_id,
+                    (title or "Звонок из API")[:200],
+                    (client or "Клиент")[:120],
+                    (operator or "Оператор")[:120],
+                    json.dumps(segments, ensure_ascii=False),
+                    utc_now(),
+                    source,
+                    external_id,
+                ),
+            )
+            connection.execute(
+                """
+                INSERT INTO call_reviews
+                (call_id, request_id, status, reviewer, final_json,
+                 changes_json, reason, need_review, review_reason, updated_at)
+                VALUES (?, NULL, 'new', NULL, NULL, NULL, NULL, 0, NULL, ?)
+                """,
+                (call_id, utc_now()),
+            )
+        self.log_audit(
+            "create_call",
+            call_id=call_id,
+            input_data={
+                "title": title,
+                "transcript": text,
+                "client": client,
+                "operator": operator,
+                "source": source,
+                "external_id": external_id,
+            },
+            output_data={"call_id": call_id, "status": "new"},
+            duration_ms=int((time.perf_counter() - started) * 1000),
+        )
+        return call_id
+
     def ingest_audio(
         self,
         audio_path: Path,
@@ -565,6 +777,7 @@ class CallStore:
     ) -> str:
         """Transcribe a real recording, run QA and add it to the review queue."""
 
+        started = time.perf_counter()
         if self.stt_client is None:
             raise RuntimeError("STT не настроен: укажите STT_API_URL")
         if external_id:
@@ -666,35 +879,87 @@ class CallStore:
                     mime_for_extension(info.extension),
                 ),
             )
+            need_review = 1 if (
+                stored_result.get("escalate")
+                or stored_result.get("auto_qa_status") == "manual_review"
+            ) else 0
+            review_reason = stored_result.get("escalate_reason") or (
+                "manual_review" if need_review else None
+            )
             connection.execute(
                 """
                 INSERT INTO call_reviews
                 (call_id, request_id, status, reviewer, final_json,
-                 changes_json, reason, updated_at)
-                VALUES (?, ?, 'pending', NULL, NULL, NULL, NULL, ?)
+                 changes_json, reason, need_review, review_reason,
+                 updated_at)
+                VALUES (?, ?, 'pending', NULL, NULL, NULL, NULL, ?, ?, ?)
                 """,
-                (call_id, response.request_id, utc_now()),
+                (
+                    call_id,
+                    response.request_id,
+                    need_review,
+                    review_reason,
+                    utc_now(),
+                ),
             )
+        self.log_audit(
+            "ingest_audio",
+            call_id=call_id,
+            input_data={
+                "filename": filename,
+                "external_id": external_id,
+                "title": title,
+            },
+            output_data={
+                "call_id": call_id,
+                "request_id": response.request_id,
+                "status": "pending",
+                "need_review": bool(need_review),
+                "review_reason": review_reason,
+            },
+            duration_ms=int((time.perf_counter() - started) * 1000),
+        )
         return call_id
 
     def process_call(self, call_id: str, source: str = "call_center"):
+        started = time.perf_counter()
         call = self.get_call(call_id)
         if call is None:
             raise KeyError(call_id)
         text = self._demo_transcript(call_id)
-        response = self.service.process(
-            scenario_key=ScenarioKey.CALL_QA,
-            text=text,
-            source=source,
-            metadata={"call_id": call_id},
+        try:
+            response = self.service.process(
+                scenario_key=ScenarioKey.CALL_QA,
+                text=text,
+                source=source,
+                metadata={"call_id": call_id},
+            )
+        except Exception as exc:
+            self.log_audit(
+                "process_call",
+                call_id=call_id,
+                input_data={"call_id": call_id, "transcript": text},
+                status="error",
+                error=f"{type(exc).__name__}: {exc}",
+                duration_ms=int((time.perf_counter() - started) * 1000),
+            )
+            raise
+        result = response.result or {}
+        need_review = 1 if (
+            result.get("escalate")
+            or result.get("auto_qa_status") == "manual_review"
+        ) else 0
+        review_reason = result.get("escalate_reason") or (
+            "manual_review" if need_review else None
         )
         with closing(self._connect()) as connection, connection:
             connection.execute(
                 """
                 INSERT INTO call_reviews
                 (call_id, request_id, status, reviewer, final_json,
-                 changes_json, reason, updated_at)
-                VALUES (?, ?, 'pending', NULL, NULL, NULL, NULL, ?)
+                 changes_json, reason, need_review, review_reason,
+                 updated_at)
+                VALUES (?, ?, 'pending', NULL, NULL, NULL, NULL, ?, ?, ?)
                 ON CONFLICT(call_id) DO UPDATE SET
                     request_id = excluded.request_id,
                     status = 'pending',
@@ -702,10 +967,30 @@ class CallStore:
                     final_json = NULL,
                     changes_json = NULL,
                     reason = NULL,
+                    need_review = excluded.need_review,
+                    review_reason = excluded.review_reason,
                     updated_at = excluded.updated_at
                 """,
-                (call_id, response.request_id, utc_now()),
+                (
+                    call_id,
+                    response.request_id,
+                    need_review,
+                    review_reason,
+                    utc_now(),
+                ),
             )
+        self.log_audit(
+            "process_call",
+            call_id=call_id,
+            input_data={
+                "call_id": call_id,
+                "request_id": response.request_id,
+                "transcript": text,
+            },
+            output_data=result,
+            status="manual_review" if need_review else "ok",
+            duration_ms=int((time.perf_counter() - started) * 1000),
+        )
         return response
 
     def confirm_call(
@@ -715,6 +1000,7 @@ class CallStore:
         reviewer: str,
         reason: str = "",
     ) -> dict[str, Any]:
+        started = time.perf_counter()
         call = self.get_call(call_id)
         if call is None:
             raise KeyError(call_id)
@@ -725,12 +1011,14 @@ class CallStore:
         call_qa_qc(validated)
         final_json = validated.model_dump(mode="json")
         changes = diff_results(call["draft_result"], final_json)
+        review_reason = reason.strip() or call.get("review_reason") or None
         with closing(self._connect()) as connection, connection:
             connection.execute(
                 """
                 UPDATE call_reviews
                 SET status='confirmed', reviewer=?, final_json=?,
-                    changes_json=?, reason=?, updated_at=?
+                    changes_json=?, reason=?, need_review=0,
+                    review_reason=?, updated_at=?
                 WHERE call_id=?
                 """,
                 (
@@ -738,6 +1026,7 @@ class CallStore:
                     json.dumps(final_json, ensure_ascii=False),
                     json.dumps(changes, ensure_ascii=False),
                     reason.strip() or None,
+                    review_reason,
                     utc_now(),
                     call_id,
                 ),
@@ -762,6 +1051,22 @@ class CallStore:
                     ttl_seconds=self.settings.pii_vault_ttl_seconds,
                 )
             self.service.enqueue_crm(request_id, crm_result)
+        self.log_audit(
+            "confirm_call",
+            call_id=call_id,
+            input_data={
+                "reviewer": reviewer or "Менеджер",
+                "reason": reason,
+                "final_result": final_json,
+            },
+            output_data={
+                "call_id": call_id,
+                "status": "confirmed",
+                "changes": changes,
+            },
+            status="ok",
+            duration_ms=int((time.perf_counter() - started) * 1000),
+        )
         return self.get_call(call_id) or call
 
     def reject_call(
@@ -770,6 +1075,7 @@ class CallStore:
         reviewer: str,
         reason: str,
     ) -> dict[str, Any]:
+        started = time.perf_counter()
         call = self.get_call(call_id)
         if call is None:
             raise KeyError(call_id)
@@ -777,11 +1083,26 @@ class CallStore:
             connection.execute(
                 """
                 UPDATE call_reviews
-                SET status='rejected', reviewer=?, reason=?, updated_at=?
+                SET status='rejected', reviewer=?, reason=?, need_review=0,
+                    review_reason=?, updated_at=?
                 WHERE call_id=?
                 """,
-                (reviewer or "Менеджер", reason.strip(), utc_now(), call_id),
+                (
+                    reviewer or "Менеджер",
+                    reason.strip(),
+                    reason.strip(),
+                    utc_now(),
+                    call_id,
+                ),
             )
+        self.log_audit(
+            "reject_call",
+            call_id=call_id,
+            input_data={"reviewer": reviewer or "Менеджер", "reason": reason},
+            output_data={"call_id": call_id, "status": "rejected"},
+            status="ok",
+            duration_ms=int((time.perf_counter() - started) * 1000),
+        )
         return self.get_call(call_id) or call
 
     def save_lead(
@@ -847,6 +1168,14 @@ class CallStore:
                 )
                 """
             )
+            connection.execute(
+                """
+                DELETE FROM audit_runs
+                WHERE call_id IN (
+                    SELECT id FROM demo_calls WHERE source = 'demo'
+                )
+                """
+            )
             connection.execute("DELETE FROM demo_calls WHERE source = 'demo'")
         self._seed_calls()
         self._seed_cached_results()
@@ -899,6 +1228,9 @@ class CallStore:
             "total": total,
             "processed": len(processed),
             "pending": statuses.get("pending", 0),
+            "need_review": sum(
+                1 for call in pending_calls if call.get("need_review")
+            ),
             "critical_pending": sum(
                 1
                 for call in pending_calls
