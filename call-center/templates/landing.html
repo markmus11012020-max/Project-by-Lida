@@ -537,12 +537,12 @@
     <div class="section-head">
       <div class="eyebrow">Экономика</div>
       <h2>Посчитайте, сколько стоит рутина</h2>
-      <p class="muted">Три цифры — и видно, сколько времени и денег забирает постобработка.</p>
+      <p class="muted">Три цифры — и видно, сколько времени и денег забирает постобработка по всему объёму звонков.</p>
     </div>
     <div class="roi-card" data-cost-per-call="{{ metrics.cost_per_call_rub }}">
       <div class="roi-controls">
         <label class="roi-field">
-          <span>Звонков в день</span>
+          <span>Всего звонков в день</span>
           <input id="roi-calls" type="number" min="1" max="10000" step="1" value="200" inputmode="numeric">
         </label>
         <label class="roi-field">
@@ -553,18 +553,21 @@
           <span>Стоимость часа оператора, ₽</span>
           <input id="roi-rate" type="number" min="100" max="5000" step="50" value="215" inputmode="numeric">
         </label>
-        <p class="roi-note">22 рабочих дня · 80% автоматизации · оценка</p>
+        <p class="roi-note">22 рабочих дня · 80% автоматизации · оценка по всему объёму</p>
       </div>
       <div class="roi-results" aria-live="polite">
         <div class="roi-result-main">
-          <span>Экономия в месяц</span>
+          <span>Экономия за месяц по всему объёму звонков</span>
           <strong id="roi-month">—</strong>
+          <small>Это сумма по всем звонкам, а не экономия на одном операторе.</small>
         </div>
-        <div class="roi-result-row"><span>Часов рутины в месяц</span><strong id="roi-hours">—</strong></div>
-        <div class="roi-result-row"><span>Экономия времени</span><strong id="roi-saved-hours">—</strong></div>
-        <div class="roi-result-row"><span>Стоимость AI-разбора</span><strong id="roi-ai-cost">—</strong></div>
-        <div class="roi-result-row roi-result-net"><span>Чистая экономия в месяц</span><strong id="roi-net">—</strong></div>
-        <div class="roi-result-row"><span>Экономия в год</span><strong id="roi-year">—</strong></div>
+        <div class="roi-result-row"><span>Экономия на один звонок</span><strong id="roi-per-call">—</strong></div>
+        <div class="roi-result-row"><span>Часов рутины по всем звонкам</span><strong id="roi-hours">—</strong></div>
+        <div class="roi-result-row"><span>Сэкономленные часы в месяц</span><strong id="roi-saved-hours">—</strong></div>
+        <div class="roi-result-row"><span>AI-разбор всех звонков</span><strong id="roi-ai-cost">—</strong></div>
+        <div class="roi-result-row roi-result-net"><span>Чистая экономия по объёму</span><strong id="roi-net">—</strong></div>
+        <div class="roi-result-row"><span>Экономия за год по объёму</span><strong id="roi-year">—</strong></div>
+        <p class="roi-formula" id="roi-formula">—</p>
         <p class="roi-disclaimer">Оценка. Точные цифры — после аудита на ваших звонках.</p>
       </div>
     </div>
@@ -654,13 +657,19 @@
     var savedMoney = savedHours * hourRate;
     var aiCost = monthlyCalls * costPerCall;
     var net = savedMoney - aiCost;
+    var perCall = monthlyCalls > 0 ? savedMoney / monthlyCalls : 0;
 
     document.getElementById('roi-month').textContent = money.format(savedMoney) + ' ₽';
+    document.getElementById('roi-per-call').textContent = plain.format(perCall) + ' ₽';
     document.getElementById('roi-hours').textContent = plain.format(routineHours) + ' ч';
     document.getElementById('roi-saved-hours').textContent = plain.format(savedHours) + ' ч';
     document.getElementById('roi-ai-cost').textContent = money.format(aiCost) + ' ₽';
     document.getElementById('roi-net').textContent = money.format(net) + ' ₽';
     document.getElementById('roi-year').textContent = money.format(net * 12) + ' ₽';
+    document.getElementById('roi-formula').textContent =
+      money.format(callsPerDay) + ' звонков/день × 22 дня × ' +
+      plain.format(cardMinutes) + ' мин × 80% × ' +
+      money.format(hourRate) + ' ₽/час';
   }
 
   [calls, minutes, rate].forEach(function (input) {

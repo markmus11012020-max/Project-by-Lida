@@ -48,6 +48,8 @@ def test_landing_has_sales_blocks_and_contacts() -> None:
     assert "от 300 000 ₽" in response.text
     assert "roi-calls" in response.text
     assert 'value="215"' in response.text
+    assert "по всему объёму звонков" in response.text
+    assert "не экономия на одном операторе" in response.text
     assert "AITUNNEL" in response.text
     assert "Bitrix24" in response.text
     assert "amoCRM" in response.text
