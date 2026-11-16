@@ -71,3 +71,27 @@ def test_lead_form_requires_consent(tmp_path: Path, monkeypatch) -> None:
     with store._connect() as connection:
         count = connection.execute("SELECT COUNT(*) AS c FROM leads").fetchone()["c"]
     assert count == 0
+
+
+def test_demo_mode_hides_upload_and_blocks_recalculation(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    store, settings, _payload = _store(tmp_path)
+    settings = settings.model_copy(update={"demo_mode": True})
+    monkeypatch.setattr(call_center_app, "store", store)
+    monkeypatch.setattr(call_center_app, "settings", settings)
+    client = TestClient(call_center_app.app)
+
+    dashboard = client.get("/dashboard")
+    assert dashboard.status_code == 200
+    assert "Загрузить звонок" not in dashboard.text
+
+    process = client.post("/calls/call_02/process", follow_redirects=False)
+    assert process.status_code == 403
+
+    upload = client.post(
+        "/review/upload",
+        files={"file": ("call.wav", b"test", "audio/wav")},
+    )
+    assert upload.status_code == 403

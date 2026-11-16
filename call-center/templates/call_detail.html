@@ -16,12 +16,12 @@
 {% if next_call %}
 <a class="btn btn-primary" href="/calls/{{ next_call.id }}?role={{ role }}" title="Горячая клавиша: N">Следующий →</a>
 {% endif %}
-{% if call.result and not read_only %}
+{% if call.result and not read_only and not demo_mode %}
 <form method="post" action="/calls/{{ call.id }}/process" class="inline-form">
   <button class="btn btn-ghost" type="submit" title="Запустить модель заново">↻ Пересчитать</button>
 </form>
 {% endif %}
-{% if rejected %}
+{% if rejected and not demo_mode %}
 <form method="post" action="/calls/{{ call.id }}/process" class="inline-form">
   <button class="btn btn-primary" type="submit">↻ Обработать заново</button>
 </form>
@@ -110,9 +110,11 @@
       <div class="empty-icon">✦</div>
       <h2>Звонок ещё не обработан</h2>
       <p class="muted">Запустите модель, чтобы получить карточку, QA-чек-лист и решение о маршрутизации.</p>
+      {% if not demo_mode %}
       <form method="post" action="/calls/{{ call.id }}/process">
         <button class="btn btn-primary" type="submit">Обработать звонок</button>
       </form>
+      {% endif %}
       {% if meta.get('error') %}
       <div class="alert alert-red">{{ meta.get('error') }}</div>
       {% endif %}

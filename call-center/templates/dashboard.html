@@ -5,10 +5,12 @@
 {% block page_subtitle %}100% звонков проходят разбор. Менеджер видит только исключения.{% endblock %}
 
 {% block topbar_actions %}
+{% if not demo_mode %}
 <form method="post" action="/review/upload" enctype="multipart/form-data" class="inline-form">
   <input class="audio-file-input" type="file" name="file" accept=".mp3,.wav,.ogg,.m4a" required aria-label="Аудиофайл">
   <button class="btn btn-primary btn-small" type="submit">Загрузить звонок</button>
 </form>
+{% endif %}
 <form method="post" action="/demo/reset" class="inline-form">
   <button class="btn btn-ghost" type="submit" title="Пересоздать демо-данные">↺ Сбросить демо</button>
 </form>

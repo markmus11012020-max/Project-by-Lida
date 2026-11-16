@@ -52,6 +52,7 @@ class Settings(BaseSettings):
     audio_retention_days: int = Field(default=30, ge=0)
 
     schema_auto_create: bool = Field(default=True)
+    demo_mode: bool = Field(default=False)
 
     pii_vault_key: str = Field(default="")
     pii_vault_path: Path = Field(default=BASE_DIR / "data" / "pii_vault.db")
@@ -78,6 +79,17 @@ class Settings(BaseSettings):
     callpilot_queue_url: str = Field(
         default="sqlite:///call-center/data/queue.db"
     )
+
+    mail_enabled: bool = Field(default=False)
+    smtp_host: str = Field(default="smtp.mail.ru")
+    smtp_port: int = Field(default=465, ge=1, le=65535)
+    smtp_username: str = Field(default="")
+    smtp_password: str = Field(default="")
+    smtp_from: str = Field(default="")
+    lead_notify_to: str = Field(default="aillix@mail.ru")
+    smtp_use_ssl: bool = Field(default=True)
+    smtp_starttls: bool = Field(default=False)
+    smtp_timeout: float = Field(default=15.0, gt=0)
 
     oktell_sync_interval_seconds: int = Field(default=300, ge=10)
     crm_dispatch_interval_seconds: int = Field(default=60, ge=10)

@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Any
 
 from fastapi import (
+    BackgroundTasks,
     FastAPI,
     File,
     Form,
@@ -42,6 +43,7 @@ from app.audio import (  # noqa: E402
     STTError,
     save_upload_to_temp,
 )
+from app.notifications import send_lead_notification  # noqa: E402
 from app.queue import create_queue  # noqa: E402
 from app.scenarios.call_qa import AUTO_PASS_SCORE, QA_CRITERIA  # noqa: E402
 from call_store import CallStore  # noqa: E402
@@ -222,6 +224,7 @@ def product_demo_poster():
 
 @app.post("/lead")
 def lead_form(
+    background_tasks: BackgroundTasks,
     name: str = Form(..., max_length=120),
     company: str = Form("", max_length=160),
     contact: str = Form(..., max_length=160),
@@ -237,7 +240,7 @@ def lead_form(
             status_code=422,
             detail="Нужно согласие на обработку персональных данных",
         )
-    store.save_lead(
+    lead_id = store.save_lead(
         name=name,
         company=company,
         contact=contact,
@@ -245,6 +248,19 @@ def lead_form(
         phone_system=phone_system,
         comment=comment,
         consent=True,
+    )
+    background_tasks.add_task(
+        send_lead_notification,
+        settings,
+        {
+            "id": lead_id,
+            "name": name,
+            "company": company,
+            "contact": contact,
+            "volume": volume,
+            "phone_system": phone_system,
+            "comment": comment,
+        },
     )
     return RedirectResponse(url="/?sent=1#lead", status_code=303)
 
@@ -283,6 +299,7 @@ def dashboard(
             "source_filter": source,
             "priority_filter": priority,
             "role": role,
+            "demo_mode": settings.demo_mode,
         },
     )
 
@@ -314,6 +331,7 @@ def call_detail(request: Request, call_id: str, role: str = "manager"):
             "confirmed": call["review_status"] == "confirmed",
             "rejected": call["review_status"] == "rejected",
             "next_call": next_call,
+            "demo_mode": settings.demo_mode,
         },
     )
 
@@ -337,6 +355,11 @@ async def upload_real_call(
     title: str = Form("", max_length=200),
     external_id: str = Form("", max_length=120),
 ):
+    if settings.demo_mode:
+        raise HTTPException(
+            status_code=403,
+            detail="Загрузка аудио отключена в публичном демо",
+        )
     if store.stt_client is None:
         raise HTTPException(
             status_code=503,
@@ -389,6 +412,11 @@ async def upload_real_call(
 
 @app.post("/calls/{call_id}/process")
 def process_call(call_id: str):
+    if settings.demo_mode:
+        raise HTTPException(
+            status_code=403,
+            detail="Пересчёт отключён в публичном демо",
+        )
     try:
         store.process_call(call_id)
     except KeyError as exc:
