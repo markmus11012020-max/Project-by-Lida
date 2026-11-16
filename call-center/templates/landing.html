@@ -557,7 +557,7 @@
       </div>
       <div class="roi-results" aria-live="polite">
         <div class="roi-result-main">
-          <span>Экономия за месяц по всему объёму звонков</span>
+          <span id="roi-main-label">Экономия с 200 звонков в день, итого за месяц</span>
           <strong id="roi-month">—</strong>
           <small>Это сумма по всем звонкам, а не экономия на одном операторе.</small>
         </div>
@@ -647,6 +647,14 @@
     return isNaN(number) || number <= 0 ? fallback : number;
   }
 
+  function callsNoun(number) {
+    var rounded = Math.round(number);
+    var mod10 = rounded % 10;
+    var mod100 = rounded % 100;
+    if (mod10 === 1 && mod100 !== 11) return 'звонка';
+    return 'звонков';
+  }
+
   function calc() {
     var callsPerDay = value(calls, 200);
     var cardMinutes = value(minutes, 3);
@@ -659,6 +667,9 @@
     var net = savedMoney - aiCost;
     var perCall = monthlyCalls > 0 ? savedMoney / monthlyCalls : 0;
 
+    document.getElementById('roi-main-label').textContent =
+      'Экономия с ' + money.format(Math.round(callsPerDay)) + ' ' +
+      callsNoun(callsPerDay) + ' в день, итого за месяц';
     document.getElementById('roi-month').textContent = money.format(savedMoney) + ' ₽';
     document.getElementById('roi-per-call').textContent = plain.format(perCall) + ' ₽';
     document.getElementById('roi-hours').textContent = plain.format(routineHours) + ' ч';
