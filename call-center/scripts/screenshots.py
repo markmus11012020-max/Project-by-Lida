@@ -91,6 +91,8 @@ def main() -> int:
                 page.screenshot(
                     path=str(SCREENSHOTS / filename),
                     full_page=full_page,
+                    animations="disabled",
+                    timeout=60000,
                 )
 
             # A compact hero image for social posts / Telegram.
